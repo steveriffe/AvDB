@@ -17,11 +17,13 @@ from app.utils.queries import (
     get_airport_kpis,
     get_airport_routes_dataset,
     get_airport_carrier_breakdown,
+    get_airport_fleet_mix,
 )
 from app.utils.visualizers import (
     build_route_map_deck,
     build_top_routes_bar_chart,
     build_carrier_market_share_donut,
+    build_airport_fleet_bar_chart,
 )
 
 st.set_page_config(
@@ -38,16 +40,16 @@ apply_apple_style()
 # 1. Header & Top Control Filter Bar
 # -------------------------------------------------------------
 st.title("✈️ Airport Network & Route Explorer")
-st.markdown("<p style='color: #8E8E93; margin-top: -12px; margin-bottom: 20px;'>Analyze origin route connectivity, direct carrier capacity, O&D yields, and great-circle flight paths.</p>", unsafe_allow_html=True)
+st.markdown("<p style='color: #8E8E93; margin-top: -12px; margin-bottom: 20px;'>Analyze origin route connectivity, direct carrier capacity, O&D yields, fleet equipment mix, and great-circle flight paths.</p>", unsafe_allow_html=True)
 
 # Fetch active airports
 df_airports = get_available_airports()
-airport_list = df_airports["airport_code"].tolist() if not df_airports.empty else ["ORD", "ATL", "DFW", "DEN", "LAX", "JFK", "SFO"]
+airport_list = df_airports["airport_code"].tolist() if not df_airports.empty else ["ORD", "ATL", "DFW", "DEN", "LAX", "JFK", "SFO", "ANC"]
 
 # Default selection helper
 default_index = airport_list.index("ORD") if "ORD" in airport_list else 0
 
-filter_col1, filter_col2, filter_col3 = st.columns([2.5, 1.5, 2])
+filter_col1, filter_col2, filter_col3 = st.columns([2.5, 1.3, 1.8])
 
 with filter_col1:
     selected_airport = st.selectbox(
@@ -66,6 +68,15 @@ with filter_col2:
         label_visibility="collapsed"
     )
 
+with filter_col3:
+    flight_type = st.selectbox(
+        "Service Filter",
+        options=["✈️ Passenger Flights Only", "📦 Include All Cargo & Charters"],
+        index=0,
+        label_visibility="collapsed"
+    )
+    is_pax_only = "Passenger Flights Only" in flight_type
+
 # Check for Metropolitan Catchment mapping (e.g. WAS, NYC, CHI)
 catchment_info = get_airport_catchment_info(selected_airport)
 if catchment_info:
@@ -79,7 +90,7 @@ if catchment_info:
 # -------------------------------------------------------------
 # 2. Top-Level Apple-Style KPI Cards
 # -------------------------------------------------------------
-kpi_data = get_airport_kpis(selected_airport, selected_year)
+kpi_data = get_airport_kpis(selected_airport, selected_year, passenger_only=is_pax_only)
 
 kpi1, kpi2, kpi3, kpi4, kpi5 = st.columns(5)
 
@@ -102,20 +113,25 @@ with kpi5:
     render_kpi_card("Leading Carrier", f"{kpi_data.get('leading_carrier', '—')}")
 
 # -------------------------------------------------------------
-# 3. Top 1/3: Analytical Charts (Bar Chart & Donut)
+# 3. Top 1/3: Analytical Charts (Top Routes, Carrier Donut, Fleet Mix)
 # -------------------------------------------------------------
-df_routes = get_airport_routes_dataset(selected_airport, selected_year)
-df_carriers = get_airport_carrier_breakdown(selected_airport, selected_year)
+df_routes = get_airport_routes_dataset(selected_airport, selected_year, passenger_only=is_pax_only)
+df_carriers = get_airport_carrier_breakdown(selected_airport, selected_year, passenger_only=is_pax_only)
+df_fleet = get_airport_fleet_mix(selected_airport, selected_year, passenger_only=is_pax_only)
 
-chart_col1, chart_col2 = st.columns([1.2, 1])
+chart_col1, chart_col2, chart_col3 = st.columns([1.15, 0.95, 1.1])
 
 with chart_col1:
-    fig_routes = build_top_routes_bar_chart(df_routes, top_n=8)
+    fig_routes = build_top_routes_bar_chart(df_routes, top_n=7)
     st.plotly_chart(fig_routes, use_container_width=True, config={"displayModeBar": False})
 
 with chart_col2:
     fig_carriers = build_carrier_market_share_donut(df_carriers)
     st.plotly_chart(fig_carriers, use_container_width=True, config={"displayModeBar": False})
+
+with chart_col3:
+    fig_fleet = build_airport_fleet_bar_chart(df_fleet, top_n=7)
+    st.plotly_chart(fig_fleet, use_container_width=True, config={"displayModeBar": False})
 
 # -------------------------------------------------------------
 # 4. Bottom 2/3 (Hero Section): Interactive Great-Circle Map

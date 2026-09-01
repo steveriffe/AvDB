@@ -68,8 +68,9 @@ flowchart LR
 - [x] **4.2 Page 1: ✈️ Airports Explorer**:
   - [x] Top-row KPI cards (Total Passengers, Direct Destinations, Load Factor %, Avg O&D Fare, Top Carrier).
   - [x] Multi-Airport Metropolitan Catchment badges (WAS $\rightarrow$ DCA/IAD/BWI, NYC $\rightarrow$ JFK/LGA/EWR, etc.).
-  - [x] Top 1/3: Top 8 Outbound Destinations bar chart + Carrier Seat Capacity donut chart.
-  - [x] Bottom 2/3: Immersive Great-Circle Arc and Node PyDeck map with custom Mapbox style support.
+  - [x] Service Type Filter toggle (✈️ Scheduled Passenger Service vs. 📦 All Cargo/Charters).
+  - [x] Top 1/3 section: Top Outbound Routes (Bar Chart) + Carrier Capacity Share (Donut) + Fleet Equipment Mix (Aircraft Models Bar Chart).
+  - [x] Bottom 2/3: Immersive Great-Circle Arc and Node PyDeck map with custom Mapbox style support & luxury glassmorphism tooltips.
   - [x] Detailed expandable route network data table with formatted metrics.
 - [ ] **4.3 Page 2: 🏢 Airlines Explorer**:
   - [ ] Network map & hub-and-spoke vs. point-to-point density.
@@ -79,6 +80,8 @@ flowchart LR
   - [ ] Aircraft type deployment by route / stage length.
   - [ ] Up-gauging / down-gauging trends over time.
   - [ ] Fleet age & utilization analysis.
+- [ ] **4.5 Future Lens: 📦 Cargo & Freight Logistics**:
+  - [ ] Dedicated tab for dedicated cargo operators (FedEx, UPS, Atlas Air, Kalitta) and freight tons/mail volume without passenger metric pollution.
 
 ### Phase 5: Deployment, Domain & Production Readiness
 - [ ] **5.1 Docker Containerization**:

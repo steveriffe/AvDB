@@ -6,7 +6,7 @@
 ---
 
 ## 🎯 Active Focus
-Completed the Apple-styled **Airport Explorer** page with top KPIs, top 1/3 analytical charts, and large-format bottom 2/3 PyDeck Great-Circle route map. Next: Building the **Airline Network & Yield Explorer** (`app/pages/2_🏢_Airlines.py`).
+Delivered passenger filtering, fleet mix analysis, solid Apple Cobalt styling, and structured luxury glassmorphism tooltips to the **Airport Explorer**. Moving next to the **Airline Network & Yield Explorer** (`app/pages/2_🏢_Airlines.py`).
 
 ---
 
@@ -25,14 +25,13 @@ Completed the Apple-styled **Airport Explorer** page with top KPIs, top 1/3 anal
 
 ## ✅ Recently Completed
 - [x] Initialized Git repository, `.gitignore`, and synced with GitHub (`steveriffe/AvDB`).
-- [x] Built reference data ingestion (`ref_airports`, `ref_city_markets`, `ref_airport_code_history`).
-- [x] Defined and materialized 3 analytical marts into `db1b-1:reporting` totaling over 9 million pre-aggregated rows.
-- [x] Built **Apple-style UI design system** with sleek KPI cards, minimal typography, and catchment badge pills.
-- [x] Built **Airports Explorer Page (`app/pages/1_✈️_Airports.py`)**:
-  - Filter bar & 5 top-level KPI cards.
-  - Top 1/3: Top 8 Outbound Destinations bar chart + Carrier Capacity Share donut chart.
-  - Bottom 2/3: Large-scale PyDeck Great-Circle Arc and Node map with hover tooltips and Mapbox support.
-  - Expandable route network data table.
+- [x] Materialized 3 analytical marts into `db1b-1:reporting` totaling over 9M rows.
+- [x] **Airports Explorer Enhancements**:
+  - Filter toggle: `✈️ Passenger Flights Only (Default)` vs `📦 Include All Cargo & Charters`.
+  - Added **Fleet Equipment Mix** chart showing top aircraft models (B738, A321neo, E175, Caravan, etc.) colored by category (Mainline Narrowbody, Widebody, Regional Jet, Turboprop).
+  - Cleaned up bar chart styling to solid Apple Cobalt Blue (`#0A84FF`).
+  - Added structured luxury glassmorphism tooltips for PyDeck maps and Plotly charts with formatted passenger counts, load factor badges, gauge, and inferred fares.
+  - Added note to `playbook.md` proposing a dedicated **📦 Cargo & Freight Logistics Lens** as a 4th dashboard tab.
 
 ---
 
