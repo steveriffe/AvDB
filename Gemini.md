@@ -40,10 +40,10 @@
    - Cache expensive BigQuery data calls using `@st.cache_data(ttl=3600, show_spinner=False)`.
    - Never put database secrets in code. Use `st.secrets` in production and standard GCP ADC locally.
    - Modularize UI components into helper functions in `app/utils/`.
-3. **State Management**:
+3. **State Management & Version Control**:
    - Update `CURRENT_STATUS.md` at the end of each session or major milestone.
-   - Update `PLAYBOOK.md` task checkboxes as features are delivered.
+   - Update `playbook.md` task checkboxes as features are delivered.
+   - **Git Commit Discipline**: Automatically stage and commit code changes at every milestone with clear, semantic commit messages (e.g., `feat: ...`, `fix: ...`, `refactor: ...`, `docs: ...`).
 4. **Data Integrity**:
    - DB1B fares contain dollar amounts reported in tenths or needing standard outlier filtering ($20 - $2,500 typical valid passenger ticket bounds; check `roundtrip` indicator).
    - T-100 uses both Carrier Reported codes and Standard DOT codes; maintain clear mapping in intermediate models.
-
