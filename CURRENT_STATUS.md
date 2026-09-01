@@ -1,43 +1,37 @@
 # Current Project Status: AvDB
 
 **Last Updated**: 2026-08-31
-**Current Phase**: Phase 3 — Analytics Marts & Dashboard Engineering
+**Current Phase**: Phase 4 — Streamlit Dashboard Engineering
 
 ---
 
 ## 🎯 Active Focus
-Constructing the pre-aggregated BigQuery analytics marts in `db1b-1.reporting` (`mart_airport_network_summary`, `mart_airline_network_performance`, `mart_fleet_route_dynamics`) and building the interactive Streamlit UI pages.
+Building out the interactive Streamlit user interface across the three analytical lenses (Airports, Airlines, Fleet & Routes) powered by our materialized BigQuery marts.
 
 ---
 
-## 📊 BigQuery Data Assets Available (`db1b-1`)
+## 📊 Live BigQuery Analytical Marts (`db1b-1.reporting`)
 
-| Dataset | Table / View | Type | Rows / Scope | Purpose |
+| Mart Table | Rows | Partitioning | Clustering | Core Dimensions & Metrics |
 | :--- | :--- | :--- | :--- | :--- |
-| `DB1B_RAW` | `OD40_DB1B_RAW` | Table | **40.3M rows** | Modern DOT OD40 10% Ticket Survey (2025) |
-| `DB1B_RAW` | `v_market_demand_itinerary` | View | Monthly O&D | Passenger demand and average ticket fare calculations |
-| `bts_t100_data` | `t100_segments` | Partitioned Table | **14.0M rows** | 1990 – 2026 segment operations, seats, and pax |
-| `bts_t100_data` | `market_all_carriers` | Partitioned Table | Millions of rows | Market-level carrier metrics and passenger counts |
-| `t100_data` | `L_AIRCRAFT_TYPE` | Lookup Table | Codes $\rightarrow$ Names | BTS aircraft family mappings (e.g. B738, A321neo) |
-| `t100_data` | `v_fleet_yield_analysis` | Joined View | Operations + Fares | Route load factors, gauge, and inferred fares |
-| `reporting` | `ref_airports` | Partitioned/Clustered | **50,409 rows** | Master physical airport coordinates & metro entries |
-| `reporting` | `ref_city_markets` | Lookup Table | 10 Major Metro Areas | Catchment mapping (WAS, NYC, CHI, DFW, LON, etc.) |
-| `reporting` | `ref_airport_code_history` | Lookup Table | Relocations / Closures | Historic aliases (TXL/SXF $\rightarrow$ BER, PFN $\rightarrow$ ECP, etc.) |
+| `mart_airport_network_summary` | **2,521,106** | `flight_date` (MONTH) | `origin`, `dest`, `unique_carrier` | Direct destinations, pax volume, seat capacity, load factors, DB1B inferred fares, GPS coordinates. |
+| `mart_airline_network_performance` | **2,521,106** | `flight_date` (MONTH) | `unique_carrier`, `origin`, `dest` | Available Seat Miles (ASM), RPM, load factors, route market share %, yield per passenger-mile. |
+| `mart_fleet_route_dynamics` | **4,040,085** | `flight_date` (MONTH) | `aircraft_family`, `unique_carrier`, `origin` | Equipment types (A320/A321, B738, E175, Widebodies), avg gauge (seats/dep), stage length economics. |
+| `ref_airports` | **50,409** | — | `airport_code` | Master airport GPS coordinates, classifications, metro area flags. |
+| `ref_city_markets` | **10 Metro Areas** | — | — | Catchment mapping (WAS, NYC, CHI, DFW, LON, etc.). |
+| `ref_airport_code_history` | **Historical Mappings** | — | — | Airport closures & relocations (TXL/SXF $\rightarrow$ BER, PFN $\rightarrow$ ECP, etc.). |
 
 ---
 
 ## ✅ Recently Completed
-- [x] Initialized Git repository and environment configuration (`.env`, `pyproject.toml`, `.venv`).
-- [x] Profiled existing BigQuery assets across `DB1B_RAW`, `bts_t100_data`, and `t100_data`.
-- [x] Built and executed `pipeline/build_airport_reference.py` using Parquet to populate:
-  - `reporting.ref_airports` (with coordinates, types, country, and metro flags).
-  - `reporting.ref_city_markets` (with multi-airport catchment linkages).
-  - `reporting.ref_airport_code_history` (with historical code changes and status).
-- [x] Validated coordinate joins with 2024 T-100 flight segment data.
+- [x] Initialized Git repository, `.gitignore`, and synced with GitHub (`steveriffe/AvDB`).
+- [x] Built reference data ingestion (`ref_airports`, `ref_city_markets`, `ref_airport_code_history`).
+- [x] Defined and materialized 3 analytical marts into `db1b-1:reporting` totaling over 9 million pre-aggregated rows.
+- [x] Validated sub-second query performance and DB1B fare joins on 2025 data.
 
 ---
 
 ## ⏳ Next Immediate Steps
-1. **Analytics Marts**: Materialize pre-aggregated summary tables into `db1b-1.reporting` for sub-second Streamlit performance.
-2. **Streamlit Airport Explorer**: Build interactive PyDeck great-circle route map and carrier share charts in `app/pages/1_✈️_Airports.py`.
-3. **Catchment Disambiguation in UI**: Display clear multi-airport catchment badges when city market codes (like `WAS` or `NYC`) are analyzed.
+1. **Airport Explorer (`app/pages/1_✈️_Airports.py`)**: Implement PyDeck great-circle route maps, carrier market share donuts, and historical passenger volume time-series.
+2. **Airline Explorer (`app/pages/2_🏢_Airlines.py`)**: Implement airline network density, hub vs. spoke route breakdown, and fare yield comparisons.
+3. **Fleet & Aircraft Page (`app/pages/3_💺_Fleet_Routes.py`)**: Implement gauge trend analysis (up-gauging/down-gauging) and stage-length fleet distribution.

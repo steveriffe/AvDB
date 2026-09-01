@@ -55,16 +55,10 @@ flowchart LR
   - [ ] Ingest FAA Aircraft Registry / Master Reference (tail number to aircraft type/engine/manufacturer).
 
 ### Phase 3: Analytics & Transformation Layer (BigQuery / dbt)
-- [ ] **3.1 Staging Models (`stg_`)**:
-  - [ ] Standardize airport codes, carrier codes, and timestamp formats.
-  - [ ] Clean and filter invalid/extreme DB1B ticket fare outliers.
-- [ ] **3.2 Intermediate Models (`int_`)**:
-  - [ ] Combine segment loads (T-100) with fare yields (DB1B).
-  - [ ] Join aircraft registration data to flight segment records for equipment mapping.
-- [ ] **3.3 Analytical Marts (`mart_`)**:
-  - [ ] `mart_airport_routes_summary`: Passenger volume, capacity, new routes, carrier mix by airport.
-  - [ ] `mart_airline_network_performance`: Route networks, market share, load factor, yield per RPM.
-  - [ ] `mart_fleet_route_dynamics`: Aircraft type utilization, gauge trends (seats/dep), stage-length profiles.
+- [x] **3.1 Analytical Marts (`reporting.mart_*`)**:
+  - [x] Materialized `reporting.mart_airport_network_summary` (2.52M rows, partitioned by month, clustered by origin, dest, carrier).
+  - [x] Materialized `reporting.mart_airline_network_performance` (2.52M rows, ASM, RPM, yields, route market shares).
+  - [x] Materialized `reporting.mart_fleet_route_dynamics` (4.04M rows, aircraft families, gauge, stage length).
 
 ### Phase 4: Streamlit Interactive Dashboard
 - [ ] **4.1 Core Framework & Navigation**:
