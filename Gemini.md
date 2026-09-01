@@ -47,3 +47,4 @@
 4. **Data Integrity**:
    - DB1B fares contain dollar amounts reported in tenths or needing standard outlier filtering ($20 - $2,500 typical valid passenger ticket bounds; check `roundtrip` indicator).
    - T-100 uses both Carrier Reported codes and Standard DOT codes; maintain clear mapping in intermediate models.
+
