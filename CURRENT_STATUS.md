@@ -6,7 +6,7 @@
 ---
 
 ## 🎯 Active Focus
-Building out the interactive Streamlit user interface across the three analytical lenses (Airports, Airlines, Fleet & Routes) powered by our materialized BigQuery marts.
+Completed the Apple-styled **Airport Explorer** page with top KPIs, top 1/3 analytical charts, and large-format bottom 2/3 PyDeck Great-Circle route map. Next: Building the **Airline Network & Yield Explorer** (`app/pages/2_🏢_Airlines.py`).
 
 ---
 
@@ -27,11 +27,15 @@ Building out the interactive Streamlit user interface across the three analytica
 - [x] Initialized Git repository, `.gitignore`, and synced with GitHub (`steveriffe/AvDB`).
 - [x] Built reference data ingestion (`ref_airports`, `ref_city_markets`, `ref_airport_code_history`).
 - [x] Defined and materialized 3 analytical marts into `db1b-1:reporting` totaling over 9 million pre-aggregated rows.
-- [x] Validated sub-second query performance and DB1B fare joins on 2025 data.
+- [x] Built **Apple-style UI design system** with sleek KPI cards, minimal typography, and catchment badge pills.
+- [x] Built **Airports Explorer Page (`app/pages/1_✈️_Airports.py`)**:
+  - Filter bar & 5 top-level KPI cards.
+  - Top 1/3: Top 8 Outbound Destinations bar chart + Carrier Capacity Share donut chart.
+  - Bottom 2/3: Large-scale PyDeck Great-Circle Arc and Node map with hover tooltips and Mapbox support.
+  - Expandable route network data table.
 
 ---
 
 ## ⏳ Next Immediate Steps
-1. **Airport Explorer (`app/pages/1_✈️_Airports.py`)**: Implement PyDeck great-circle route maps, carrier market share donuts, and historical passenger volume time-series.
-2. **Airline Explorer (`app/pages/2_🏢_Airlines.py`)**: Implement airline network density, hub vs. spoke route breakdown, and fare yield comparisons.
-3. **Fleet & Aircraft Page (`app/pages/3_💺_Fleet_Routes.py`)**: Implement gauge trend analysis (up-gauging/down-gauging) and stage-length fleet distribution.
+1. **Airline Explorer (`app/pages/2_🏢_Airlines.py`)**: Implement airline network density, hub vs. spoke route breakdown, and fare yield comparisons.
+2. **Fleet & Aircraft Page (`app/pages/3_💺_Fleet_Routes.py`)**: Implement gauge trend analysis (up-gauging/down-gauging) and stage-length fleet distribution.

@@ -61,14 +61,16 @@ flowchart LR
   - [x] Materialized `reporting.mart_fleet_route_dynamics` (4.04M rows, aircraft families, gauge, stage length).
 
 ### Phase 4: Streamlit Interactive Dashboard
-- [ ] **4.1 Core Framework & Navigation**:
-  - [ ] Multi-page layout with modern `st.navigation`.
-  - [ ] Cached BigQuery connection client (`app/utils/bq_client.py`).
-  - [ ] Shared UI theme, sidebar filters (year, quarter, carrier, airport, aircraft family).
-- [ ] **4.2 Page 1: ✈️ Airports Explorer**:
-  - [ ] Interactive route map (PyDeck great-circle arcs).
-  - [ ] New route additions/drops detector over time.
-  - [ ] Carrier share breakdown & average O&D fares.
+- [x] **4.1 Core Framework & Navigation**:
+  - [x] Multi-page layout with Apple-inspired minimalist design system and typography.
+  - [x] Multi-tier BigQuery cached connection client with smart OAuth token fallback (`app/utils/bq_client.py`).
+  - [x] Dynamic visualizers for Great-Circle PyDeck maps, Plotly donuts, and horizontal bar charts (`app/utils/visualizers.py`).
+- [x] **4.2 Page 1: ✈️ Airports Explorer**:
+  - [x] Top-row KPI cards (Total Passengers, Direct Destinations, Load Factor %, Avg O&D Fare, Top Carrier).
+  - [x] Multi-Airport Metropolitan Catchment badges (WAS $\rightarrow$ DCA/IAD/BWI, NYC $\rightarrow$ JFK/LGA/EWR, etc.).
+  - [x] Top 1/3: Top 8 Outbound Destinations bar chart + Carrier Seat Capacity donut chart.
+  - [x] Bottom 2/3: Immersive Great-Circle Arc and Node PyDeck map with custom Mapbox style support.
+  - [x] Detailed expandable route network data table with formatted metrics.
 - [ ] **4.3 Page 2: 🏢 Airlines Explorer**:
   - [ ] Network map & hub-and-spoke vs. point-to-point density.
   - [ ] Fare distribution histograms & yield metrics.
