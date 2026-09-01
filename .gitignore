@@ -1,0 +1,43 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+env/
+venv/
+*.egg-info/
+dist/
+build/
+
+# Environment and Secrets
+.env
+.env.local
+.env.*.local
+credentials/
+*.pem
+*.key
+*.json_creds
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+
+# Data files (keep raw & processed datasets out of git)
+data/
+*.csv
+*.tsv
+*.parquet
+*.feather
+*.h5
+*.xlsx
+*.zip
+*.tar.gz
+
+# Streamlit
+.streamlit/secrets.toml
+
+# Logs
+*.log
