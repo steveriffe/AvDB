@@ -105,3 +105,4 @@ def render_kpi_card(label: str, value: str, delta: str = None):
             {delta_html}
         </div>
     """, unsafe_allow_html=True)
+

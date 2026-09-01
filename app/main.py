@@ -1,3 +1,11 @@
+import sys
+from pathlib import Path
+
+# Automatically add project root to Python path
+REPO_ROOT = Path(__file__).resolve().parent.parent
+if str(REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT))
+
 import streamlit as st
 from app.config import settings
 from app.utils.styling import apply_apple_style, render_kpi_card

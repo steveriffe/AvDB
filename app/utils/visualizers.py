@@ -222,3 +222,4 @@ def build_carrier_market_share_donut(df_carriers: pd.DataFrame) -> go.Figure:
         )
     )
     return fig
+

@@ -31,12 +31,6 @@ dependencies = [
     "tqdm>=4.66.0"
 ]
 
-[project.optional-dependencies]
-dev = [
-    "pytest>=8.3.0",
-    "ruff>=0.6.0",
-    "black>=24.8.0",
-    "mypy>=1.11.0",
-    "dbt-bigquery>=1.8.0"
-]
-
+[tool.setuptools.packages.find]
+include = ["app*", "pipeline*", "analytics*"]
+exclude = ["docker*", "data*"]
