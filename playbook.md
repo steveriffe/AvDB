@@ -46,15 +46,13 @@ flowchart LR
 - [ ] Configure Docker & local container testing environment (`Dockerfile`, `docker-compose.yml`).
 
 ### Phase 2: Ingestion & Pipeline (BTS + DB1B -> BigQuery)
-- [ ] **2.1 BTS T-100 Data Pipeline**:
-  - [ ] Automated download scripts for T-100 domestic segment & market tables.
-  - [ ] Ingestion script to BigQuery (`raw_t100_segments`, `raw_t100_market`).
-- [ ] **2.2 DB1B 10% Ticket Survey Pipeline**:
-  - [ ] Download & uncompress quarterly DB1B Market, Coupon, and Ticket files.
-  - [ ] Schema validation and batch upload into BigQuery (`raw_db1b_coupon`, `raw_db1b_market`, `raw_db1b_ticket`).
-- [ ] **2.3 Dimensional Reference Tables**:
+- [x] **2.1 BTS T-100 & DB1B BigQuery Profiling**:
+  - [x] Profiled 14.0M rows of T-100 and 40.3M rows of DB1B OD40 in `db1b-1`.
+- [x] **2.2 Dimensional Reference Tables & Catchments**:
+  - [x] Created `reporting.ref_airports` with 50,409 global and US physical airport coordinates + metro area entries.
+  - [x] Created `reporting.ref_city_markets` mapping multi-airport catchment systems (WAS $\rightarrow$ DCA/IAD/BWI, NYC $\rightarrow$ JFK/LGA/EWR, CHI $\rightarrow$ ORD/MDW, etc.).
+  - [x] Created `reporting.ref_airport_code_history` tracking historical airport closures, relocations, and code migrations (TXL/SXF $\rightarrow$ BER, PFN $\rightarrow$ ECP, FYV $\rightarrow$ XNA, ISL $\rightarrow$ IST).
   - [ ] Ingest FAA Aircraft Registry / Master Reference (tail number to aircraft type/engine/manufacturer).
-  - [ ] Ingest Master Airport Coordinates & Metropolitan Area mappings (IATA/ICAO, lat/lon, city).
 
 ### Phase 3: Analytics & Transformation Layer (BigQuery / dbt)
 - [ ] **3.1 Staging Models (`stg_`)**:

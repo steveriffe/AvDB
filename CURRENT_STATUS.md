@@ -1,40 +1,43 @@
 # Current Project Status: AvDB
 
 **Last Updated**: 2026-08-31
-**Current Phase**: Phase 2 & 3 — Data Profiling & Analytics Mart Design
+**Current Phase**: Phase 3 — Analytics Marts & Dashboard Engineering
 
 ---
 
 ## 🎯 Active Focus
-Completed initial BigQuery discovery and data profiling across datasets in project `db1b-1`. Scoping out analytics mart queries and geospatial reference enhancements.
+Constructing the pre-aggregated BigQuery analytics marts in `db1b-1.reporting` (`mart_airport_network_summary`, `mart_airline_network_performance`, `mart_fleet_route_dynamics`) and building the interactive Streamlit UI pages.
 
 ---
 
-## 📊 BigQuery Data Assets Discovered (`db1b-1`)
+## 📊 BigQuery Data Assets Available (`db1b-1`)
 
-| Dataset | Table / View | Description | Rows / Coverage |
-| :--- | :--- | :--- | :--- |
-| `DB1B_RAW` | `OD40_DB1B_RAW` | Modern DOT OD40 10% Ticket Survey | **40.3M rows** (2025 modern format) |
-| `DB1B_RAW` | `v_market_demand_itinerary` | Survey O&D market demand & fare aggregation | View joining ticket itinerary segments |
-| `bts_t100_data` | `t100_segments` | T-100 Segment operational flights & capacity | **14.0M rows** (1990 – 2026-04, partitioned by month) |
-| `bts_t100_data` | `market_all_carriers` | T-100 Market carrier routes & passenger totals | Monthly partition, clustered by origin, carrier, dest |
-| `t100_data` | `L_AIRCRAFT_TYPE` | BTS Aircraft Type lookup table (Code -> Aircraft Name) | e.g. 698 -> Boeing 737-800, 694 -> A321neo |
-| `t100_data` | `v_airport_fleet_mix` | Joined view of T-100 operations & aircraft types | Operational pax, seats, load factor |
-| `t100_data` | `v_fleet_yield_analysis` | Joined operational capacity & DB1B ticket yield | Yield, avg fare, load factors |
-| `reporting` | *(empty)* | Dedicated analytics marts destination | Ready for pre-aggregated dashboard marts |
+| Dataset | Table / View | Type | Rows / Scope | Purpose |
+| :--- | :--- | :--- | :--- | :--- |
+| `DB1B_RAW` | `OD40_DB1B_RAW` | Table | **40.3M rows** | Modern DOT OD40 10% Ticket Survey (2025) |
+| `DB1B_RAW` | `v_market_demand_itinerary` | View | Monthly O&D | Passenger demand and average ticket fare calculations |
+| `bts_t100_data` | `t100_segments` | Partitioned Table | **14.0M rows** | 1990 – 2026 segment operations, seats, and pax |
+| `bts_t100_data` | `market_all_carriers` | Partitioned Table | Millions of rows | Market-level carrier metrics and passenger counts |
+| `t100_data` | `L_AIRCRAFT_TYPE` | Lookup Table | Codes $\rightarrow$ Names | BTS aircraft family mappings (e.g. B738, A321neo) |
+| `t100_data` | `v_fleet_yield_analysis` | Joined View | Operations + Fares | Route load factors, gauge, and inferred fares |
+| `reporting` | `ref_airports` | Partitioned/Clustered | **50,409 rows** | Master physical airport coordinates & metro entries |
+| `reporting` | `ref_city_markets` | Lookup Table | 10 Major Metro Areas | Catchment mapping (WAS, NYC, CHI, DFW, LON, etc.) |
+| `reporting` | `ref_airport_code_history` | Lookup Table | Relocations / Closures | Historic aliases (TXL/SXF $\rightarrow$ BER, PFN $\rightarrow$ ECP, etc.) |
 
 ---
 
 ## ✅ Recently Completed
-- [x] Initialized Git repository, `.gitignore`, and Git commit discipline.
-- [x] Connected to GCP project `db1b-1` via Application Default Credentials.
-- [x] Configured local environment `.env` (`GCP_PROJECT_ID=db1b-1`, `BIGQUERY_DATASET_ANALYTICS=reporting`).
-- [x] Successfully profiled 14.0M rows of T-100 and 40.3M rows of DB1B OD40 data.
-- [x] Validated prototype SQL queries for route load factors, aircraft type matching, and inferred fares.
+- [x] Initialized Git repository and environment configuration (`.env`, `pyproject.toml`, `.venv`).
+- [x] Profiled existing BigQuery assets across `DB1B_RAW`, `bts_t100_data`, and `t100_data`.
+- [x] Built and executed `pipeline/build_airport_reference.py` using Parquet to populate:
+  - `reporting.ref_airports` (with coordinates, types, country, and metro flags).
+  - `reporting.ref_city_markets` (with multi-airport catchment linkages).
+  - `reporting.ref_airport_code_history` (with historical code changes and status).
+- [x] Validated coordinate joins with 2024 T-100 flight segment data.
 
 ---
 
 ## ⏳ Next Immediate Steps
-1. **Analytics Marts Creation**: Write SQL scripts to materialize pre-aggregated summary tables into `db1b-1.reporting` (`mart_airport_routes_summary`, `mart_airline_network_performance`, `mart_fleet_route_dynamics`).
-2. **Airport Coordinates Enrichment**: Ingest airport latitude/longitude lookup table to enable PyDeck great-circle route maps.
-3. **Wire up Streamlit Pages**: Connect `app/pages/1_✈️_Airports.py`, `2_🏢_Airlines.py`, and `3_💺_Fleet_Routes.py` to live BigQuery data with interactive Plotly & PyDeck visuals.
+1. **Analytics Marts**: Materialize pre-aggregated summary tables into `db1b-1.reporting` for sub-second Streamlit performance.
+2. **Streamlit Airport Explorer**: Build interactive PyDeck great-circle route map and carrier share charts in `app/pages/1_✈️_Airports.py`.
+3. **Catchment Disambiguation in UI**: Display clear multi-airport catchment badges when city market codes (like `WAS` or `NYC`) are analyzed.
