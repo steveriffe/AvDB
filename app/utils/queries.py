@@ -362,8 +362,8 @@ def get_unserved_connecting_markets(
             SELECT 
                 origin,
                 destination AS dest,
-                -- Scale DB1B 10% sample volume by 10x for true 100% annual passenger count
-                SUM(estimated_passengers * 10) AS annual_od_passengers,
+                -- Handle BTS DB1B sample rate transition: 10% sample (10x) for <= 2024 vs 40% sample (2.5x) for >= 2025
+                SUM(estimated_passengers * IF(@year >= 2025, 2.5, 10.0)) AS annual_od_passengers,
                 AVG(avg_fare) AS avg_fare
             FROM `db1b-1.DB1B_RAW.v_market_demand_itinerary`
             WHERE origin = @airport_code
