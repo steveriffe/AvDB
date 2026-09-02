@@ -187,19 +187,17 @@ with st.expander("🎯 Target Destination Proposals (Unserved Connecting Markets
         **Unserved Nonstop Opportunities**: Analysis of true 1-stop connecting Origin-Destination (O&D) passenger volume.
         Markets are classified into **Business Heavy** (high yield) vs. **Leisure Heavy**, with recommended carrier alignment based on hub network strategy.
     """)
-    df_unserved = get_unserved_connecting_markets(selected_airport, year=2023, min_annual_pax=1500)
+    df_unserved = get_unserved_connecting_markets(selected_airport, year=2023, min_annual_pax=365)
     
     if not df_unserved.empty:
         fig_unserved = build_unserved_markets_scatter_chart(df_unserved)
         st.plotly_chart(fig_unserved, use_container_width=True, config={"displayModeBar": False})
         
-        display_unserved = df_unserved[[
-            "dest", "dest_city", "dest_state", "annual_connecting_pax", "pdew",
+        display_unserved = df_unserved.head(10)[[
+            "route_label", "annual_connecting_pax", "pdew",
             "avg_fare", "yield_per_mile", "market_type", "aligned_carrier"
         ]].rename(columns={
-            "dest": "Dest",
-            "dest_city": "City",
-            "dest_state": "State",
+            "route_label": "Proposed Route (Origin ➔ Dest)",
             "annual_connecting_pax": "Annual Pax (1-Stop)",
             "pdew": "PDEW",
             "avg_fare": "Avg Fare ($)",

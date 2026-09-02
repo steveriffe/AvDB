@@ -332,7 +332,7 @@ def get_airport_fleet_mix(
 def get_unserved_connecting_markets(
     airport_code: str, 
     year: int = 2023, 
-    min_annual_pax: int = 2000
+    min_annual_pax: int = 365
 ) -> pd.DataFrame:
     """
     Identifies top 1-stop connecting O&D markets with low or zero nonstop service,
@@ -351,7 +351,7 @@ def get_unserved_connecting_markets(
                 origin,
                 destination AS dest,
                 SUM(estimated_passengers) AS annual_od_passengers,
-                AVG(avg_fare) AS avg_od_fare
+                AVG(avg_fare) AS avg_fare
             FROM `db1b-1.DB1B_RAW.v_market_demand_itinerary`
             WHERE origin = @airport_code
             GROUP BY 1, 2
@@ -364,7 +364,7 @@ def get_unserved_connecting_markets(
             COALESCE(d_apt.state_region, '') AS dest_state,
             ROUND(d.annual_od_passengers, 0) AS annual_connecting_pax,
             ROUND(SAFE_DIVIDE(d.annual_od_passengers, 365.0), 1) AS pdew,
-            ROUND(d.avg_od_fare, 2) AS avg_fare,
+            ROUND(d.avg_fare, 2) AS avg_fare,
             -- Estimate distance using geographic coordinates if available
             ROUND(ST_DISTANCE(ST_GEOGPOINT(o_apt.longitude, o_apt.latitude), ST_GEOGPOINT(d_apt.longitude, d_apt.latitude)) / 1609.34, 0) AS distance_miles
         FROM od_demand d
@@ -384,6 +384,7 @@ def get_unserved_connecting_markets(
     # Fill default distance if null
     df["distance_miles"] = df["distance_miles"].fillna(800.0)
     df["yield_per_mile"] = (df["avg_fare"] / df["distance_miles"].replace(0, 1)).round(4)
+    df["route_label"] = df["origin"] + " ➔ " + df["dest"] + " (" + df["dest_city"] + ")"
     
     # Classify Business vs Leisure demand
     def classify_market(row):
@@ -404,6 +405,26 @@ def get_unserved_connecting_markets(
         axis=1
     )
     return df
+
+
+@st.cache_data(ttl=3600, show_spinner=False)
+def get_airline_hub_expansion_proposals(carrier_code: str, year: int = 2023) -> Dict[str, pd.DataFrame]:
+    """
+    Generates Top 5 candidate unserved connecting routes for EACH hub of the selected airline,
+    formatting full O&D route labels (e.g. SEA ➔ HOU).
+    """
+    strat = CARRIER_STRATEGY.get(carrier_code, {})
+    hubs = strat.get("hubs", ["ORD"])
+    
+    results = {}
+    for hub in hubs[:6]:  # Limit to top 6 hubs
+        df_hub = get_unserved_connecting_markets(hub, year=year, min_annual_pax=365)
+        if not df_hub.empty:
+            df_hub["route_code"] = df_hub["origin"] + " ➔ " + df_hub["dest"]
+            df_hub["full_route_name"] = df_hub["origin"] + " ➔ " + df_hub["dest"] + " (" + df_hub["dest_city"] + ")"
+            results[hub] = df_hub.head(5)
+            
+    return results
 
 
 # -------------------------------------------------------------
@@ -552,7 +573,7 @@ def get_fleet_kpis(family_filter: str, year: int) -> Dict[str, Any]:
             SUM(operational_passengers) AS total_passengers,
             ROUND(SAFE_DIVIDE(SUM(total_seats), NULLIF(SUM(departures_performed), 0)), 1) AS avg_gauge_seats,
             ROUND(SAFE_DIVIDE(SUM(operational_passengers), SUM(total_seats)) * 100, 1) AS fleet_load_factor,
-            ROUND(AVG(stage_length_miles), 0) AS avg_stage_length
+            ROUND(AVG(distance_miles), 0) AS avg_stage_length
         FROM `db1b-1.reporting.mart_fleet_route_dynamics`
         {where_clause}
     """
@@ -588,7 +609,7 @@ def get_fleet_aircraft_breakdown(family_filter: str, year: int) -> pd.DataFrame:
             SUM(operational_passengers) AS operational_passengers,
             ROUND(SAFE_DIVIDE(SUM(total_seats), NULLIF(SUM(departures_performed), 0)), 1) AS avg_gauge_seats,
             ROUND(SAFE_DIVIDE(SUM(operational_passengers), SUM(total_seats)) * 100, 1) AS load_factor_pct,
-            ROUND(AVG(stage_length_miles), 0) AS avg_stage_length
+            ROUND(AVG(distance_miles), 0) AS avg_stage_length
         FROM `db1b-1.reporting.mart_fleet_route_dynamics`
         {where_clause}
         GROUP BY 1, 2

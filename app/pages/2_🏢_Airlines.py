@@ -18,6 +18,7 @@ from app.utils.queries import (
     get_airline_hubs,
     get_airline_yield_curve,
     CARRIER_STRATEGY,
+    get_airline_hub_expansion_proposals,
     get_unserved_connecting_markets,
 )
 
@@ -35,7 +36,7 @@ apply_apple_style()
 # 1. Header & Top Control Bar
 # -------------------------------------------------------------
 st.title("🏢 Airline Network & Yield Explorer")
-st.markdown("<p style='color: #8E8E93; margin-top: -12px; margin-bottom: 20px;'>Inspect route network density, hub concentration, fare yield curves, competitor price premiums, and target expansion cities.</p>", unsafe_allow_html=True)
+st.markdown("<p style='color: #8E8E93; margin-top: -12px; margin-bottom: 20px;'>Inspect route network density, hub concentration, fare yield curves, competitor price premiums, and target expansion cities by hub.</p>", unsafe_allow_html=True)
 
 carriers_dict = {
     "AS": "Alaska Airlines (AS)",
@@ -49,7 +50,7 @@ carriers_dict = {
     "G4": "Allegiant Air (G4)"
 }
 
-col_f1, col_f2, col_f3 = st.columns([2.5, 1.2, 1.5])
+col_f1, col_f2, col_f3 = st.columns([2.5, 1.2, 1.8])
 
 with col_f1:
     selected_code = st.selectbox(
@@ -157,32 +158,34 @@ with c2:
         st.info("No yield curve data available.")
 
 # -------------------------------------------------------------
-# 4. Target Network Expansion Proposals
+# 4. Target Network Expansion Proposals: Top 5 Next Routes by Hub
 # -------------------------------------------------------------
-st.markdown("### 🎯 Strategic Expansion Proposals (Hub-Aligned Connecting Markets)")
-st.markdown(f"Proposed unserved nonstop route additions aligned with **{carriers_dict[selected_code]}**'s hub network and regional focus:")
+st.markdown("### 🎯 Strategic Route Expansion: Top 5 Next Route Candidates by Hub")
+st.markdown(f"Top 5 unserved nonstop route opportunities originating from **{carriers_dict[selected_code]}**'s primary hubs (e.g., `SEA ➔ HOU`), based on 1-stop connecting passenger demand and yield potential:")
 
-primary_hub = carrier_strat.get("hubs", ["SEA"])[0]
-df_target = get_unserved_connecting_markets(primary_hub, year=2023, min_annual_pax=1500)
+proposals = get_airline_hub_expansion_proposals(selected_code, year=2023)
 
-if not df_target.empty:
-    target_filtered = df_target[df_target["aligned_carrier"].str.contains(selected_code, na=False)]
-    if target_filtered.empty:
-        target_filtered = df_target.head(10)
-        
-    display_target = target_filtered[[
-        "dest", "dest_city", "dest_state", "annual_connecting_pax", "pdew",
-        "avg_fare", "yield_per_mile", "market_type"
-    ]].rename(columns={
-        "dest": "Proposed Dest",
-        "dest_city": "City",
-        "dest_state": "State",
-        "annual_connecting_pax": "Connecting Pax (1-Stop)",
-        "pdew": "PDEW",
-        "avg_fare": "Avg Fare ($)",
-        "yield_per_mile": "Yield ($/mi)",
-        "market_type": "Demand Segment"
-    })
-    st.dataframe(display_target, use_container_width=True, hide_index=True)
+if proposals:
+    hub_keys = list(proposals.keys())
+    tabs = st.tabs([f"🏛️ Hub: {h}" for h in hub_keys])
+    
+    for idx, hub in enumerate(hub_keys):
+        with tabs[idx]:
+            df_h = proposals[hub]
+            if not df_h.empty:
+                display_h = df_h[[
+                    "full_route_name", "annual_connecting_pax", "pdew",
+                    "avg_fare", "yield_per_mile", "market_type"
+                ]].rename(columns={
+                    "full_route_name": "Proposed Route (Origin ➔ Destination)",
+                    "annual_connecting_pax": "Annual Pax (1-Stop)",
+                    "pdew": "PDEW",
+                    "avg_fare": "Avg Fare ($)",
+                    "yield_per_mile": "Yield ($/mi)",
+                    "market_type": "Demand Segment"
+                })
+                st.dataframe(display_h, use_container_width=True, hide_index=True)
+            else:
+                st.info(f"No major unserved route opportunities found for hub {hub}.")
 else:
-    st.info("No network expansion proposals currently generated for this hub selection.")
+    st.info("No hub expansion proposals available for this carrier selection.")
