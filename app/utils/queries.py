@@ -227,35 +227,38 @@ def get_airport_routes_dataset(
 ) -> pd.DataFrame:
     """Fetches full route network details with GPS coordinates, applying min_departures frequency filter."""
     query = f"""
-        SELECT 
-            origin,
-            origin_name,
-            origin_city,
-            origin_lat,
-            origin_lon,
-            dest,
-            dest_name,
-            dest_city,
-            dest_state,
-            dest_country,
-            dest_lat,
-            dest_lon,
-            SUM(departures_performed) AS departures_performed,
-            SUM(total_seats) AS total_seats,
-            SUM(operational_passengers) AS operational_passengers,
-            ROUND(SAFE_DIVIDE(SUM(operational_passengers), SUM(total_seats)) * 100, 1) AS load_factor_pct,
-            ROUND(SAFE_DIVIDE(SUM(total_seats), NULLIF(SUM(departures_performed), 0)), 1) AS avg_gauge_seats,
-            AVG(distance_miles) AS distance_miles,
-            ROUND(AVG(avg_od_fare), 2) AS avg_od_fare,
-            STRING_AGG(DISTINCT unique_carrier, ', ' ORDER BY unique_carrier) AS operating_carriers
-        FROM `db1b-1.reporting.mart_airport_network_summary`
-        WHERE origin = @airport_code 
-          AND year = @year
-          {'AND operational_passengers > 0 AND total_seats > 0' if passenger_only else ''}
-          AND origin_lat IS NOT NULL 
-          AND dest_lat IS NOT NULL
-        GROUP BY 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12
-        HAVING SUM(departures_performed) >= @min_departures
+        WITH route_agg AS (
+            SELECT 
+                origin,
+                origin_name,
+                origin_city,
+                origin_lat,
+                origin_lon,
+                dest,
+                dest_name,
+                dest_city,
+                dest_state,
+                dest_country,
+                dest_lat,
+                dest_lon,
+                SUM(departures_performed) AS departures_performed,
+                SUM(total_seats) AS total_seats,
+                SUM(operational_passengers) AS operational_passengers,
+                ROUND(SAFE_DIVIDE(SUM(operational_passengers), SUM(total_seats)) * 100, 1) AS load_factor_pct,
+                ROUND(SAFE_DIVIDE(SUM(total_seats), NULLIF(SUM(departures_performed), 0)), 1) AS avg_gauge_seats,
+                AVG(distance_miles) AS distance_miles,
+                ROUND(AVG(avg_od_fare), 2) AS avg_od_fare,
+                STRING_AGG(DISTINCT unique_carrier, ', ' ORDER BY unique_carrier) AS operating_carriers
+            FROM `db1b-1.reporting.mart_airport_network_summary`
+            WHERE origin = @airport_code 
+              AND year = @year
+              {'AND operational_passengers > 0 AND total_seats > 0' if passenger_only else ''}
+              AND origin_lat IS NOT NULL 
+              AND dest_lat IS NOT NULL
+            GROUP BY 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12
+        )
+        SELECT * FROM route_agg
+        WHERE departures_performed >= @min_departures
         ORDER BY operational_passengers DESC
     """
     return run_query(query, params={"airport_code": airport_code, "year": year, "min_departures": min_departures})
@@ -270,19 +273,22 @@ def get_airport_carrier_breakdown(
 ) -> pd.DataFrame:
     """Fetches carrier market share breakdown by seats and passenger volume."""
     query = f"""
-        SELECT 
-            unique_carrier,
-            carrier_name,
-            SUM(departures_performed) AS departures_performed,
-            SUM(total_seats) AS total_seats,
-            SUM(operational_passengers) AS operational_passengers,
-            ROUND(SAFE_DIVIDE(SUM(operational_passengers), SUM(total_seats)) * 100, 1) AS load_factor_pct,
-            ROUND(AVG(avg_od_fare), 2) AS avg_fare
-        FROM `db1b-1.reporting.mart_airport_network_summary`
-        WHERE origin = @airport_code AND year = @year
-        {'AND operational_passengers > 0 AND total_seats > 0' if passenger_only else ''}
-        GROUP BY 1, 2
-        HAVING SUM(departures_performed) >= @min_departures
+        WITH carrier_agg AS (
+            SELECT 
+                unique_carrier,
+                carrier_name,
+                SUM(departures_performed) AS departures_performed,
+                SUM(total_seats) AS total_seats,
+                SUM(operational_passengers) AS operational_passengers,
+                ROUND(SAFE_DIVIDE(SUM(operational_passengers), SUM(total_seats)) * 100, 1) AS load_factor_pct,
+                ROUND(AVG(avg_od_fare), 2) AS avg_fare
+            FROM `db1b-1.reporting.mart_airport_network_summary`
+            WHERE origin = @airport_code AND year = @year
+            {'AND operational_passengers > 0 AND total_seats > 0' if passenger_only else ''}
+            GROUP BY 1, 2
+        )
+        SELECT * FROM carrier_agg
+        WHERE departures_performed >= @min_departures
         ORDER BY total_seats DESC
     """
     return run_query(query, params={"airport_code": airport_code, "year": year, "min_departures": min_departures})
@@ -297,19 +303,22 @@ def get_airport_fleet_mix(
 ) -> pd.DataFrame:
     """Fetches airport fleet deployment mix by aircraft family and specific model."""
     query = f"""
-        SELECT 
-            aircraft_family,
-            aircraft_description,
-            SUM(departures_performed) AS departures_performed,
-            SUM(total_seats) AS total_seats,
-            SUM(operational_passengers) AS operational_passengers,
-            ROUND(SAFE_DIVIDE(SUM(total_seats), NULLIF(SUM(departures_performed), 0)), 1) AS avg_gauge_seats,
-            ROUND(SAFE_DIVIDE(SUM(operational_passengers), SUM(total_seats)) * 100, 1) AS load_factor_pct
-        FROM `db1b-1.reporting.mart_fleet_route_dynamics`
-        WHERE origin = @airport_code AND year = @year
-        {'AND operational_passengers > 0 AND total_seats > 0' if passenger_only else ''}
-        GROUP BY 1, 2
-        HAVING SUM(departures_performed) >= @min_departures
+        WITH fleet_agg AS (
+            SELECT 
+                aircraft_family,
+                aircraft_description,
+                SUM(departures_performed) AS departures_performed,
+                SUM(total_seats) AS total_seats,
+                SUM(operational_passengers) AS operational_passengers,
+                ROUND(SAFE_DIVIDE(SUM(total_seats), NULLIF(SUM(departures_performed), 0)), 1) AS avg_gauge_seats,
+                ROUND(SAFE_DIVIDE(SUM(operational_passengers), SUM(total_seats)) * 100, 1) AS load_factor_pct
+            FROM `db1b-1.reporting.mart_fleet_route_dynamics`
+            WHERE origin = @airport_code AND year = @year
+            {'AND operational_passengers > 0 AND total_seats > 0' if passenger_only else ''}
+            GROUP BY 1, 2
+        )
+        SELECT * FROM fleet_agg
+        WHERE departures_performed >= @min_departures
         ORDER BY operational_passengers DESC
     """
     return run_query(query, params={"airport_code": airport_code, "year": year, "min_departures": min_departures})
