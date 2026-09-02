@@ -16,6 +16,7 @@ PALETTE = {
     "text": "#F5F5F7",
     "muted_text": "#8E8E93",
     "accent_blue": "#0A84FF",
+    "accent_green": "#30D158",
     "accent_cyan": "#64D2FF",
     "accent_orange": "#FF9F0A",
     "accent_pink": "#FF375F",
@@ -63,7 +64,7 @@ def build_route_map_deck(
 
     # Formatted display strings for tooltip
     df_plot["fmt_pax"] = df_plot["operational_passengers"].apply(lambda x: f"{x/1e6:.2f}M" if x >= 1e6 else f"{x:,}")
-    df_plot["fmt_fare"] = df_plot["avg_od_fare"].apply(lambda x: f"${x:.0f}" if pd.notnull(x) and x > 0 else "N/A (Interline / Small Sample)")
+    df_plot["fmt_fare"] = df_plot["avg_od_fare"].apply(lambda x: f"${x:.0f}" if pd.notnull(x) and x > 0 else "N/A")
     df_plot["fmt_lf"] = df_plot["load_factor_pct"].apply(lambda x: f"{x:.1f}%" if pd.notnull(x) else "—")
     df_plot["fmt_deps"] = df_plot["departures_performed"].apply(lambda x: f"{x:,}")
 
@@ -154,7 +155,6 @@ def build_route_map_deck(
         "style": {"backgroundColor": "transparent", "color": "white"}
     }
 
-    # Map Style handling
     map_style = mapbox_style or "dark"
 
     return pdk.Deck(
@@ -167,7 +167,10 @@ def build_route_map_deck(
 
 
 def build_top_routes_bar_chart(df_routes: pd.DataFrame, top_n: int = 8) -> go.Figure:
-    """Renders a sleek horizontal bar chart for top outbound routes in Apple Cobalt."""
+    """
+    Renders a sleek horizontal bar chart for top outbound routes in Apple Cobalt Blue.
+    Uses native Plotly hover card formatting without unsupported inline CSS span tags.
+    """
     if df_routes.empty:
         return go.Figure()
 
@@ -182,19 +185,20 @@ def build_top_routes_bar_chart(df_routes: pd.DataFrame, top_n: int = 8) -> go.Fi
         x=df_top["operational_passengers"],
         orientation="h",
         marker=dict(
-            color="#0A84FF",  # Solid Apple Cobalt Blue
+            color="#0A84FF",
             line=dict(width=0),
             opacity=0.92
         ),
         customdata=df_top[["fmt_pax", "load_factor_pct", "fmt_fare", "departures_performed", "avg_gauge_seats"]],
-        hovertemplate="""
-<b>%{y}</b><br/>
-<span style='color: #8E8E93;'>Annual Passengers:</span> <b>%{customdata[0]}</b><br/>
-<span style='color: #8E8E93;'>Avg Load Factor:</span> <b>%{customdata[1]:.1f}%</b><br/>
-<span style='color: #8E8E93;'>Inferred Fare:</span> <b>%{customdata[2]}</b><br/>
-<span style='color: #8E8E93;'>Departures:</span> <b>%{customdata[3]:,}</b><br/>
-<span style='color: #8E8E93;'>Avg Gauge:</span> <b>%{customdata[4]} seats</b>
-<extra></extra>"""
+        hovertemplate=(
+            "<b>%{y}</b><br>"
+            "Passengers: <b>%{customdata[0]}</b><br>"
+            "Avg Load Factor: <b>%{customdata[1]:.1f}%</b><br>"
+            "Inferred Fare: <b>%{customdata[2]}</b><br>"
+            "Departures: <b>%{customdata[3]:,}</b><br>"
+            "Avg Gauge: <b>%{customdata[4]} seats</b>"
+            "<extra></extra>"
+        )
     ))
 
     fig.update_layout(
@@ -255,7 +259,10 @@ def build_carrier_market_share_donut(df_carriers: pd.DataFrame) -> go.Figure:
 
 
 def build_airport_fleet_bar_chart(df_fleet: pd.DataFrame, top_n: int = 7) -> go.Figure:
-    """Renders an Apple-inspired horizontal bar chart showing top aircraft models by passenger volume."""
+    """
+    Renders an Apple-inspired horizontal bar chart showing top aircraft models by passenger volume.
+    Uses native Plotly hover card formatting.
+    """
     if df_fleet.empty:
         return go.Figure()
 
@@ -275,14 +282,15 @@ def build_airport_fleet_bar_chart(df_fleet: pd.DataFrame, top_n: int = 7) -> go.
             opacity=0.92
         ),
         customdata=df_top[["aircraft_family", "fmt_pax", "avg_gauge_seats", "load_factor_pct", "departures_performed"]],
-        hovertemplate="""
-<b>%{y}</b><br/>
-<span style='color: #8E8E93;'>Category:</span> <b>%{customdata[0]}</b><br/>
-<span style='color: #8E8E93;'>Passengers:</span> <b>%{customdata[1]}</b><br/>
-<span style='color: #8E8E93;'>Gauge:</span> <b>%{customdata[2]} seats/dep</b><br/>
-<span style='color: #8E8E93;'>Load Factor:</span> <b>%{customdata[3]:.1f}%</b><br/>
-<span style='color: #8E8E93;'>Departures:</span> <b>%{customdata[4]:,}</b>
-<extra></extra>"""
+        hovertemplate=(
+            "<b>%{y}</b><br>"
+            "Category: <b>%{customdata[0]}</b><br>"
+            "Passengers: <b>%{customdata[1]}</b><br>"
+            "Gauge: <b>%{customdata[2]} seats/dep</b><br>"
+            "Load Factor: <b>%{customdata[3]:.1f}%</b><br>"
+            "Departures: <b>%{customdata[4]:,}</b>"
+            "<extra></extra>"
+        )
     ))
 
     fig.update_layout(
@@ -302,5 +310,91 @@ def build_airport_fleet_bar_chart(df_fleet: pd.DataFrame, top_n: int = 7) -> go.
             tickfont=dict(color="#F5F5F7", size=10.5),
             title=None
         ),
+    )
+    return fig
+
+
+def build_unserved_markets_scatter_chart(df_unserved: pd.DataFrame) -> go.Figure:
+    """
+    Renders an interactive scatter plot of unserved connecting O&D markets:
+    Connecting Pax Daily Each Way (PDEW) vs. Yield ($/mile) colored by Business/Leisure profile.
+    """
+    if df_unserved.empty:
+        return go.Figure()
+
+    color_map = {
+        "💼 Business Heavy": "#30D158",   # Apple Green (High Yield)
+        "🏖️ Leisure Heavy": "#FF9F0A",   # Orange
+        "⚖️ Balanced Mix": "#0A84FF"      # Apple Blue
+    }
+
+    fig = px.scatter(
+        df_unserved,
+        x="pdew",
+        y="yield_per_mile",
+        size="annual_connecting_pax",
+        color="market_type",
+        color_discrete_map=color_map,
+        hover_name="dest_city",
+        hover_data={
+            "dest": True,
+            "annual_connecting_pax": ":,",
+            "avg_fare": ":$.0f",
+            "distance_miles": ":,.0f",
+            "aligned_carrier": True,
+            "pdew": False,
+            "market_type": False
+        },
+        labels={
+            "pdew": "Connecting Pax Daily Each Way (PDEW)",
+            "yield_per_mile": "O&D Fare Yield ($/mile)",
+            "market_type": "Market Segment"
+        }
+    )
+
+    fig.update_layout(
+        title=dict(text="🎯 Unserved Connecting Markets: Demand Density vs Yield Profile", font=dict(size=14, color="#F5F5F7")),
+        paper_bgcolor="rgba(0,0,0,0)",
+        plot_bgcolor="rgba(0,0,0,0)",
+        height=320,
+        xaxis=dict(showgrid=True, gridcolor="rgba(255,255,255,0.06)", tickfont=dict(color="#8E8E93")),
+        yaxis=dict(showgrid=True, gridcolor="rgba(255,255,255,0.06)", tickfont=dict(color="#8E8E93")),
+        legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1, font=dict(color="#F5F5F7", size=10))
+    )
+    return fig
+
+
+def build_carrier_premium_bar_chart(df_comp: pd.DataFrame) -> go.Figure:
+    """
+    Renders horizontal bar chart comparing fares and yields across operators on a route.
+    """
+    if df_comp.empty:
+        return go.Figure()
+
+    fig = go.Figure()
+    fig.add_trace(go.Bar(
+        y=df_comp["unique_carrier"] + " — " + df_comp["carrier_name"],
+        x=df_comp["avg_fare"],
+        orientation="h",
+        marker=dict(color="#0A84FF", opacity=0.9),
+        customdata=df_comp[["passenger_share_pct", "yield_per_mile", "fare_premium_vs_min"]],
+        hovertemplate=(
+            "<b>%{y}</b><br>"
+            "Avg O&D Fare: <b>$%{x:.0f}</b><br>"
+            "Passenger Share: <b>%{customdata[0]:.1f}%</b><br>"
+            "Yield: <b>$%{customdata[1]:.4f}/mi</b><br>"
+            "Premium vs Min Carrier: <b>+$%{customdata[2]:.0f}</b>"
+            "<extra></extra>"
+        )
+    ))
+
+    fig.update_layout(
+        title=dict(text="Carrier Fare Comparison on Route", font=dict(size=13, color="#F5F5F7")),
+        margin=dict(l=10, r=10, t=32, b=10),
+        paper_bgcolor="rgba(0,0,0,0)",
+        plot_bgcolor="rgba(0,0,0,0)",
+        height=240,
+        xaxis=dict(showgrid=True, gridcolor="rgba(255,255,255,0.06)", tickfont=dict(color="#8E8E93")),
+        yaxis=dict(showgrid=False, tickfont=dict(color="#F5F5F7"))
     )
     return fig

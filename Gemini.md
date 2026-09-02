@@ -48,3 +48,8 @@
    - DB1B fares contain dollar amounts reported in tenths or needing standard outlier filtering ($20 - $2,500 typical valid passenger ticket bounds; check `roundtrip` indicator).
    - T-100 uses both Carrier Reported codes and Standard DOT codes; maintain clear mapping in intermediate models.
 
+5. **Permissions & Command Execution Scoping**:
+   - **Full Execution Permission**: Pre-approved for Python (`./.venv/bin/python3`), BigQuery (`bq`), GCP (`gcloud`), Streamlit (`streamlit`), and Git (`git`).
+   - **Scope & Paths**: Full Read/Write within `/Users/steveriffe/Documents/Tech/GitHub/AvDB` and Read-Only across `/Users/steveriffe/Documents/Tech/`.
+   - **Prefix-Matchable Command Formatting**: Always format commands with simple, direct binary prefixes (e.g., `./.venv/bin/python3 script.py` rather than inline code strings `python -c "..."` or complex subshell pipes) so auto-approval rules stay prefix-matched without re-prompting.
+

@@ -41,8 +41,8 @@ flowchart LR
 
 ### Phase 1: Environment & Foundational Setup
 - [x] Project architecture and playbook definition.
-- [ ] Create Python `.venv` environment and configure `pyproject.toml` / `requirements.txt`.
-- [ ] Set up GCP BigQuery dataset schemas (`avdb_raw`, `avdb_analytics`).
+- [x] Create Python `.venv` environment and configure `pyproject.toml` / `requirements.txt`.
+- [x] Set up GCP BigQuery dataset schemas (`avdb_raw`, `avdb_analytics`).
 - [ ] Configure Docker & local container testing environment (`Dockerfile`, `docker-compose.yml`).
 
 ### Phase 2: Ingestion & Pipeline (BTS + DB1B -> BigQuery)
@@ -68,18 +68,20 @@ flowchart LR
 - [x] **4.2 Page 1: ✈️ Airports Explorer**:
   - [x] Top-row KPI cards (Total Passengers, Direct Destinations, Load Factor %, Avg O&D Fare, Top Carrier).
   - [x] Multi-Airport Metropolitan Catchment badges (WAS $\rightarrow$ DCA/IAD/BWI, NYC $\rightarrow$ JFK/LGA/EWR, etc.).
-  - [x] Service Type Filter toggle (✈️ Scheduled Passenger Service vs. 📦 All Cargo/Charters).
-  - [x] Top 1/3 section: Top Outbound Routes (Bar Chart) + Carrier Capacity Share (Donut) + Fleet Equipment Mix (Aircraft Models Bar Chart).
-  - [x] Bottom 2/3: Immersive Great-Circle Arc and Node PyDeck map with custom Mapbox style support & luxury glassmorphism tooltips.
-  - [x] Detailed expandable route network data table with formatted metrics.
-- [ ] **4.3 Page 2: 🏢 Airlines Explorer**:
-  - [ ] Network map & hub-and-spoke vs. point-to-point density.
-  - [ ] Fare distribution histograms & yield metrics.
-  - [ ] Capacity and load factor trends.
-- [ ] **4.4 Page 3: 💺 Fleet & Aircraft Types**:
-  - [ ] Aircraft type deployment by route / stage length.
-  - [ ] Up-gauging / down-gauging trends over time.
-  - [ ] Fleet age & utilization analysis.
+  - [x] Service Frequency Filter ($\ge 10$ flights/yr default) to filter out 1-off charters (e.g. EUG $\rightarrow$ MAF C5).
+  - [x] Plotly Tooltip Fix for multi-line hover cards without raw HTML tags.
+  - [x] **Target Destination Proposals**: Unserved 1-stop connecting market analysis, Business vs. Leisure yield tags, and hub-strategy aligned carrier assignments.
+  - [x] **Multi-Carrier Route Competition & Fare Premium Matrix**: Head-to-head fare and yield comparisons (e.g. Alaska vs Spirit).
+  - [x] Great-Circle Arc and Node PyDeck map with custom Mapbox style support & luxury glassmorphism tooltips.
+- [x] **4.3 Page 2: 🏢 Airlines Explorer**:
+  - [x] Top KPI cards (Active Routes, Departures, System Load Factor %, Yield/mile, Avg Fare).
+  - [x] Top Hub & Focus City Concentration analysis.
+  - [x] Network Yield Curve scatter plot (Stage Length vs Yield $/mile).
+  - [x] Hub-aligned strategic expansion proposals.
+- [x] **4.4 Page 3: 💺 Fleet & Aircraft Types**:
+  - [x] Top KPI cards (Unique Airframes, Operating Carriers, Departures, Avg Gauge, Avg Stage Length).
+  - [x] Aircraft model deployment mix by seat capacity and category (Widebody, Mainline, Regional Jet, Turboprop).
+  - [x] Gauge vs. Stage Length economics scatter plot.
 - [ ] **4.5 Future Lens: 📦 Cargo & Freight Logistics**:
   - [ ] Dedicated tab for dedicated cargo operators (FedEx, UPS, Atlas Air, Kalitta) and freight tons/mail volume without passenger metric pollution.
 

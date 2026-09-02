@@ -1,12 +1,12 @@
 # Current Project Status: AvDB
 
-**Last Updated**: 2026-08-31
-**Current Phase**: Phase 4 — Streamlit Dashboard Engineering
+**Last Updated**: 2026-09-01
+**Current Phase**: Phase 4 — Streamlit Dashboard Engineering (Phase 4.1 - 4.4 Complete)
 
 ---
 
 ## 🎯 Active Focus
-Delivered passenger filtering, fleet mix analysis, solid Apple Cobalt styling, and structured luxury glassmorphism tooltips to the **Airport Explorer**. Moving next to the **Airline Network & Yield Explorer** (`app/pages/2_🏢_Airlines.py`).
+Delivered charter noise filtering ($\ge 10$ flights/yr default), repaired Plotly bar chart hover tooltips, introduced **Unserved Connecting Market Proposals** with Business vs. Leisure yield tagging and carrier strategy alignment, built out **Route Carrier Competition & Fare Premiums**, and fully engineered **Airlines Explorer** (`2_🏢_Airlines.py`) and **Fleet Explorer** (`3_💺_Fleet_Routes.py`).
 
 ---
 
@@ -24,17 +24,22 @@ Delivered passenger filtering, fleet mix analysis, solid Apple Cobalt styling, a
 ---
 
 ## ✅ Recently Completed
-- [x] Initialized Git repository, `.gitignore`, and synced with GitHub (`steveriffe/AvDB`).
-- [x] Materialized 3 analytical marts into `db1b-1:reporting` totaling over 9M rows.
 - [x] **Airports Explorer Enhancements**:
-  - Filter toggle: `✈️ Passenger Flights Only (Default)` vs `📦 Include All Cargo & Charters`.
-  - Added **Fleet Equipment Mix** chart showing top aircraft models (B738, A321neo, E175, Caravan, etc.) colored by category (Mainline Narrowbody, Widebody, Regional Jet, Turboprop).
-  - Cleaned up bar chart styling to solid Apple Cobalt Blue (`#0A84FF`).
-  - Added structured luxury glassmorphism tooltips for PyDeck maps and Plotly charts with formatted passenger counts, load factor badges, gauge, and inferred fares.
-  - Added note to `playbook.md` proposing a dedicated **📦 Cargo & Freight Logistics Lens** as a 4th dashboard tab.
+  - **Min Flight Frequency Selector**: Default $\ge 10$ flights/yr to filter out 1-off charters (e.g. EUG $\rightarrow$ MAF C5), with options for Weekly+ ($\ge 50$) and Daily ($\ge 365$).
+  - **Plotly Tooltip Repair**: Fixed left & right bar charts to render clean multi-line hover cards without raw HTML tags.
+  - **Target Destination Proposals**: Extracted top unserved 1-stop connecting O&D markets, PDEW, average fare, yield ($/mile), Business vs. Leisure tags, and hub-strategy aligned carrier assignments.
+  - **Multi-Carrier Route Competition**: Route-level carrier market share and fare/yield premium matrix (e.g. Alaska vs Spirit).
+- [x] **Airlines Explorer (`app/pages/2_🏢_Airlines.py`)**:
+  - Hub & Focus City concentration analysis.
+  - Network Yield Curve scatter plot (Stage Length vs Yield $/mile).
+  - Hub-aligned strategic expansion target proposals.
+- [x] **Fleet Explorer (`app/pages/3_💺_Fleet_Routes.py`)**:
+  - Top aircraft models by seat capacity and category (Widebody, Mainline, Regional Jet, Turboprop).
+  - Gauge vs. Stage Length economics scatter plot.
+  - Detailed equipment deployment table.
 
 ---
 
 ## ⏳ Next Immediate Steps
-1. **Airline Explorer (`app/pages/2_🏢_Airlines.py`)**: Implement airline network density, hub vs. spoke route breakdown, and fare yield comparisons.
-2. **Fleet & Aircraft Page (`app/pages/3_💺_Fleet_Routes.py`)**: Implement gauge trend analysis (up-gauging/down-gauging) and stage-length fleet distribution.
+1. **Cargo & Freight Lens (Phase 4.5)**: Dedicated dashboard tab for cargo operators (FedEx, UPS, Atlas Air) to track freight tons and mail volume.
+2. **Containerization & Deployment (Phase 5)**: Multi-stage Docker containerization and Google Cloud Run deployment with custom SSL domain.

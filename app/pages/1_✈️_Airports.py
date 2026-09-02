@@ -18,12 +18,16 @@ from app.utils.queries import (
     get_airport_routes_dataset,
     get_airport_carrier_breakdown,
     get_airport_fleet_mix,
+    get_unserved_connecting_markets,
+    get_route_carrier_competition,
 )
 from app.utils.visualizers import (
     build_route_map_deck,
     build_top_routes_bar_chart,
     build_carrier_market_share_donut,
     build_airport_fleet_bar_chart,
+    build_unserved_markets_scatter_chart,
+    build_carrier_premium_bar_chart,
 )
 
 st.set_page_config(
@@ -46,10 +50,9 @@ st.markdown("<p style='color: #8E8E93; margin-top: -12px; margin-bottom: 20px;'>
 df_airports = get_available_airports()
 airport_list = df_airports["airport_code"].tolist() if not df_airports.empty else ["ORD", "ATL", "DFW", "DEN", "LAX", "JFK", "SFO", "ANC"]
 
-# Default selection helper
 default_index = airport_list.index("ORD") if "ORD" in airport_list else 0
 
-filter_col1, filter_col2, filter_col3 = st.columns([2.5, 1.3, 1.8])
+filter_col1, filter_col2, filter_col3, filter_col4 = st.columns([2.2, 1.1, 1.4, 1.4])
 
 with filter_col1:
     selected_airport = st.selectbox(
@@ -71,11 +74,27 @@ with filter_col2:
 with filter_col3:
     flight_type = st.selectbox(
         "Service Filter",
-        options=["✈️ Passenger Flights Only", "📦 Include All Cargo & Charters"],
+        options=["✈️ Passenger Flights Only", "📦 Include Cargo & Charters"],
         index=0,
         label_visibility="collapsed"
     )
     is_pax_only = "Passenger Flights Only" in flight_type
+
+with filter_col4:
+    freq_label = st.selectbox(
+        "Min Route Frequency",
+        options=["≥ 10 flights/yr (Default)", "≥ 50 flights/yr (Weekly+)", "≥ 365 flights/yr (Daily)", "All (Include 1-off charters)"],
+        index=0,
+        label_visibility="collapsed"
+    )
+    if "≥ 10" in freq_label:
+        min_deps = 10
+    elif "≥ 50" in freq_label:
+        min_deps = 50
+    elif "≥ 365" in freq_label:
+        min_deps = 365
+    else:
+        min_deps = 1
 
 # Check for Metropolitan Catchment mapping (e.g. WAS, NYC, CHI)
 catchment_info = get_airport_catchment_info(selected_airport)
@@ -90,7 +109,7 @@ if catchment_info:
 # -------------------------------------------------------------
 # 2. Top-Level Apple-Style KPI Cards
 # -------------------------------------------------------------
-kpi_data = get_airport_kpis(selected_airport, selected_year, passenger_only=is_pax_only)
+kpi_data = get_airport_kpis(selected_airport, selected_year, passenger_only=is_pax_only, min_departures=min_deps)
 
 kpi1, kpi2, kpi3, kpi4, kpi5 = st.columns(5)
 
@@ -113,11 +132,11 @@ with kpi5:
     render_kpi_card("Leading Carrier", f"{kpi_data.get('leading_carrier', '—')}")
 
 # -------------------------------------------------------------
-# 3. Top 1/3: Analytical Charts (Top Routes, Carrier Donut, Fleet Mix)
+# 3. Analytical Charts (Top Routes, Carrier Donut, Fleet Mix)
 # -------------------------------------------------------------
-df_routes = get_airport_routes_dataset(selected_airport, selected_year, passenger_only=is_pax_only)
-df_carriers = get_airport_carrier_breakdown(selected_airport, selected_year, passenger_only=is_pax_only)
-df_fleet = get_airport_fleet_mix(selected_airport, selected_year, passenger_only=is_pax_only)
+df_routes = get_airport_routes_dataset(selected_airport, selected_year, passenger_only=is_pax_only, min_departures=min_deps)
+df_carriers = get_airport_carrier_breakdown(selected_airport, selected_year, passenger_only=is_pax_only, min_departures=min_deps)
+df_fleet = get_airport_fleet_mix(selected_airport, selected_year, passenger_only=is_pax_only, min_departures=min_deps)
 
 chart_col1, chart_col2, chart_col3 = st.columns([1.15, 0.95, 1.1])
 
@@ -134,7 +153,7 @@ with chart_col3:
     st.plotly_chart(fig_fleet, use_container_width=True, config={"displayModeBar": False})
 
 # -------------------------------------------------------------
-# 4. Bottom 2/3 (Hero Section): Interactive Great-Circle Map
+# 4. Hero Section: Interactive Great-Circle Map
 # -------------------------------------------------------------
 st.markdown("### 🌐 Route Network & Great-Circle Paths")
 
@@ -146,7 +165,6 @@ if not df_routes.empty:
         "longitude": df_routes["origin_lon"].iloc[0],
     }
     
-    # Mapbox style and API key from environment / secrets
     mapbox_token = os.getenv("MAPBOX_API_KEY", "")
     mapbox_style = os.getenv("MAPBOX_STYLE", "mapbox://styles/mapbox/dark-v11" if mapbox_token else "dark")
 
@@ -159,10 +177,80 @@ if not df_routes.empty:
 
     st.pydeck_chart(deck_map, use_container_width=True)
 else:
-    st.info(f"No direct flight route operations recorded for {selected_airport} in {selected_year}.")
+    st.info(f"No direct flight route operations matching filter criteria for {selected_airport} in {selected_year}.")
 
 # -------------------------------------------------------------
-# 5. Expandable Route Data Table
+# 5. Destination Development & Unserved Connecting Markets
+# -------------------------------------------------------------
+with st.expander("🎯 Target Destination Proposals (Unserved Connecting Markets)", expanded=False):
+    st.markdown("""
+        **Unserved Nonstop Opportunities**: Analysis of true 1-stop connecting Origin-Destination (O&D) passenger volume.
+        Markets are classified into **Business Heavy** (high yield) vs. **Leisure Heavy**, with recommended carrier alignment based on hub network strategy.
+    """)
+    df_unserved = get_unserved_connecting_markets(selected_airport, year=2023, min_annual_pax=1500)
+    
+    if not df_unserved.empty:
+        fig_unserved = build_unserved_markets_scatter_chart(df_unserved)
+        st.plotly_chart(fig_unserved, use_container_width=True, config={"displayModeBar": False})
+        
+        display_unserved = df_unserved[[
+            "dest", "dest_city", "dest_state", "annual_connecting_pax", "pdew",
+            "avg_fare", "yield_per_mile", "market_type", "aligned_carrier"
+        ]].rename(columns={
+            "dest": "Dest",
+            "dest_city": "City",
+            "dest_state": "State",
+            "annual_connecting_pax": "Annual Pax (1-Stop)",
+            "pdew": "PDEW",
+            "avg_fare": "Avg Fare ($)",
+            "yield_per_mile": "Yield ($/mi)",
+            "market_type": "Market Profile",
+            "aligned_carrier": "Strategy-Aligned Carrier"
+        })
+        st.dataframe(display_unserved, use_container_width=True, hide_index=True)
+    else:
+        st.info("No major unserved connecting markets exceeding threshold found for this origin.")
+
+# -------------------------------------------------------------
+# 6. Route Carrier Competition & Fare Premiums
+# -------------------------------------------------------------
+with st.expander("⚔️ Multi-Carrier Route Competition & Fare Premium Matrix", expanded=False):
+    if not df_routes.empty:
+        # Multi-carrier selection
+        multi_routes = df_routes[df_routes["operating_carriers"].str.contains(",", na=False)]
+        selected_dest = st.selectbox(
+            "Select Route for Operator Breakdown",
+            options=df_routes["dest"].tolist(),
+            format_func=lambda d: f"{selected_airport} ➔ {d} ({df_routes.loc[df_routes['dest'] == d, 'dest_city'].iloc[0]}) — Carriers: {df_routes.loc[df_routes['dest'] == d, 'operating_carriers'].iloc[0]}"
+        )
+        
+        df_comp = get_route_carrier_competition(selected_airport, selected_dest, selected_year)
+        if not df_comp.empty and len(df_comp) > 1:
+            col_c1, col_c2 = st.columns([1.2, 1.0])
+            with col_c1:
+                fig_comp = build_carrier_premium_bar_chart(df_comp)
+                st.plotly_chart(fig_comp, use_container_width=True, config={"displayModeBar": False})
+            with col_c2:
+                st.markdown(f"**Carrier Yield & Premium Summary ({selected_airport} ➔ {selected_dest})**")
+                display_comp = df_comp[[
+                    "unique_carrier", "carrier_name", "total_seats", "capacity_share_pct",
+                    "passenger_share_pct", "avg_fare", "yield_per_mile", "fare_premium_vs_min"
+                ]].rename(columns={
+                    "unique_carrier": "Code",
+                    "carrier_name": "Carrier",
+                    "total_seats": "Seats",
+                    "capacity_share_pct": "Capacity %",
+                    "passenger_share_pct": "Pax Share %",
+                    "avg_fare": "Avg Fare ($)",
+                    "yield_per_mile": "Yield ($/mi)",
+                    "fare_premium_vs_min": "Premium vs Low ($)"
+                })
+                st.dataframe(display_comp, use_container_width=True, hide_index=True)
+        else:
+            st.info(f"Route {selected_airport} ➔ {selected_dest} is operated by a single carrier or has limited competitor sample data.")
+
+# -------------------------------------------------------------
+# 7. Expandable Route Data Table
 # -------------------------------------------------------------
 with st.expander("📋 View Detailed Route Data Table"):
     if not df_routes.empty:
