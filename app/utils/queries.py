@@ -332,11 +332,12 @@ def get_airport_fleet_mix(
 def get_unserved_connecting_markets(
     airport_code: str, 
     year: int = 2023, 
-    min_annual_pax: int = 365,
+    min_annual_pax: int = 1000,
     exclude_alternate_airports: bool = False
 ) -> pd.DataFrame:
     """
     Identifies top 1-stop connecting O&D markets with low or zero nonstop service,
+    scales DB1B 10% sample by 10x to reflect true annual passenger traffic,
     classifies Business vs. Leisure demand by yield ($/mile), tags hub-strategy aligned carriers,
     and identifies Metro Catchment status (e.g. HOU served via IAH vs 100% New City Market).
     """
@@ -361,7 +362,8 @@ def get_unserved_connecting_markets(
             SELECT 
                 origin,
                 destination AS dest,
-                SUM(estimated_passengers) AS annual_od_passengers,
+                -- Scale DB1B 10% sample volume by 10x for true 100% annual passenger count
+                SUM(estimated_passengers * 10) AS annual_od_passengers,
                 AVG(avg_fare) AS avg_fare
             FROM `db1b-1.DB1B_RAW.v_market_demand_itinerary`
             WHERE origin = @airport_code
@@ -447,7 +449,7 @@ def get_airline_hub_expansion_proposals(
         df_hub = get_unserved_connecting_markets(
             hub, 
             year=year, 
-            min_annual_pax=365,
+            min_annual_pax=1000,
             exclude_alternate_airports=exclude_alternate_airports
         )
         if not df_hub.empty:
@@ -588,12 +590,32 @@ def get_airline_yield_curve(carrier_code: str, year: int) -> pd.DataFrame:
 # FLEET & AIRCRAFT EXPLORER QUERIES
 # -------------------------------------------------------------
 
+def _build_fleet_where(family_filter: str) -> tuple[str, dict]:
+    """Helper to build robust SQL WHERE clause for aircraft family/model selections."""
+    where_sql = "WHERE year = @year"
+    params = {}
+    if family_filter != "All Mainline & Regional":
+        if "A320" in family_filter:
+            where_sql += " AND (aircraft_description LIKE '%A320%' OR aircraft_description LIKE '%A321%' OR aircraft_description LIKE '%A319%')"
+        elif "737" in family_filter:
+            where_sql += " AND (aircraft_description LIKE '%737%' OR aircraft_description LIKE '%MAX%')"
+        elif "Widebody" in family_filter:
+            where_sql += " AND aircraft_family = 'Widebody'"
+        elif "Embraer" in family_filter or "E-Jets" in family_filter:
+            where_sql += " AND (aircraft_description LIKE '%E17%' OR aircraft_description LIKE '%E19%' OR aircraft_description LIKE '%ERJ%')"
+        elif "CRJ" in family_filter:
+            where_sql += " AND aircraft_description LIKE '%CRJ%'"
+        else:
+            where_sql += " AND aircraft_family LIKE @fam_pattern"
+            params["fam_pattern"] = f"%{family_filter.split(' ')[0]}%"
+    return where_sql, params
+
+
 @st.cache_data(ttl=3600, show_spinner=False)
 def get_fleet_kpis(family_filter: str, year: int) -> Dict[str, Any]:
-    """Calculates top-level utilization metrics for an aircraft category or family."""
-    where_clause = "WHERE year = @year"
-    if family_filter != "All Mainline & Regional":
-        where_clause += " AND aircraft_family LIKE @fam_pattern"
+    """Calculates top-level utilization and revenue metrics for an aircraft category or family."""
+    where_sql, extra_params = _build_fleet_where(family_filter)
+    params = {"year": year, **extra_params}
 
     query = f"""
         SELECT 
@@ -604,13 +626,14 @@ def get_fleet_kpis(family_filter: str, year: int) -> Dict[str, Any]:
             SUM(operational_passengers) AS total_passengers,
             ROUND(SAFE_DIVIDE(SUM(total_seats), NULLIF(SUM(departures_performed), 0)), 1) AS avg_gauge_seats,
             ROUND(SAFE_DIVIDE(SUM(operational_passengers), SUM(total_seats)) * 100, 1) AS fleet_load_factor,
-            ROUND(AVG(distance_miles), 0) AS avg_stage_length
+            ROUND(AVG(distance_miles), 0) AS avg_stage_length,
+            ROUND(AVG(avg_od_fare), 2) AS avg_segment_fare,
+            ROUND(SAFE_DIVIDE(AVG(avg_od_fare), NULLIF(AVG(distance_miles), 0)), 4) AS yield_per_mile
         FROM `db1b-1.reporting.mart_fleet_route_dynamics`
-        {where_clause}
+        {where_sql}
     """
-    fam_pattern = f"%{family_filter.split(' ')[0]}%" if family_filter != "All Mainline & Regional" else "%"
-    df = run_query(query, params={"year": year, "fam_pattern": fam_pattern})
-    if not df.empty:
+    df = run_query(query, params=params)
+    if not df.empty and df["total_departures"].iloc[0] is not None:
         return df.iloc[0].to_dict()
     return {
         "unique_models": 0,
@@ -620,16 +643,17 @@ def get_fleet_kpis(family_filter: str, year: int) -> Dict[str, Any]:
         "total_passengers": 0,
         "avg_gauge_seats": 0.0,
         "fleet_load_factor": 0.0,
-        "avg_stage_length": 0
+        "avg_stage_length": 0,
+        "avg_segment_fare": 0.0,
+        "yield_per_mile": 0.0
     }
 
 
 @st.cache_data(ttl=3600, show_spinner=False)
 def get_fleet_aircraft_breakdown(family_filter: str, year: int) -> pd.DataFrame:
-    """Fetches top aircraft model deployment statistics."""
-    where_clause = "WHERE year = @year"
-    if family_filter != "All Mainline & Regional":
-        where_clause += " AND aircraft_family LIKE @fam_pattern"
+    """Fetches top aircraft model deployment and revenue statistics."""
+    where_sql, extra_params = _build_fleet_where(family_filter)
+    params = {"year": year, **extra_params}
 
     query = f"""
         SELECT 
@@ -640,12 +664,13 @@ def get_fleet_aircraft_breakdown(family_filter: str, year: int) -> pd.DataFrame:
             SUM(operational_passengers) AS operational_passengers,
             ROUND(SAFE_DIVIDE(SUM(total_seats), NULLIF(SUM(departures_performed), 0)), 1) AS avg_gauge_seats,
             ROUND(SAFE_DIVIDE(SUM(operational_passengers), SUM(total_seats)) * 100, 1) AS load_factor_pct,
-            ROUND(AVG(distance_miles), 0) AS avg_stage_length
+            ROUND(AVG(distance_miles), 0) AS avg_stage_length,
+            ROUND(AVG(avg_od_fare), 2) AS avg_segment_fare,
+            ROUND(SAFE_DIVIDE(AVG(avg_od_fare), NULLIF(AVG(distance_miles), 0)), 4) AS yield_per_mile
         FROM `db1b-1.reporting.mart_fleet_route_dynamics`
-        {where_clause}
+        {where_sql}
         GROUP BY 1, 2
         ORDER BY total_seats DESC
         LIMIT 15
     """
-    fam_pattern = f"%{family_filter.split(' ')[0]}%" if family_filter != "All Mainline & Regional" else "%"
-    return run_query(query, params={"year": year, "fam_pattern": fam_pattern})
+    return run_query(query, params=params)
