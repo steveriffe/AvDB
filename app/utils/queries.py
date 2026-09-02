@@ -332,11 +332,13 @@ def get_airport_fleet_mix(
 def get_unserved_connecting_markets(
     airport_code: str, 
     year: int = 2023, 
-    min_annual_pax: int = 365
+    min_annual_pax: int = 365,
+    exclude_alternate_airports: bool = False
 ) -> pd.DataFrame:
     """
     Identifies top 1-stop connecting O&D markets with low or zero nonstop service,
-    classifies Business vs. Leisure demand by yield ($/mile), and tags hub-strategy aligned carriers.
+    classifies Business vs. Leisure demand by yield ($/mile), tags hub-strategy aligned carriers,
+    and identifies Metro Catchment status (e.g. HOU served via IAH vs 100% New City Market).
     """
     query = """
         WITH nonstop_serviced AS (
@@ -345,6 +347,15 @@ def get_unserved_connecting_markets(
             WHERE origin = @airport_code AND year = @year
             GROUP BY dest
             HAVING SUM(departures_performed) >= 10
+        ),
+        metro_members AS (
+            SELECT airport_code, market_code, market_name
+            FROM `db1b-1.reporting.ref_city_markets`
+        ),
+        nonstop_metros AS (
+            SELECT DISTINCT m.market_code
+            FROM nonstop_serviced n
+            JOIN metro_members m ON n.dest = m.airport_code
         ),
         od_demand AS (
             SELECT 
@@ -362,6 +373,12 @@ def get_unserved_connecting_markets(
             COALESCE(d_apt.airport_name, d.dest) AS dest_name,
             COALESCE(d_apt.city, d.dest) AS dest_city,
             COALESCE(d_apt.state_region, '') AS dest_state,
+            m.market_code AS dest_market_code,
+            m.market_name AS dest_market_name,
+            CASE 
+                WHEN nm.market_code IS NOT NULL THEN CONCAT('🔄 Alternate Airport (Metro Served)')
+                ELSE '🌟 100% New City Market'
+            END AS metro_status,
             ROUND(d.annual_od_passengers, 0) AS annual_connecting_pax,
             ROUND(SAFE_DIVIDE(d.annual_od_passengers, 365.0), 1) AS pdew,
             ROUND(d.avg_fare, 2) AS avg_fare,
@@ -369,17 +386,22 @@ def get_unserved_connecting_markets(
             ROUND(ST_DISTANCE(ST_GEOGPOINT(o_apt.longitude, o_apt.latitude), ST_GEOGPOINT(d_apt.longitude, d_apt.latitude)) / 1609.34, 0) AS distance_miles
         FROM od_demand d
         LEFT JOIN nonstop_serviced n ON d.dest = n.dest
+        LEFT JOIN metro_members m ON d.dest = m.airport_code
+        LEFT JOIN nonstop_metros nm ON m.market_code = nm.market_code
         LEFT JOIN `db1b-1.reporting.ref_airports` o_apt ON d.origin = o_apt.airport_code
         LEFT JOIN `db1b-1.reporting.ref_airports` d_apt ON d.dest = d_apt.airport_code
-        WHERE n.dest IS NULL -- Unserved nonstop
+        WHERE n.dest IS NULL -- Physical airport is unserved nonstop
           AND d.dest != @airport_code
           AND d.annual_od_passengers >= @min_annual_pax
         ORDER BY annual_connecting_pax DESC
-        LIMIT 25
+        LIMIT 35
     """
     df = run_query(query, params={"airport_code": airport_code, "year": year, "min_annual_pax": min_annual_pax})
     if df.empty:
         return pd.DataFrame()
+
+    if exclude_alternate_airports and "metro_status" in df.columns:
+        df = df[df["metro_status"].str.contains("100% New", na=False)]
 
     # Fill default distance if null
     df["distance_miles"] = df["distance_miles"].fillna(800.0)
@@ -408,17 +430,26 @@ def get_unserved_connecting_markets(
 
 
 @st.cache_data(ttl=3600, show_spinner=False)
-def get_airline_hub_expansion_proposals(carrier_code: str, year: int = 2023) -> Dict[str, pd.DataFrame]:
+def get_airline_hub_expansion_proposals(
+    carrier_code: str, 
+    year: int = 2023,
+    exclude_alternate_airports: bool = True
+) -> Dict[str, pd.DataFrame]:
     """
     Generates Top 5 candidate unserved connecting routes for EACH hub of the selected airline,
-    formatting full O&D route labels (e.g. SEA ➔ HOU).
+    formatting full O&D route labels (e.g. SEA ➔ HOU) with Catchment Market Awareness.
     """
     strat = CARRIER_STRATEGY.get(carrier_code, {})
     hubs = strat.get("hubs", ["ORD"])
     
     results = {}
     for hub in hubs[:6]:  # Limit to top 6 hubs
-        df_hub = get_unserved_connecting_markets(hub, year=year, min_annual_pax=365)
+        df_hub = get_unserved_connecting_markets(
+            hub, 
+            year=year, 
+            min_annual_pax=365,
+            exclude_alternate_airports=exclude_alternate_airports
+        )
         if not df_hub.empty:
             df_hub["route_code"] = df_hub["origin"] + " ➔ " + df_hub["dest"]
             df_hub["full_route_name"] = df_hub["origin"] + " ➔ " + df_hub["dest"] + " (" + df_hub["dest_city"] + ")"

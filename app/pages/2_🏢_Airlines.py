@@ -161,9 +161,20 @@ with c2:
 # 4. Target Network Expansion Proposals: Top 5 Next Routes by Hub
 # -------------------------------------------------------------
 st.markdown("### 🎯 Strategic Route Expansion: Top 5 Next Route Candidates by Hub")
-st.markdown(f"Top 5 unserved nonstop route opportunities originating from **{carriers_dict[selected_code]}**'s primary hubs (e.g., `SEA ➔ HOU`), based on 1-stop connecting passenger demand and yield potential:")
 
-proposals = get_airline_hub_expansion_proposals(selected_code, year=2023)
+scope_col1, scope_col2 = st.columns([2.5, 1.5])
+with scope_col1:
+    st.markdown(f"Top 5 unserved nonstop route opportunities originating from **{carriers_dict[selected_code]}**'s primary hubs:")
+with scope_col2:
+    market_filter = st.selectbox(
+        "Market Scope Filter",
+        options=["🌟 100% New City Markets Only", "🔄 Include Alternate Secondary Airports"],
+        index=0,
+        label_visibility="collapsed"
+    )
+    only_new_cities = "100% New" in market_filter
+
+proposals = get_airline_hub_expansion_proposals(selected_code, year=2023, exclude_alternate_airports=only_new_cities)
 
 if proposals:
     hub_keys = list(proposals.keys())
@@ -174,10 +185,11 @@ if proposals:
             df_h = proposals[hub]
             if not df_h.empty:
                 display_h = df_h[[
-                    "full_route_name", "annual_connecting_pax", "pdew",
+                    "full_route_name", "metro_status", "annual_connecting_pax", "pdew",
                     "avg_fare", "yield_per_mile", "market_type"
                 ]].rename(columns={
                     "full_route_name": "Proposed Route (Origin ➔ Destination)",
+                    "metro_status": "Catchment Market Status",
                     "annual_connecting_pax": "Annual Pax (1-Stop)",
                     "pdew": "PDEW",
                     "avg_fare": "Avg Fare ($)",
@@ -186,6 +198,6 @@ if proposals:
                 })
                 st.dataframe(display_h, use_container_width=True, hide_index=True)
             else:
-                st.info(f"No major unserved route opportunities found for hub {hub}.")
+                st.info(f"No major unserved route opportunities found matching criteria for hub {hub}.")
 else:
     st.info("No hub expansion proposals available for this carrier selection.")

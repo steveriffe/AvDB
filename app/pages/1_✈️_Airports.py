@@ -194,10 +194,11 @@ with st.expander("🎯 Target Destination Proposals (Unserved Connecting Markets
         st.plotly_chart(fig_unserved, use_container_width=True, config={"displayModeBar": False})
         
         display_unserved = df_unserved.head(10)[[
-            "route_label", "annual_connecting_pax", "pdew",
+            "route_label", "metro_status", "annual_connecting_pax", "pdew",
             "avg_fare", "yield_per_mile", "market_type", "aligned_carrier"
         ]].rename(columns={
             "route_label": "Proposed Route (Origin ➔ Dest)",
+            "metro_status": "Catchment Market Status",
             "annual_connecting_pax": "Annual Pax (1-Stop)",
             "pdew": "PDEW",
             "avg_fare": "Avg Fare ($)",
