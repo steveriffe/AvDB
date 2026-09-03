@@ -10,7 +10,11 @@ SERVICE_NAME="avdb"
 IMAGE_NAME="gcr.io/${PROJECT_ID}/${SERVICE_NAME}:latest"
 ALLOWED_EMAILS=${ALLOWED_EMAILS:-"steve@riffe.co.uk"}
 
+echo "🔧 Ensuring required GCP APIs (Cloud Build, Cloud Run, Artifact Registry) are enabled..."
+gcloud services enable cloudbuild.googleapis.com run.googleapis.com artifactregistry.googleapis.com containerregistry.googleapis.com --project "${PROJECT_ID}"
+
 echo "🚀 Building container image for AvDB..."
+
 gcloud builds submit --tag "${IMAGE_NAME}" --project "${PROJECT_ID}" .
 
 
