@@ -7,8 +7,9 @@ set -e
 PROJECT_ID=${GCP_PROJECT_ID:-"db1b-1"}
 REGION=${GCP_REGION:-"us-central1"}
 SERVICE_NAME="avdb"
-IMAGE_NAME="gcr.io/${PROJECT_ID}/${SERVICE_NAME}:latest"
+IMAGE_NAME="${REGION}-docker.pkg.dev/${PROJECT_ID}/avdb/app:latest"
 ALLOWED_EMAILS=${ALLOWED_EMAILS:-"steve@riffe.co.uk"}
+
 
 echo "🔧 Ensuring required GCP APIs (Cloud Build, Cloud Run, Artifact Registry) are enabled..."
 gcloud services enable cloudbuild.googleapis.com run.googleapis.com artifactregistry.googleapis.com containerregistry.googleapis.com --project "${PROJECT_ID}"
