@@ -11,7 +11,8 @@ IMAGE_NAME="gcr.io/${PROJECT_ID}/${SERVICE_NAME}:latest"
 ALLOWED_EMAILS=${ALLOWED_EMAILS:-"steve@riffe.co.uk"}
 
 echo "🚀 Building container image for AvDB..."
-gcloud builds submit --tag "${IMAGE_NAME}" --project "${PROJECT_ID}" -f docker/Dockerfile .
+gcloud builds submit --tag "${IMAGE_NAME}" --project "${PROJECT_ID}" --dockerfile=docker/Dockerfile .
+
 
 echo "📦 Deploying ${SERVICE_NAME} to Google Cloud Run (Wallet Protection Guardrails Active)..."
 gcloud run deploy "${SERVICE_NAME}" \
@@ -36,3 +37,4 @@ gcloud beta run domain-mappings create \
 
 echo "✅ Deployment completed!"
 echo "👉 Check Cloud Run domain mapping status with: gcloud beta run domain-mappings describe --domain avdb.riffe.co.uk --region ${REGION}"
+
