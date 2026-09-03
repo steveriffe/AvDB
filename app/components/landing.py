@@ -250,3 +250,4 @@ def render_unauthorized_page(user_info: dict):
     with c2:
         if st.button("Sign Out & Try Another Account", type="primary", use_container_width=True):
             logout()
+
