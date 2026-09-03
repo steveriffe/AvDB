@@ -1,12 +1,12 @@
 # Current Project Status: AvDB
 
-**Last Updated**: 2026-09-01
-**Current Phase**: Phase 4 — Streamlit Dashboard Engineering (Phase 4.1 - 4.4 Complete)
+**Last Updated**: 2026-09-02
+**Current Phase**: Phase 5 — Production Containerization, Google OAuth & Custom Domain Deployment (Complete)
 
 ---
 
 ## 🎯 Active Focus
-Delivered charter noise filtering ($\ge 10$ flights/yr default), repaired Plotly bar chart hover tooltips, introduced **Unserved Connecting Market Proposals** with Business vs. Leisure yield tagging and carrier strategy alignment, built out **Route Carrier Competition & Fare Premiums**, implemented year-sensitive **DB1B Sample Rate Scaling** ($10\%$ for $\le 2024$ vs $40\%$ for $2025+$), and fully engineered **Airlines Explorer** (`2_🏢_Airlines.py`) and **Fleet Explorer** (`3_💺_Fleet_Routes.py`).
+Successfully built and deployed the **AvDB Aviation Intelligence Platform** to **Google Cloud Run** (`avdb.riffe.co.uk`) with Google OAuth 2.0 authentication, an Apple-inspired HTML landing homepage, email allowlist protection (`steve@riffe.co.uk`), BigQuery cost safeguards ($1\text{ GB max}$ scanned per query), and Cloud Run auto-scaling down to zero instances ($0\text{ base cost}$ when idle).
 
 ---
 
@@ -24,26 +24,23 @@ Delivered charter noise filtering ($\ge 10$ flights/yr default), repaired Plotly
 ---
 
 ## ✅ Recently Completed
-- [x] **Airports Explorer Enhancements**:
-  - **Min Flight Frequency Selector**: Default $\ge 10$ flights/yr to filter out 1-off charters (e.g. EUG $\rightarrow$ MAF C5), with options for Weekly+ ($\ge 50$) and Daily ($\ge 365$).
-  - **Plotly Tooltip Repair**: Fixed left & right bar charts to render clean multi-line hover cards without raw HTML tags.
-  - **Target Destination Proposals**: Extracted top unserved 1-stop connecting O&D markets, PDEW, average fare, yield ($/mile), Business vs. Leisure tags, and hub-strategy aligned carrier assignments.
-  - **Metro Catchment Market Awareness**: Automatically distinguishes $100\%$ New City Markets vs. Alternate Secondary Airport entries (e.g., `HOU` vs `IAH`).
-  - **DB1B Sample Scaling**: Year-sensitive sample rate multiplier ($10\times$ for $\le 2024$ 10% survey sample; $2.5\times$ for $2025+$ 40% survey sample).
-  - **Multi-Carrier Route Competition**: Route-level carrier market share and fare/yield premium matrix (e.g. Alaska vs Spirit).
-- [x] **Airlines Explorer (`app/pages/2_🏢_Airlines.py`)**:
-  - Hub & Focus City concentration analysis.
-  - Network Yield Curve scatter plot (Stage Length vs Yield $/mile).
-  - Hub-aligned strategic expansion target proposals with Market Scope toggle (`100% New City Markets` vs `Secondary Airports`).
-- [x] **Fleet Explorer (`app/pages/3_💺_Fleet_Routes.py`)**:
-  - Top aircraft models by seat capacity and category (Widebody, Mainline, Regional Jet, Turboprop).
-  - Gauge vs. Stage Length economics scatter plot.
-  - Added **Avg Segment Fare ($)** and **Yield ($/mi)** revenue metrics.
-  - Fixed aircraft model category dropdown pattern matching.
+- [x] **Production Cloud Run & IONOS Custom Domain (`avdb.riffe.co.uk`)**:
+  - Pushed container image to Artifact Registry (`us-central1-docker.pkg.dev/db1b-1/avdb/app:latest`).
+  - Deployed Cloud Run service with `--min-instances=0` and `--max-instances=2`.
+  - Configured CNAME domain mapping for `avdb.riffe.co.uk` $\rightarrow$ `ghs.googlehosted.com.`.
+- [x] **Google OAuth 2.0 & Access Control**:
+  - Streamlit-integrated Google Sign-In module (`app/utils/auth.py`).
+  - Email allowlist guard (`ALLOWED_EMAILS=steve@riffe.co.uk`) with custom "Access Pending" card for unlisted guests.
+  - Sidebar account profile pill & Sign Out button.
+- [x] **Apple-Modern HTML Landing Homepage (`app/components/landing.py`)**:
+  - Unauthenticated visitor landing hero, feature overview, and metric scale highlights.
+- [x] **Wallet & Query Safeguards**:
+  - Enforced `maximum_bytes_billed = 1 GB` limit on all BigQuery queries in `app/utils/bq_client.py`.
 
 ---
 
 ## ⏳ Next Immediate Steps & Audit Roadmap
-1. **O&D Market Audit for Mega-Hubs (ORD, ATL, DFW)**: Revisit unserved connecting market proposals for mega-hubs to ensure seasonal/low-frequency nonstop routes (e.g. FAI, FAT, EUG, BZN) are distinguished from true unserved markets.
-2. **Cargo & Freight Lens (Phase 4.5)**: Dedicated dashboard tab for cargo operators (FedEx, UPS, Atlas Air) to track freight tons and mail volume.
-3. **Containerization & Deployment (Phase 5)**: Multi-stage Docker containerization and Google Cloud Run deployment with custom SSL domain.
+1. **IONOS DNS Record Check**: Verify CNAME propagation (`avdb.riffe.co.uk` $\rightarrow$ `ghs.googlehosted.com.`) for automatic SSL certificate issuance.
+2. **O&D Market Audit for Mega-Hubs (ORD, ATL, DFW)**: Revisit unserved connecting market proposals for mega-hubs to ensure seasonal/low-frequency nonstop routes (e.g. FAI, FAT, EUG, BZN) are distinguished from true unserved markets.
+3. **Cargo & Freight Lens (Phase 4.5)**: Dedicated dashboard tab for cargo operators (FedEx, UPS, Atlas Air) to track freight tons and mail volume.
+
