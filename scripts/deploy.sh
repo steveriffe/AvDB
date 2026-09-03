@@ -4,11 +4,20 @@
 # ==============================================================================
 set -e
 
+# Auto-load secrets from .env file if present
+if [ -f .env ]; then
+  echo "🔑 Loading secrets from .env file..."
+  set -o allexport
+  source .env
+  set +o allexport
+fi
+
 PROJECT_ID=${GCP_PROJECT_ID:-"db1b-1"}
 REGION=${GCP_REGION:-"us-central1"}
 SERVICE_NAME="avdb"
 IMAGE_NAME="gcr.io/${PROJECT_ID}/${SERVICE_NAME}:latest"
 ALLOWED_EMAILS=${ALLOWED_EMAILS:-"steve@riffe.co.uk"}
+
 
 echo "🚀 Building container image for AvDB..."
 gcloud builds submit --tag "${IMAGE_NAME}" --project "${PROJECT_ID}" --dockerfile=docker/Dockerfile .
