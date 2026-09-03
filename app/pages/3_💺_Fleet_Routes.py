@@ -19,6 +19,8 @@ from app.utils.queries import (
 )
 from app.utils.visualizers import FAMILY_COLORS
 
+from app.utils.auth import require_auth
+
 st.set_page_config(
     page_title="Fleet & Routes | AvDB",
     page_icon="💺",
@@ -28,6 +30,8 @@ st.set_page_config(
 
 # Apply Apple-esque CSS styling
 apply_apple_style()
+require_auth()
+
 
 # -------------------------------------------------------------
 # 1. Header & Control Bar

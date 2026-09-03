@@ -9,7 +9,8 @@ if str(REPO_ROOT) not in sys.path:
 import streamlit as st
 from app.config import settings
 from app.utils.styling import apply_apple_style, render_kpi_card
-from app.utils.queries import run_query
+from app.utils.auth import init_auth, is_authenticated, render_user_sidebar
+from app.components.landing import render_landing_page, render_unauthorized_page
 
 st.set_page_config(
     page_title=settings.app_title,
@@ -20,7 +21,26 @@ st.set_page_config(
 
 apply_apple_style()
 
+
 def main():
+    # 🔐 Authentication Guard
+    if settings.google_client_id:
+        user_info = init_auth()
+        if not user_info:
+            render_landing_page()
+            return
+        elif not is_authenticated():
+            render_unauthorized_page(user_info)
+            return
+        else:
+            render_user_sidebar()
+    else:
+        with st.sidebar:
+            st.caption("ℹ️ Local Dev Mode (No GOOGLE_CLIENT_ID configured)")
+
+    # -------------------------------------------------------------
+    # Authenticated Main Dashboard View
+    # -------------------------------------------------------------
     st.title(f"{settings.page_icon} {settings.app_title}")
     st.markdown("<p style='color: #8E8E93; font-size: 1.15rem; margin-top: -10px; margin-bottom: 24px;'>Enterprise aviation intelligence platform powered by Google BigQuery, BTS T-100 operations, and DB1B ticket yields.</p>", unsafe_allow_html=True)
 
@@ -73,6 +93,7 @@ def main():
                 <a href="/Fleet_Routes" target="_self" style="color: #0A84FF; font-weight: 500; text-decoration: none; font-size: 0.92rem;">Open Fleet Analytics →</a>
             </div>
         """, unsafe_allow_html=True)
+
 
 if __name__ == "__main__":
     main()

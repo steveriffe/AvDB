@@ -30,6 +30,8 @@ from app.utils.visualizers import (
     build_carrier_premium_bar_chart,
 )
 
+from app.utils.auth import require_auth
+
 st.set_page_config(
     page_title="Airports Explorer | AvDB",
     page_icon="✈️",
@@ -39,6 +41,8 @@ st.set_page_config(
 
 # Apply Apple-esque CSS styling
 apply_apple_style()
+require_auth()
+
 
 # -------------------------------------------------------------
 # 1. Header & Top Control Filter Bar

@@ -22,6 +22,8 @@ from app.utils.queries import (
     get_unserved_connecting_markets,
 )
 
+from app.utils.auth import require_auth
+
 st.set_page_config(
     page_title="Airlines Explorer | AvDB",
     page_icon="🏢",
@@ -31,6 +33,8 @@ st.set_page_config(
 
 # Apply Apple-esque CSS styling
 apply_apple_style()
+require_auth()
+
 
 # -------------------------------------------------------------
 # 1. Header & Top Control Bar
