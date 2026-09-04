@@ -105,6 +105,7 @@ CARRIER_LOGOS = {   'A3': 'https://upload.wikimedia.org/wikipedia/commons/1/1d/A
     'EY': 'https://upload.wikimedia.org/wikipedia/commons/7/70/Etihad_Airways_logo.svg',
     'F9': 'https://upload.wikimedia.org/wikipedia/commons/8/86/Frontier_Airlines_Logo.svg',
     'FJ': 'https://upload.wikimedia.org/wikipedia/en/1/14/Fiji_Airways_logo.svg',
+    'FL': 'https://upload.wikimedia.org/wikipedia/commons/5/52/AirTran_Airways_logo.svg',
     'G3': 'https://upload.wikimedia.org/wikipedia/commons/0/09/Gol_Linhas_A%C3%A9reas_Inteligentes_logo.svg',
     'G4': 'https://upload.wikimedia.org/wikipedia/commons/7/77/Allegiant_Air_logo.svg',
     'GA': 'https://upload.wikimedia.org/wikipedia/commons/2/2b/Garuda_Indonesia_Logo.svg',
@@ -139,6 +140,7 @@ CARRIER_LOGOS = {   'A3': 'https://upload.wikimedia.org/wikipedia/commons/1/1d/A
     'PA': 'https://upload.wikimedia.org/wikipedia/commons/2/26/Pan_Am_Logo.svg',
     'QF': 'https://upload.wikimedia.org/wikipedia/commons/4/4b/Qantas_Logo_2016.svg',
     'QR': 'https://upload.wikimedia.org/wikipedia/en/9/9b/Qatar_Airways_Logo.svg',
+    'QQ': 'https://upload.wikimedia.org/wikipedia/commons/e/e0/Reno_Air_logo.svg',
     'RG': 'https://upload.wikimedia.org/wikipedia/commons/c/cd/Varig_Logo_1997.svg',
     'RJ': 'https://upload.wikimedia.org/wikipedia/en/8/88/Royal_Jordanian_logo.svg',
     'RO': 'https://upload.wikimedia.org/wikipedia/commons/6/60/TAROM_logo.svg',
@@ -165,7 +167,8 @@ CARRIER_LOGOS = {   'A3': 'https://upload.wikimedia.org/wikipedia/commons/1/1d/A
     'VX': 'https://upload.wikimedia.org/wikipedia/commons/5/5a/Virgin_America_Logo.svg',
     'WN': 'https://upload.wikimedia.org/wikipedia/commons/c/c4/Southwest_Airlines_logo_2014.svg',
     'WS': 'https://upload.wikimedia.org/wikipedia/commons/d/df/WestJet_Logo.svg',
-    'WY': 'https://upload.wikimedia.org/wikipedia/en/6/6f/Oman_Air_logo.svg'}
+    'WY': 'https://upload.wikimedia.org/wikipedia/en/6/6f/Oman_Air_logo.svg',
+    'YX': 'https://upload.wikimedia.org/wikipedia/commons/3/30/Midwest_Airlines_logo.svg'}
 
 ALLIANCE_MEMBERSHIPS = [   {   'alliance_logo_url': 'https://upload.wikimedia.org/wikipedia/commons/7/77/Star_Alliance_logo.svg',
         'alliance_name': 'Star Alliance',

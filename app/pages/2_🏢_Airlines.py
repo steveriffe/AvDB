@@ -30,6 +30,14 @@ from app.utils.alliances import (
     get_carrier_logo_url,
     get_carrier_alliance_timeline,
 )
+from app.utils.mergers import (
+    get_merger_as_predecessor,
+    get_mergers_as_successor,
+    get_all_ancestor_codes,
+    get_ultimate_successor,
+    format_merger_lineage_html,
+    get_all_airline_mergers,
+)
 
 from app.utils.auth import require_auth
 
@@ -49,7 +57,7 @@ require_auth()
 # 1. Header & Top Control Bar
 # -------------------------------------------------------------
 st.title("🏢 Airline Network & Yield Explorer")
-st.markdown("<p style='color: #8E8E93; margin-top: -12px; margin-bottom: 20px;'>Inspect route network density, hub concentration, fare yield curves, competitor price premiums, and target expansion cities by hub.</p>", unsafe_allow_html=True)
+st.markdown("<p style='color: #8E8E93; margin-top: -12px; margin-bottom: 20px;'>Inspect route network density, hub concentration, fare yield curves, competitor price premiums, historical corporate mergers, and target expansion cities by hub.</p>", unsafe_allow_html=True)
 
 carriers_dict = {
     "AS": "Alaska Airlines (AS)",
@@ -61,9 +69,17 @@ carriers_dict = {
     "NK": "Spirit Airlines (NK)",
     "F9": "Frontier Airlines (F9)",
     "G4": "Allegiant Air (G4)",
-    "CO": "Continental Airlines (CO - Historical)",
-    "US": "US Airways (US - Historical)",
-    "NW": "Northwest Airlines (NW - Historical)"
+    "HA": "Hawaiian Airlines (HA - Acquired by AS 2024)",
+    "CO": "Continental Airlines (CO - Merged with UA 2010)",
+    "NW": "Northwest Airlines (NW - Merged with DL 2008)",
+    "US": "US Airways (US - Merged with AA 2013)",
+    "HP": "America West Airlines (HP - Merged with US 2005 / AA 2013)",
+    "QQ": "Reno Air (QQ - Acquired by AA 1999)",
+    "TW": "Trans World Airlines (TW - Acquired by AA 2001)",
+    "FL": "AirTran Airways (FL - Acquired by WN 2011)",
+    "VX": "Virgin America (VX - Acquired by AS 2016)",
+    "YX": "Midwest Airlines (YX - Acquired by F9 2009)",
+    "PA": "Pan American World Airways (PA - Acquired by DL 1991)",
 }
 
 col_f1, col_f2, col_f3 = st.columns([2.2, 1.2, 2.6])
@@ -113,19 +129,56 @@ with col_f3:
         unsafe_allow_html=True
     )
 
+# Corporate Merger Lineage Banner
+lineage_banner = format_merger_lineage_html(selected_code)
+if lineage_banner:
+    st.markdown(lineage_banner, unsafe_allow_html=True)
+
 # Historical Alliance & Corporate Transition Timeline expander
 timeline = get_carrier_alliance_timeline(selected_code)
-if timeline:
-    with st.expander(f"📜 {carriers_dict.get(selected_code, selected_code)}: Alliance & Corporate History", expanded=False):
-        for t in timeline:
-            join = t.get("join_date", "Unknown")
-            exit_d = t.get("exit_date") or "Present"
-            status_emoji = "🟢" if exit_d == "Present" else "⚪"
+pred_merger = get_merger_as_predecessor(selected_code)
+absorbed_mergers = get_mergers_as_successor(selected_code)
+
+if timeline or pred_merger or absorbed_mergers:
+    with st.expander(f"📜 {carriers_dict.get(selected_code, selected_code)}: Corporate Lineage, Mergers & Alliances", expanded=False):
+        # Section 1: Mergers & Acquisitions
+        if pred_merger:
+            st.markdown(f"#### 🤝 Corporate Acquisition & Integration")
             st.markdown(
-                f"- **{status_emoji} {t['alliance_name']}** ({join} ➔ {exit_d}): "
-                f"{t.get('transition_notes', '')} "
-                f"[Source Citation ↗]({t.get('source_url', '#')})"
+                f"- **Acquiring Carrier**: **{pred_merger['successor_name']} ({pred_merger['successor_code']})**\n"
+                f"- **Announcement Date**: `{pred_merger['announced_date']}` | **Closing Date**: `{pred_merger['closing_date']}`\n"
+                f"- **Single Operating Certificate (SOC)**: `{pred_merger['soc_date']}` | **Final Flight**: `{pred_merger['final_flight_date']}`\n"
+                f"- **Hubs Absorbed**: `{', '.join(pred_merger['hubs_absorbed'])}`\n"
+                f"- **Fleet Inherited**: {', '.join(pred_merger['fleet_types_inherited'])}\n"
+                f"- **Transaction Summary**: {pred_merger['summary']}\n"
+                f"- [Official Regulatory & Press Citation ↗]({pred_merger['source_url']})"
             )
+            st.markdown("---")
+        elif absorbed_mergers:
+            st.markdown(f"#### 🏛️ Historical Predecessor Airlines Absorbed")
+            for am in absorbed_mergers:
+                st.markdown(
+                    f"##### <img src='{am['predecessor_logo']}' style='height: 18px; vertical-align: middle; margin-right: 6px;'/> {am['predecessor_name']} ({am['predecessor_code']}) — Merged in {am.get('cutover_year', '')}\n"
+                    f"- **Closing / Single Certificate**: `{am['closing_date']}` (SOC: `{am['soc_date']}`, Final Flight: `{am['final_flight_date']}`)\n"
+                    f"- **Hubs Added**: `{', '.join(am['hubs_absorbed'])}`\n"
+                    f"- **Fleet Added**: {', '.join(am['fleet_types_inherited'])}\n"
+                    f"- **Summary**: {am['summary']} [Source Citation ↗]({am['source_url']})",
+                    unsafe_allow_html=True
+                )
+            st.markdown("---")
+
+        # Section 2: Global Alliance Membership History
+        if timeline:
+            st.markdown("#### 🌐 Global Alliance Timeline")
+            for t in timeline:
+                join = t.get("join_date", "Unknown")
+                exit_d = t.get("exit_date") or "Present"
+                status_emoji = "🟢" if exit_d == "Present" else "⚪"
+                st.markdown(
+                    f"- **{status_emoji} {t['alliance_name']}** ({join} ➔ {exit_d}): "
+                    f"{t.get('transition_notes', '')} "
+                    f"[Source Citation ↗]({t.get('source_url', '#')})"
+                )
 
 # -------------------------------------------------------------
 # 2. Top KPI Cards
@@ -331,3 +384,23 @@ if proposals:
                 st.info(f"No major unserved route opportunities found matching criteria for hub {hub}.")
 else:
     st.info("No hub expansion proposals available for this carrier selection.")
+
+# -------------------------------------------------------------
+# 6. Master Reference Catalog: US Commercial Airline Mergers (1990 - Present)
+# -------------------------------------------------------------
+with st.expander("📚 Master Catalog: US Commercial Airline Mergers & Acquisitions (1990 – Present)", expanded=False):
+    all_mergers = get_all_airline_mergers()
+    mergers_table_data = []
+    for m in all_mergers:
+        mergers_table_data.append({
+            "Predecessor": f"{m['predecessor_name']} ({m['predecessor_code']})",
+            "Successor": f"{m['successor_name']} ({m['successor_code']})",
+            "Announced": m["announced_date"],
+            "Closing / Cutover": f"{m['closing_date']} (Cutover: {m['cutover_year']})",
+            "Hubs Absorbed": ", ".join(m["hubs_absorbed"]),
+            "Fleets Inherited": ", ".join(m["fleet_types_inherited"][:2]) + ("..." if len(m["fleet_types_inherited"]) > 2 else ""),
+            "Key Rationale / Summary": m["summary"]
+        })
+    df_all_mergers = pd.DataFrame(mergers_table_data)
+    st.dataframe(df_all_mergers, width="stretch", hide_index=True)
+
