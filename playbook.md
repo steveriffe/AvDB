@@ -102,9 +102,9 @@ flowchart LR
 - [x] **6.1 Airline Logos & Tailfin Graphics**:
   - [x] Sourced high-resolution SVG airline brand logos for 60+ global and US airlines in `app/data/ref_alliances.py`.
   - [x] Integrated logos into airline selector, KPI cards, and carrier profiles on Airlines Explorer.
-- [ ] **6.2 Granular Fleet Graphics & Subfleet Profiles**:
-  - [ ] Source crisp vector side-profile aircraft silhouettes by specific subtype (e.g. Alaska Airlines 737-900ER, Delta A321neo, United 777-300ER).
-  - [ ] Display technical specifications (range, wingspan, seat density) alongside subfleet profiles.
+- [x] **6.2 Granular Fleet Graphics & Subfleet Profiles**:
+  - [x] Created `app/data/ref_aircraft_specs.py` cataloging technical specifications (range, wingspan, seat density, cruise speed, engines, primary operators) for major fleet families.
+  - [x] Integrated visual aircraft specifications and leading operator cards with logos into Fleet Explorer (`app/pages/3_💺_Fleet_Routes.py`).
 - [x] **6.3 Historical & Time-Variant Alliance Overlays**:
   - [x] Built `app/data/ref_alliances.py` and `app/data/alliances_history.json` tracking membership timelines (Star Alliance, oneworld, SkyTeam, Wings Alliance, Qualiflyer).
   - [x] Tracked historical shifts over time with verified source citations (e.g. SAS: Star $\rightarrow$ SkyTeam 2024; Aer Lingus: oneworld $\rightarrow$ Independent 2007; Continental: Wings $\rightarrow$ SkyTeam $\rightarrow$ Star; US Airways: Star $\rightarrow$ oneworld).
@@ -136,4 +136,31 @@ flowchart LR
   - [x] 120Hz ProMotion Apple MapKit geodesic route map with concentric bullseye hub markers and IATA typography.
   - [x] Native iOS `.fileImporter` for Flighty CSV files with offline parser and lifetime travel KPIs.
   - [x] Comprehensive pairing and deployment guide in `ios/README.md`.
+
+---
+
+### Phase 9: Mergers Tracking, Regional Capacity Attribution & Personal Analytics Expansion
+- [x] **9.1 Historical Airline Merger Tracking Engine**:
+  - [x] Cataloged 11 major US airline mergers since 1990 in `app/data/ref_mergers.py` (CO $\rightarrow$ UA, NW $\rightarrow$ DL, US $\rightarrow$ AA, HP $\rightarrow$ US, QQ $\rightarrow$ AA, TW $\rightarrow$ AA, FL $\rightarrow$ WN, VX $\rightarrow$ AS, HA $\rightarrow$ AS, YX $\rightarrow$ F9, PA $\rightarrow$ DL).
+  - [x] Multi-tier ancestor chain discovery (`get_all_ancestor_codes`) and corporate predecessor resolution in `app/utils/mergers.py`.
+  - [x] Merged lineage HTML banners and historical carrier selection in Airlines Explorer.
+- [x] **9.2 Regional Airline Capacity Attribution**:
+  - [x] Formulated `REGIONAL_ATTRIBUTION_SQL` mapping regional operating certificates (SkyWest `OO`, Horizon `QX`, Endeavor `9E`, Envoy/PSA/Piedmont `MQ`/`OH`/`PT`, CommuteAir/GoJet `C5`/`G7`) to consumer marketing brands (`DL`, `AS`, `UA`, `AA`).
+  - [x] Resolved carrier attribution on EUG-SEA in 2025 so Delta (`DL`) and Alaska (`AS`) receive full flight and seat attribution.
+- [x] **9.3 Nonstop Route History in Unserved Connecting Markets**:
+  - [x] Added `historical_routes` CTE and `enrich_historical_route_service` in `app/utils/queries.py` and `app/utils/mergers.py`.
+  - [x] Synthesizes historical service with merger hub heritage (e.g. ANC $\rightarrow$ DTW identified as flown until 2021 by `NW/DL`).
+  - [x] Added Prior Nonstop Service History column to Target Destination Proposals in Airports Explorer.
+- [x] **9.4 Personal Analytics Dashboard Expansion**:
+  - [x] YoY Travel Volume & Air Miles dual-axis trends (`build_flighty_yoy_trends`).
+  - [x] Global Alliance Loyalty Breakdown interactive donut (`build_flighty_alliance_donut`).
+  - [x] In-Flight Seating Position preference (`build_flighty_seat_preference_donut`: Window vs Aisle vs Middle).
+  - [x] Environmental Carbon Footprint ($CO_2$ metric tons, forest tree offsets).
+  - [x] Embedded carrier SVG brand logos in Top Carrier KPI and complete flight log.
+- [x] **9.5 Fleet Explorer Technical Specs & Operator Breakdown**:
+  - [x] Aircraft specification cards (`app/data/ref_aircraft_specs.py`) with typical seats, range, wingspan, engines, and summary.
+  - [x] Category operator breakdown with carrier brand logos (`get_fleet_operators_breakdown`).
+- [x] **9.6 Xcode Duplicate Module Collision Fix**:
+  - [x] Renamed Swift Package target to `AvDBCore` in `ios/AvDB/Package.swift` to resolve Xcode duplicate module build error on iPhone 16 Pro Max / iOS 27 beta.
+
 

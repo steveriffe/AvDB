@@ -1,15 +1,19 @@
 # Current Project Status: AvDB
 
 **Last Updated**: 2026-09-04
-**Current Phase**: Phases 6, 7, and 8 Delivered (Historical Alliances, Flighty Personal Travel Lens, Native iOS SwiftUI App & FastAPI Backend)
+**Current Phase**: Phase 9 Delivered (Airline Mergers Lineage, Regional Capacity Attribution, Unserved Route History, Personal Flight Analytics Expansion, and Fleet Technical Specs)
 
 ---
 
 ## 🎯 Active Focus
-Delivered the three major parallel roadmap initiatives:
-1. **Historical & Time-Variant Airline Alliance Overlays & Brand Logos** (Star Alliance, oneworld, SkyTeam, Wings Alliance, Qualiflyer) with authoritative transition timelines, verified press release source citations, and airline logo rendering on the Airlines Explorer.
-2. **Personal Travel Lens (Flighty Integration)** with full Flighty CSV ingestion, granular subfleet taxonomy hierarchy (737-900ER vs 737-800 vs MAX 9; A321neo vs A320ceo; Widebodies; Regional Jets), authentic 1990s personal travel route cartography, and a 1-click 30-flight realistic demo travel log.
-3. **Native Apple iOS App (SwiftUI & MapKit)** in `ios/AvDB/` targeting iOS 17+ with 120Hz ProMotion geodesic mapping, Liquid Glass aesthetics, native `.fileImporter`, and a Cloud Run FastAPI backend service in `api/`.
+Delivered the comprehensive analytical and engineering roadmap enhancements requested:
+1. **Historical Airline Merger Tracking Engine** (`ref_mergers.py`, `app/utils/mergers.py`): Authoritative timeline of 11 US commercial airline mergers since 1990 (Continental $\rightarrow$ UA, Northwest $\rightarrow$ DL, US Airways $\rightarrow$ AA, America West $\rightarrow$ US Airways, Reno Air $\rightarrow$ AA, TWA $\rightarrow$ AA, AirTran $\rightarrow$ WN, Virgin America $\rightarrow$ AS, Hawaiian $\rightarrow$ AS, Midwest $\rightarrow$ F9, Pan Am $\rightarrow$ DL).
+2. **Airport-Level Alliance Intelligence & Carrier Logos**: Interactive Global Alliance loyalty breakdown donut, capacity share indicators, and SVG carrier branding across Airports Explorer and Fleet Explorer.
+3. **Regional Carrier Capacity Attribution**: Direct marketing carrier resolution for contract regionals (`OO` SkyWest, `QX` Horizon, `9E`, `MQ`, `OH`, `PT`, `C5`, `G7`), successfully attributing Delta (`DL`) and Alaska (`AS`) on EUG-SEA and nationwide feeder routes.
+4. **Historical Route Service in Unserved Markets**: Nonstop service lookups joined against historical networks with corporate merger heritage (e.g. ANC $\rightarrow$ DTW tagged as `🔄 Flown until 2021 (NW/DL)`).
+5. **Personal Analytics Dashboard (`4_📱_Flighty_Traveler.py`)**: YoY travel volume & cumulative air miles trends, temporal alliance loyalty breakdown, seat placement preference (Window/Aisle/Middle), and aviation $CO_2$ carbon footprint metrics with tree offset equivalents.
+6. **Fleet Technical Specifications & Operator Breakdown**: Detailed engineering specs (wingspan, range, typical gauge, engines) and leading operators with carrier logos on Fleet Explorer (`app/data/ref_aircraft_specs.py`).
+7. **Xcode iOS Build Collision Fix**: Resolved module collision on iPhone 16 Pro Max (iOS 27 beta) by renaming the Swift Package target to `AvDBCore`.
 
 ---
 
