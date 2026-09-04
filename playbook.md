@@ -87,9 +87,49 @@ flowchart LR
   - [ ] Dedicated tab for dedicated cargo operators (FedEx, UPS, Atlas Air, Kalitta) and freight tons/mail volume without passenger metric pollution.
 
 ### Phase 5: Deployment, Domain & Production Readiness
-- [ ] **5.1 Docker Containerization**:
-  - [ ] Build and test multi-stage production Docker image.
-- [ ] **5.2 Cloud Run Deployment**:
-  - [ ] Deploy container to Google Cloud Run with IAM service account for BigQuery read access.
-- [ ] **5.3 Custom Domain & SSL**:
-  - [ ] Map custom domain (DNS records + managed SSL certificate).
+- [x] **5.1 Docker Containerization**:
+  - [x] Built and verified production Docker image with gcloud ADC integration.
+- [x] **5.2 Cloud Run Deployment**:
+  - [x] Deployed container to Google Cloud Run (`us-central1-docker.pkg.dev/db1b-1/avdb/app:latest`) with auto-scaling down to zero ($0 base cost).
+- [x] **5.3 Custom Domain, SSL & Security**:
+  - [x] Mapped custom domain `avdb.riffe.co.uk` with Google-managed SSL.
+  - [x] Google OAuth 2.0 authentication with email allowlist protection (`ALLOWED_EMAILS=steve@riffe.co.uk`).
+  - [x] BigQuery cost safeguards (enforced 1 GB maximum bytes billed per query).
+
+---
+
+### Phase 6: Visual Asset Enrichment & Network Alliances
+- [ ] **6.1 Airline Logos & Tailfin Graphics**:
+  - [ ] Source high-resolution SVG/PNG airline brand logos and tailfin liveries for carriers.
+  - [ ] Integrate logos into airline selector, KPI cards, carrier comparison charts, and route tables.
+- [ ] **6.2 Granular Fleet Graphics & Subfleet Profiles**:
+  - [ ] Source crisp vector side-profile aircraft silhouettes by specific subtype (e.g. Alaska Airlines 737-900ER, Delta A321neo, United 777-300ER).
+  - [ ] Display technical specifications (range, wingspan, seat density) alongside subfleet profiles.
+- [ ] **6.3 Historical & Time-Variant Alliance Overlays**:
+  - [ ] Build `reporting.ref_carrier_alliances` tracking membership timelines (Star Alliance, oneworld, SkyTeam, Wings, Qualiflyer).
+  - [ ] Track historical shifts over time (e.g., SAS: Star $\rightarrow$ SkyTeam 2024; Aer Lingus: oneworld $\rightarrow$ Independent 2007; Continental: SkyTeam $\rightarrow$ Star 2009; US Airways: Star $\rightarrow$ oneworld 2014).
+  - [ ] Implement alliance network map overlays and alliance hub market share analysis.
+
+---
+
+### Phase 7: Personal Travel Lens (Flighty Integration)
+- [ ] **7.1 Flighty CSV Ingestion & Parser**:
+  - [ ] Drag-and-drop Flighty export upload in Streamlit UI (session-state sandboxed for privacy).
+  - [ ] Parse flight date, route (origin/destination), carrier, aircraft type, tail number, cabin class.
+- [ ] **7.2 Flexible Subfleet & Aircraft Family Grouping**:
+  - [ ] User-customizable airframe groupings (e.g. cluster 737-700, 737-800, 737-900ER together or split into NextGen vs MAX).
+  - [ ] Cross-match airframe codes with AvDB fleet reference tables.
+- [ ] **7.3 Personal In-Flight Route Map & BTS Context**:
+  - [ ] Generate personal 1990s in-flight route map of cumulative personal travels (filterable by year, airline, aircraft type).
+  - [ ] Contextual benchmarking against BTS data (personal flight frequency vs commercial route volume, average fares on flown routes).
+
+---
+
+### Phase 8: Native Apple iOS App (SwiftUI & FastAPI)
+- [ ] **8.1 Backend API Layer**:
+  - [ ] Build lightweight FastAPI service on Cloud Run exposing cached JSON endpoints for marts and routes.
+- [ ] **8.2 Native iOS Frontend (SwiftUI)**:
+  - [ ] Swift/SwiftUI mobile interface designed specifically for iPhone.
+  - [ ] Interactive native MapKit / Mapbox iOS SDK route map with smooth touch pan/zoom.
+  - [ ] Offline flight log caching and native iOS file picker for Flighty imports.
+
