@@ -146,20 +146,20 @@ chart_col1, chart_col2, chart_col3 = st.columns([1.15, 0.95, 1.1])
 
 with chart_col1:
     fig_routes = build_top_routes_bar_chart(df_routes, top_n=7)
-    st.plotly_chart(fig_routes, use_container_width=True, config={"displayModeBar": False})
+    st.plotly_chart(fig_routes, width="stretch", config={"displayModeBar": False})
 
 with chart_col2:
     fig_carriers = build_carrier_market_share_donut(df_carriers)
-    st.plotly_chart(fig_carriers, use_container_width=True, config={"displayModeBar": False})
+    st.plotly_chart(fig_carriers, width="stretch", config={"displayModeBar": False})
 
 with chart_col3:
     fig_fleet = build_airport_fleet_bar_chart(df_fleet, top_n=7)
-    st.plotly_chart(fig_fleet, use_container_width=True, config={"displayModeBar": False})
+    st.plotly_chart(fig_fleet, width="stretch", config={"displayModeBar": False})
 
 # -------------------------------------------------------------
-# 4. Hero Section: Interactive Great-Circle Map
+# 4. Hero Section: 1990s Airline Route Atlas & Geodesic Network
 # -------------------------------------------------------------
-st.markdown("### 🌐 Route Network & Great-Circle Paths")
+st.markdown("### 🌐 Route Network Atlas (1990s In-Flight Cartography)")
 
 if not df_routes.empty:
     origin_meta = {
@@ -167,19 +167,57 @@ if not df_routes.empty:
         "airport_name": df_airports.loc[df_airports['airport_code'] == selected_airport, 'airport_name'].iloc[0] if not df_airports.empty and selected_airport in df_airports['airport_code'].values else selected_airport,
         "latitude": df_routes["origin_lat"].iloc[0],
         "longitude": df_routes["origin_lon"].iloc[0],
+        "city": df_routes["origin_city"].iloc[0] if "origin_city" in df_routes.columns else "",
+        "state": df_routes["origin_state"].iloc[0] if "origin_state" in df_routes.columns else "",
+        "country": df_routes["origin_country"].iloc[0] if "origin_country" in df_routes.columns else "US",
     }
     
+    # Vintage in-flight map controls
+    map_ctrl1, map_ctrl2, map_ctrl3 = st.columns([1.3, 1.2, 1.1])
+    with map_ctrl1:
+        map_theme_label = st.selectbox(
+            "Cartography Theme",
+            options=["🌌 Midnight Navy (Dark)", "📜 Classic In-Flight Paper (Light)", "🌑 Minimal Slate (Dark)"],
+            index=0,
+            key="airport_map_theme",
+            label_visibility="collapsed"
+        )
+        theme_key = "midnight" if "Midnight" in map_theme_label else ("paper" if "Paper" in map_theme_label else "slate")
+        
+    with map_ctrl2:
+        colorway_label = st.selectbox(
+            "Linework Color",
+            options=["🔷 Classic Cobalt", "🔴 Vintage Crimson", "🔶 Amber Gold", "🟢 Emerald Green"],
+            index=0,
+            key="airport_map_color",
+            label_visibility="collapsed"
+        )
+        color_key = "cobalt" if "Cobalt" in colorway_label else ("crimson" if "Crimson" in colorway_label else ("gold" if "Gold" in colorway_label else "emerald"))
+
+    with map_ctrl3:
+        label_opt = st.selectbox(
+            "IATA Labels",
+            options=["🏷️ Top 30 Destinations", "🌐 All Destinations", "⚪ Hub & Dots Only"],
+            index=0,
+            key="airport_map_labels",
+            label_visibility="collapsed"
+        )
+        label_density = "top30" if "Top 30" in label_opt else ("all" if "All" in label_opt else "none")
+
     mapbox_token = os.getenv("MAPBOX_API_KEY", "")
-    mapbox_style = os.getenv("MAPBOX_STYLE", "mapbox://styles/mapbox/dark-v11" if mapbox_token else "dark")
+    mapbox_style = os.getenv("MAPBOX_STYLE", None)
 
     deck_map = build_route_map_deck(
         df_routes,
         origin_meta=origin_meta,
+        theme=theme_key,
+        colorway=color_key,
+        label_density=label_density,
         mapbox_api_key=mapbox_token or None,
         mapbox_style=mapbox_style
     )
 
-    st.pydeck_chart(deck_map, use_container_width=True)
+    st.pydeck_chart(deck_map, width="stretch")
 else:
     st.info(f"No direct flight route operations matching filter criteria for {selected_airport} in {selected_year}.")
 
@@ -195,7 +233,7 @@ with st.expander("🎯 Target Destination Proposals (Unserved Connecting Markets
     
     if not df_unserved.empty:
         fig_unserved = build_unserved_markets_scatter_chart(df_unserved)
-        st.plotly_chart(fig_unserved, use_container_width=True, config={"displayModeBar": False})
+        st.plotly_chart(fig_unserved, width="stretch", config={"displayModeBar": False})
         
         display_unserved = df_unserved.head(10)[[
             "route_label", "metro_status", "annual_connecting_pax", "pdew",
@@ -210,7 +248,7 @@ with st.expander("🎯 Target Destination Proposals (Unserved Connecting Markets
             "market_type": "Market Profile",
             "aligned_carrier": "Strategy-Aligned Carrier"
         })
-        st.dataframe(display_unserved, use_container_width=True, hide_index=True)
+        st.dataframe(display_unserved, width="stretch", hide_index=True)
     else:
         st.info("No major unserved connecting markets exceeding threshold found for this origin.")
 
@@ -232,7 +270,7 @@ with st.expander("⚔️ Multi-Carrier Route Competition & Fare Premium Matrix",
             col_c1, col_c2 = st.columns([1.2, 1.0])
             with col_c1:
                 fig_comp = build_carrier_premium_bar_chart(df_comp)
-                st.plotly_chart(fig_comp, use_container_width=True, config={"displayModeBar": False})
+                st.plotly_chart(fig_comp, width="stretch", config={"displayModeBar": False})
             with col_c2:
                 st.markdown(f"**Carrier Yield & Premium Summary ({selected_airport} ➔ {selected_dest})**")
                 display_comp = df_comp[[
@@ -248,7 +286,7 @@ with st.expander("⚔️ Multi-Carrier Route Competition & Fare Premium Matrix",
                     "yield_per_mile": "Yield ($/mi)",
                     "fare_premium_vs_min": "Premium vs Low ($)"
                 })
-                st.dataframe(display_comp, use_container_width=True, hide_index=True)
+                st.dataframe(display_comp, width="stretch", hide_index=True)
         else:
             st.info(f"Route {selected_airport} ➔ {selected_dest} is operated by a single carrier or has limited competitor sample data.")
 
@@ -276,4 +314,4 @@ with st.expander("📋 View Detailed Route Data Table"):
             "avg_od_fare": "Avg Fare ($)",
             "operating_carriers": "Carriers"
         })
-        st.dataframe(display_df, use_container_width=True, hide_index=True)
+        st.dataframe(display_df, width="stretch", hide_index=True)

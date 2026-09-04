@@ -20,6 +20,10 @@ from app.utils.queries import (
     CARRIER_STRATEGY,
     get_airline_hub_expansion_proposals,
     get_unserved_connecting_markets,
+    get_airline_routes_dataset,
+)
+from app.utils.visualizers import (
+    build_airline_network_deck,
 )
 
 from app.utils.auth import require_auth
@@ -105,7 +109,66 @@ with k5:
     render_kpi_card("Avg Network Fare", fare_str)
 
 # -------------------------------------------------------------
-# 3. Hub Operations & Yield Curve Charts
+# 3. Hero Section: Nationwide Route Network Atlas (1990s In-Flight Cartography)
+# -------------------------------------------------------------
+df_carrier_routes = get_airline_routes_dataset(selected_code, selected_year, min_departures=10)
+
+if not df_carrier_routes.empty:
+    st.markdown("### 🌐 Nationwide Route Network Atlas (1990s In-Flight Cartography)")
+    
+    col_am1, col_am2, col_am3 = st.columns([1.3, 1.2, 1.1])
+    with col_am1:
+        air_theme_label = st.selectbox(
+            "Cartography Theme",
+            options=["🌌 Midnight Navy (Dark)", "📜 Classic In-Flight Paper (Light)", "🌑 Minimal Slate (Dark)"],
+            index=0,
+            key="air_map_theme",
+            label_visibility="collapsed"
+        )
+        air_theme = "midnight" if "Midnight" in air_theme_label else ("paper" if "Paper" in air_theme_label else "slate")
+        
+    with col_am2:
+        air_color_label = st.selectbox(
+            "Linework Color",
+            options=["✈️ Carrier Signature Color", "🔷 Classic Cobalt", "🔴 Vintage Crimson", "🔶 Amber Gold", "🟢 Emerald Green"],
+            index=0,
+            key="air_map_color",
+            label_visibility="collapsed"
+        )
+        if "Carrier" in air_color_label:
+            air_color = "auto"
+        elif "Cobalt" in air_color_label:
+            air_color = "cobalt"
+        elif "Crimson" in air_color_label:
+            air_color = "crimson"
+        elif "Gold" in air_color_label:
+            air_color = "gold"
+        else:
+            air_color = "emerald"
+
+    with col_am3:
+        air_label_opt = st.selectbox(
+            "Airport Labels",
+            options=["🏛️ Hubs Only", "🌐 Hubs + Top Spokes", "⚪ Dots Only"],
+            index=0,
+            key="air_map_labels",
+            label_visibility="collapsed"
+        )
+        air_label_density = "hubs_only" if "Hubs Only" in air_label_opt else ("all" if "Top Spokes" in air_label_opt else "none")
+
+    deck_air = build_airline_network_deck(
+        df_carrier_routes,
+        hub_codes=carrier_strat.get("hubs", []),
+        carrier_code=selected_code,
+        carrier_name=carriers_dict[selected_code],
+        theme=air_theme,
+        colorway=air_color,
+        label_density=air_label_density
+    )
+    st.pydeck_chart(deck_air, width="stretch")
+
+# -------------------------------------------------------------
+# 4. Hub Operations & Yield Curve Charts
 # -------------------------------------------------------------
 df_hubs = get_airline_hubs(selected_code, selected_year)
 df_yields = get_airline_yield_curve(selected_code, selected_year)
@@ -132,7 +195,7 @@ with c1:
             xaxis=dict(showgrid=True, gridcolor="rgba(255,255,255,0.06)", tickfont=dict(color="#8E8E93")),
             yaxis=dict(showgrid=False, tickfont=dict(color="#F5F5F7", size=10.5))
         )
-        st.plotly_chart(fig_hubs, use_container_width=True, config={"displayModeBar": False})
+        st.plotly_chart(fig_hubs, width="stretch", config={"displayModeBar": False})
     else:
         st.info("No hub data available for selected parameters.")
 
@@ -157,12 +220,12 @@ with c2:
             xaxis=dict(showgrid=True, gridcolor="rgba(255,255,255,0.06)", tickfont=dict(color="#8E8E93")),
             yaxis=dict(showgrid=True, gridcolor="rgba(255,255,255,0.06)", tickfont=dict(color="#8E8E93"))
         )
-        st.plotly_chart(fig_yield, use_container_width=True, config={"displayModeBar": False})
+        st.plotly_chart(fig_yield, width="stretch", config={"displayModeBar": False})
     else:
         st.info("No yield curve data available.")
 
 # -------------------------------------------------------------
-# 4. Target Network Expansion Proposals: Top 5 Next Routes by Hub
+# 5. Target Network Expansion Proposals: Top 5 Next Routes by Hub
 # -------------------------------------------------------------
 st.markdown("### 🎯 Strategic Route Expansion: Top 5 Next Route Candidates by Hub")
 
@@ -200,7 +263,7 @@ if proposals:
                     "yield_per_mile": "Yield ($/mi)",
                     "market_type": "Demand Segment"
                 })
-                st.dataframe(display_h, use_container_width=True, hide_index=True)
+                st.dataframe(display_h, width="stretch", hide_index=True)
             else:
                 st.info(f"No major unserved route opportunities found matching criteria for hub {hub}.")
 else:

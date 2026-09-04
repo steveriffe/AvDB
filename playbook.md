@@ -72,9 +72,10 @@ flowchart LR
   - [x] Plotly Tooltip Fix for multi-line hover cards without raw HTML tags.
   - [x] **Target Destination Proposals**: Unserved 1-stop connecting market analysis, Business vs. Leisure yield tags, and hub-strategy aligned carrier assignments.
   - [x] **Multi-Carrier Route Competition & Fare Premium Matrix**: Head-to-head fare and yield comparisons (e.g. Alaska vs Spirit).
-  - [x] Great-Circle Arc and Node PyDeck map with custom Mapbox style support & luxury glassmorphism tooltips.
+  - [x] **1990s Airline Route Atlas & Cartography**: 2D geodesic great-circle lines hugging the surface (`pitch=0, bearing=0`), fixed-pixel pin nodes, IATA 3-letter typography (`TextLayer`), concentric bullseye origin hub markers (`★ ORD`), fully resolved hub metrics (no `{...}` tokens), and Midnight Navy vs Classic Paper cartographic themes.
 - [x] **4.3 Page 2: 🏢 Airlines Explorer**:
   - [x] Top KPI cards (Active Routes, Departures, System Load Factor %, Yield/mile, Avg Fare).
+  - [x] **Nationwide Carrier Route Network Atlas**: Full network route visualization in 1990s in-flight style with primary hub markers and carrier signature colorways.
   - [x] Top Hub & Focus City Concentration analysis.
   - [x] Network Yield Curve scatter plot (Stage Length vs Yield $/mile).
   - [x] Hub-aligned strategic expansion proposals.

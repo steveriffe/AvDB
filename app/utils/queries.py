@@ -586,6 +586,41 @@ def get_airline_yield_curve(carrier_code: str, year: int) -> pd.DataFrame:
     return run_query(query, params={"carrier_code": carrier_code, "year": year})
 
 
+@st.cache_data(ttl=3600, show_spinner=False)
+def get_airline_routes_dataset(carrier_code: str, year: int, min_departures: int = 20) -> pd.DataFrame:
+    """Fetches nationwide route network with GPS coordinates for an airline."""
+    query = """
+        SELECT 
+            origin,
+            origin_name,
+            origin_city,
+            origin_lat,
+            origin_lon,
+            dest,
+            dest_name,
+            dest_city,
+            dest_state,
+            dest_country,
+            dest_lat,
+            dest_lon,
+            SUM(departures_performed) AS departures_performed,
+            SUM(total_seats) AS total_seats,
+            SUM(operational_passengers) AS operational_passengers,
+            ROUND(SAFE_DIVIDE(SUM(operational_passengers), SUM(total_seats)) * 100, 1) AS load_factor_pct,
+            ROUND(SAFE_DIVIDE(SUM(total_seats), NULLIF(SUM(departures_performed), 0)), 1) AS avg_gauge_seats,
+            AVG(distance_miles) AS distance_miles,
+            ROUND(AVG(avg_od_fare), 2) AS avg_od_fare
+        FROM `db1b-1.reporting.mart_airport_network_summary`
+        WHERE unique_carrier = @carrier_code AND year = @year
+          AND origin_lat IS NOT NULL AND dest_lat IS NOT NULL
+        GROUP BY 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12
+        HAVING departures_performed >= @min_departures
+        ORDER BY operational_passengers DESC
+        LIMIT 400
+    """
+    return run_query(query, params={"carrier_code": carrier_code, "year": year, "min_departures": min_departures})
+
+
 # -------------------------------------------------------------
 # FLEET & AIRCRAFT EXPLORER QUERIES
 # -------------------------------------------------------------

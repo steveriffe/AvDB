@@ -1,12 +1,12 @@
 # Current Project Status: AvDB
 
-**Last Updated**: 2026-09-02
-**Current Phase**: Phase 5 — Production Containerization, Google OAuth & Custom Domain Deployment (Complete)
+**Last Updated**: 2026-09-03
+**Current Phase**: Phase 5 — Production Containerization, Google OAuth & Custom Domain Deployment (Complete) + Cartographic Redesign
 
 ---
 
 ## 🎯 Active Focus
-Successfully built and deployed the **AvDB Aviation Intelligence Platform** to **Google Cloud Run** (`avdb.riffe.co.uk`) with Google OAuth 2.0 authentication, an Apple-inspired HTML landing homepage, email allowlist protection (`steve@riffe.co.uk`), BigQuery cost safeguards ($1\text{ GB max}$ scanned per query), and Cloud Run auto-scaling down to zero instances ($0\text{ base cost}$ when idle).
+Successfully modernized the **AvDB Route Mapping Engine** to authentic **1990s Airline In-Flight Route Map Cartography** across both the **Airports Explorer** and **Airlines Explorer**, replacing oversized 3D parabolic arches with clean 2D surface geodesic great-circle curves, crisp pin nodes, IATA 3-letter code typography via Deck.gl `TextLayer`, concentric bullseye hub markers, and resolving origin hub tooltip placeholder tokens.
 
 ---
 
@@ -24,18 +24,20 @@ Successfully built and deployed the **AvDB Aviation Intelligence Platform** to *
 ---
 
 ## ✅ Recently Completed
+- [x] **1990s Airline Route Map Cartography Overhaul**:
+  - Replaced oversized 3D `ArcLayer` arches with flat 2D `GreatCircleLayer` curves on the map surface (`pitch=0, bearing=0`).
+  - Added authentic 3-letter IATA typography labels (`TextLayer`) beside destination nodes with density controls (Top 30 vs All vs Dots Only).
+  - Designed classic concentric bullseye hub markers with bold star badges (`★ ORD`).
+  - Added vintage cartography presets: Midnight Navy (Dark Matter no-labels), Classic In-Flight Paper (Positron no-labels), and Minimal Slate.
+  - Added customizable route colorways: Classic Cobalt, Vintage Crimson, Amber Gold, and Emerald Green.
+- [x] **Origin Hub Node Tooltip Fix**:
+  - Resolved origin hub node hover card metrics (`{dest}`, `{fmt_pax}`, `{dest_name}`, `{fmt_fare}`, `{fmt_deps}`) with real aggregated outbound values, direct destinations count, and top operating carriers. Zero curly bracket placeholders remaining.
+- [x] **Nationwide Route Network Atlas on Airlines Explorer**:
+  - Integrated full nationwide route system mapping for carriers on `app/pages/2_🏢_Airlines.py` with primary hub markers and carrier signature colorways.
+- [x] **Streamlit 2026 API Modernization**:
+  - Replaced deprecated `use_container_width=True` with `width="stretch"` across charts and tables.
 - [x] **Production Cloud Run & IONOS Custom Domain (`avdb.riffe.co.uk`)**:
-  - Pushed container image to Artifact Registry (`us-central1-docker.pkg.dev/db1b-1/avdb/app:latest`).
-  - Deployed Cloud Run service with `--min-instances=0` and `--max-instances=2`.
-  - Configured CNAME domain mapping for `avdb.riffe.co.uk` $\rightarrow$ `ghs.googlehosted.com.`.
-- [x] **Google OAuth 2.0 & Access Control**:
-  - Streamlit-integrated Google Sign-In module (`app/utils/auth.py`).
-  - Email allowlist guard (`ALLOWED_EMAILS=steve@riffe.co.uk`) with custom "Access Pending" card for unlisted guests.
-  - Sidebar account profile pill & Sign Out button.
-- [x] **Apple-Modern HTML Landing Homepage (`app/components/landing.py`)**:
-  - Unauthenticated visitor landing hero, feature overview, and metric scale highlights.
-- [x] **Wallet & Query Safeguards**:
-  - Enforced `maximum_bytes_billed = 1 GB` limit on all BigQuery queries in `app/utils/bq_client.py`.
+  - Containerized and running live on Google Cloud Run with custom domain and OAuth allowlist protection.
 
 ---
 

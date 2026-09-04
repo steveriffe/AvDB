@@ -130,7 +130,7 @@ with c1:
             xaxis=dict(showgrid=True, gridcolor="rgba(255,255,255,0.06)", tickfont=dict(color="#8E8E93")),
             yaxis=dict(showgrid=False, tickfont=dict(color="#F5F5F7", size=10.5))
         )
-        st.plotly_chart(fig_fleet, use_container_width=True, config={"displayModeBar": False})
+        st.plotly_chart(fig_fleet, width="stretch", config={"displayModeBar": False})
     else:
         st.info("No fleet deployment data found for this selection.")
 
@@ -156,7 +156,7 @@ with c2:
             yaxis=dict(showgrid=True, gridcolor="rgba(255,255,255,0.06)", tickfont=dict(color="#8E8E93")),
             legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1, font=dict(color="#F5F5F7", size=9.5))
         )
-        st.plotly_chart(fig_scatter, use_container_width=True, config={"displayModeBar": False})
+        st.plotly_chart(fig_scatter, width="stretch", config={"displayModeBar": False})
 
 # -------------------------------------------------------------
 # 4. Detailed Data Table
@@ -179,4 +179,4 @@ with st.expander("📋 Detailed Fleet Deployment & Revenue Data Table", expanded
             "avg_segment_fare": "Avg Segment Fare ($)",
             "yield_per_mile": "Yield ($/mi)"
         })
-        st.dataframe(display_fleet, use_container_width=True, hide_index=True)
+        st.dataframe(display_fleet, width="stretch", hide_index=True)
