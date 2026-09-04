@@ -26,7 +26,8 @@ credentials/
 .DS_Store
 
 # Data files (keep raw & processed datasets out of git)
-data/
+/data/
+!app/data/
 *.csv
 *.tsv
 *.parquet

@@ -99,37 +99,41 @@ flowchart LR
 ---
 
 ### Phase 6: Visual Asset Enrichment & Network Alliances
-- [ ] **6.1 Airline Logos & Tailfin Graphics**:
-  - [ ] Source high-resolution SVG/PNG airline brand logos and tailfin liveries for carriers.
-  - [ ] Integrate logos into airline selector, KPI cards, carrier comparison charts, and route tables.
+- [x] **6.1 Airline Logos & Tailfin Graphics**:
+  - [x] Sourced high-resolution SVG airline brand logos for 60+ global and US airlines in `app/data/ref_alliances.py`.
+  - [x] Integrated logos into airline selector, KPI cards, and carrier profiles on Airlines Explorer.
 - [ ] **6.2 Granular Fleet Graphics & Subfleet Profiles**:
   - [ ] Source crisp vector side-profile aircraft silhouettes by specific subtype (e.g. Alaska Airlines 737-900ER, Delta A321neo, United 777-300ER).
   - [ ] Display technical specifications (range, wingspan, seat density) alongside subfleet profiles.
-- [ ] **6.3 Historical & Time-Variant Alliance Overlays**:
-  - [ ] Build `reporting.ref_carrier_alliances` tracking membership timelines (Star Alliance, oneworld, SkyTeam, Wings, Qualiflyer).
-  - [ ] Track historical shifts over time (e.g., SAS: Star $\rightarrow$ SkyTeam 2024; Aer Lingus: oneworld $\rightarrow$ Independent 2007; Continental: SkyTeam $\rightarrow$ Star 2009; US Airways: Star $\rightarrow$ oneworld 2014).
-  - [ ] Implement alliance network map overlays and alliance hub market share analysis.
+- [x] **6.3 Historical & Time-Variant Alliance Overlays**:
+  - [x] Built `app/data/ref_alliances.py` and `app/data/alliances_history.json` tracking membership timelines (Star Alliance, oneworld, SkyTeam, Wings Alliance, Qualiflyer).
+  - [x] Tracked historical shifts over time with verified source citations (e.g. SAS: Star $\rightarrow$ SkyTeam 2024; Aer Lingus: oneworld $\rightarrow$ Independent 2007; Continental: Wings $\rightarrow$ SkyTeam $\rightarrow$ Star; US Airways: Star $\rightarrow$ oneworld).
+  - [x] Implemented temporal alliance query engine in `app/utils/alliances.py` with transition timeline expanders.
 
 ---
 
 ### Phase 7: Personal Travel Lens (Flighty Integration)
-- [ ] **7.1 Flighty CSV Ingestion & Parser**:
-  - [ ] Drag-and-drop Flighty export upload in Streamlit UI (session-state sandboxed for privacy).
-  - [ ] Parse flight date, route (origin/destination), carrier, aircraft type, tail number, cabin class.
-- [ ] **7.2 Flexible Subfleet & Aircraft Family Grouping**:
-  - [ ] User-customizable airframe groupings (e.g. cluster 737-700, 737-800, 737-900ER together or split into NextGen vs MAX).
-  - [ ] Cross-match airframe codes with AvDB fleet reference tables.
-- [ ] **7.3 Personal In-Flight Route Map & BTS Context**:
-  - [ ] Generate personal 1990s in-flight route map of cumulative personal travels (filterable by year, airline, aircraft type).
-  - [ ] Contextual benchmarking against BTS data (personal flight frequency vs commercial route volume, average fares on flown routes).
+- [x] **7.1 Flighty CSV Ingestion & Parser**:
+  - [x] Drag-and-drop Flighty export upload in Streamlit UI (`app/pages/4_📱_Flighty_Traveler.py`) with local privacy preservation.
+  - [x] Built `app/utils/flighty.py` parsing flight date, origin/destination, carrier, aircraft type, seat, and cabin class.
+  - [x] Built one-click "Load Sample Log" realistic 30-flight test dataset for immediate interactive previewing.
+- [x] **7.2 Flexible Subfleet & Aircraft Family Grouping**:
+  - [x] Built hierarchical subfleet taxonomy engine (Exact Subfleet e.g. 737-900ER vs 737-800 vs MAX 9; Generation e.g. NextGen vs MAX; Family e.g. Boeing 737).
+  - [x] Added dynamic subfleet grouping radio toggle and interactive flight volume / air mile share distribution charts.
+- [x] **7.3 Personal In-Flight Route Map & BTS Context**:
+  - [x] Generated personal 1990s in-flight route map with geodesic curves and flight frequency arc weighting.
+  - [x] Integrated custom Mapbox styles and colorways into personal travel visualization.
 
 ---
 
 ### Phase 8: Native Apple iOS App (SwiftUI & FastAPI)
-- [ ] **8.1 Backend API Layer**:
-  - [ ] Build lightweight FastAPI service on Cloud Run exposing cached JSON endpoints for marts and routes.
-- [ ] **8.2 Native iOS Frontend (SwiftUI)**:
-  - [ ] Swift/SwiftUI mobile interface designed specifically for iPhone.
-  - [ ] Interactive native MapKit / Mapbox iOS SDK route map with smooth touch pan/zoom.
-  - [ ] Offline flight log caching and native iOS file picker for Flighty imports.
+- [x] **8.1 Backend API Layer**:
+  - [x] Built lightweight FastAPI service in `api/` exposing cached JSON endpoints for airports, routes, KPIs, airlines, and fleet summary.
+  - [x] Dockerfile and BigQuery wallet safeguards configured for Cloud Run deployment (`api.avdb.riffe.co.uk`).
+- [x] **8.2 Native iOS Frontend (SwiftUI)**:
+  - [x] Full Swift Package / Xcode project in `ios/AvDB/` targeting iOS 17+ with Apple Liquid Glass aesthetics.
+  - [x] 5-tab root navigation: Airports Explorer, Airlines Network, Fleet & Subfleets, Flighty Travel Log, Settings.
+  - [x] 120Hz ProMotion Apple MapKit geodesic route map with concentric bullseye hub markers and IATA typography.
+  - [x] Native iOS `.fileImporter` for Flighty CSV files with offline parser and lifetime travel KPIs.
+  - [x] Comprehensive pairing and deployment guide in `ios/README.md`.
 

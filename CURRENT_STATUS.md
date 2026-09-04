@@ -1,12 +1,15 @@
 # Current Project Status: AvDB
 
-**Last Updated**: 2026-09-03
-**Current Phase**: Phase 5 — Production Containerization, Google OAuth & Custom Domain Deployment (Complete) + Cartographic Redesign
+**Last Updated**: 2026-09-04
+**Current Phase**: Phases 6, 7, and 8 Delivered (Historical Alliances, Flighty Personal Travel Lens, Native iOS SwiftUI App & FastAPI Backend)
 
 ---
 
 ## 🎯 Active Focus
-Successfully modernized the **AvDB Route Mapping Engine** to authentic **1990s Airline In-Flight Route Map Cartography** across both the **Airports Explorer** and **Airlines Explorer**, replacing oversized 3D parabolic arches with clean 2D surface geodesic great-circle curves, crisp pin nodes, IATA 3-letter code typography via Deck.gl `TextLayer`, concentric bullseye hub markers, and resolving origin hub tooltip placeholder tokens.
+Delivered the three major parallel roadmap initiatives:
+1. **Historical & Time-Variant Airline Alliance Overlays & Brand Logos** (Star Alliance, oneworld, SkyTeam, Wings Alliance, Qualiflyer) with authoritative transition timelines, verified press release source citations, and airline logo rendering on the Airlines Explorer.
+2. **Personal Travel Lens (Flighty Integration)** with full Flighty CSV ingestion, granular subfleet taxonomy hierarchy (737-900ER vs 737-800 vs MAX 9; A321neo vs A320ceo; Widebodies; Regional Jets), authentic 1990s personal travel route cartography, and a 1-click 30-flight realistic demo travel log.
+3. **Native Apple iOS App (SwiftUI & MapKit)** in `ios/AvDB/` targeting iOS 17+ with 120Hz ProMotion geodesic mapping, Liquid Glass aesthetics, native `.fileImporter`, and a Cloud Run FastAPI backend service in `api/`.
 
 ---
 
@@ -24,20 +27,28 @@ Successfully modernized the **AvDB Route Mapping Engine** to authentic **1990s A
 ---
 
 ## ✅ Recently Completed
-- [x] **1990s Airline Route Map Cartography Overhaul**:
-  - Replaced oversized 3D `ArcLayer` arches with flat 2D `GreatCircleLayer` curves on the map surface (`pitch=0, bearing=0`).
-  - Added authentic 3-letter IATA typography labels (`TextLayer`) beside destination nodes with density controls (Top 30 vs All vs Dots Only).
-  - Designed classic concentric bullseye hub markers with bold star badges (`★ ORD`).
-  - Added vintage cartography presets: Midnight Navy (Dark Matter no-labels), Classic In-Flight Paper (Positron no-labels), and Minimal Slate.
-  - Added customizable route colorways: Classic Cobalt, Vintage Crimson, Amber Gold, and Emerald Green.
-- [x] **Origin Hub Node Tooltip Fix**:
-  - Resolved origin hub node hover card metrics (`{dest}`, `{fmt_pax}`, `{dest_name}`, `{fmt_fare}`, `{fmt_deps}`) with real aggregated outbound values, direct destinations count, and top operating carriers. Zero curly bracket placeholders remaining.
-- [x] **Nationwide Route Network Atlas on Airlines Explorer**:
-  - Integrated full nationwide route system mapping for carriers on `app/pages/2_🏢_Airlines.py` with primary hub markers and carrier signature colorways.
-- [x] **Streamlit 2026 API Modernization**:
-  - Replaced deprecated `use_container_width=True` with `width="stretch"` across charts and tables.
+- [x] **Airline Alliances & Branding Tracker (Phase 6)**:
+  - Built `app/data/ref_alliances.py` and `app/data/alliances_history.json` containing 50+ historical membership intervals across Star Alliance, oneworld, SkyTeam, Wings Alliance, and Qualiflyer.
+  - Tracked historic alliance transitions (SAS: Star Alliance 1997 $\rightarrow$ SkyTeam 2024; Aer Lingus: oneworld $\rightarrow$ Independent; Continental: Wings $\rightarrow$ SkyTeam $\rightarrow$ Star Alliance $\rightarrow$ UA merger; US Airways: Star Alliance $\rightarrow$ oneworld $\rightarrow$ AA merger; Mexicana, TAM/LAN).
+  - Integrated high-res SVG carrier logos and active alliance badges into the Airlines Explorer with expandable corporate transition timelines.
+- [x] **Flighty Integration & Subfleet Analytics (Phase 7)**:
+  - Built `app/utils/flighty.py` and `app/pages/4_📱_Flighty_Traveler.py` for drag-and-drop CSV export ingestion.
+  - Built 3-tier subfleet taxonomy engine (Exact Subfleet e.g. 737-900ER vs 737-800 vs MAX 9; Generation e.g. 737 NextGen vs MAX; Family e.g. Boeing 737).
+  - Designed personal 1990s in-flight route map with flight frequency arc weighting and custom Mapbox styles.
+  - Provided a 1-click "Load Sample Log" generating 30 realistic flights for instant previewing.
+- [x] **Native Apple iOS App & FastAPI Backend (Phase 8)**:
+  - Built native Swift Package / Xcode structure in `ios/AvDB/` following Apple HIG and Liquid Glass styling.
+  - Native 120Hz Apple MapKit geodesic route map with concentric hub bullseyes and IATA typography annotations.
+  - Native `.fileImporter` iOS file picker for Flighty CSV files with offline parsing and lifetime flight KPIs.
+  - Built production FastAPI backend service in `api/` with BigQuery wallet safeguards and in-memory caching.
+  - Authored step-by-step pairing and physical iPhone deployment guide in `ios/README.md`.
+- [x] **1990s Airline Route Map Cartography Overhaul (Phase 5)**:
+  - Flat 2D `GreatCircleLayer` curves on the map surface (`pitch=0, bearing=0`).
+  - Authentic 3-letter IATA typography labels (`TextLayer`) beside destination nodes.
+  - Concentric bullseye hub markers with bold star badges (`★ ORD`).
+  - Integrated custom Mapbox styles (`personal`, `love`, `mono`) and tokens.
 - [x] **Production Cloud Run & IONOS Custom Domain (`avdb.riffe.co.uk`)**:
-  - Containerized and running live on Google Cloud Run with custom domain and OAuth allowlist protection.
+  - Live on Google Cloud Run with custom domain, local auth bypass (`LOCAL_DEV_BYPASS_AUTH=true`), and OAuth allowlist protection.
 
 ---
 

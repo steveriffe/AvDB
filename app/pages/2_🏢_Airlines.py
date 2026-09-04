@@ -25,6 +25,11 @@ from app.utils.queries import (
 from app.utils.visualizers import (
     build_airline_network_deck,
 )
+from app.utils.alliances import (
+    get_carrier_alliance,
+    get_carrier_logo_url,
+    get_carrier_alliance_timeline,
+)
 
 from app.utils.auth import require_auth
 
@@ -55,10 +60,13 @@ carriers_dict = {
     "B6": "JetBlue Airways (B6)",
     "NK": "Spirit Airlines (NK)",
     "F9": "Frontier Airlines (F9)",
-    "G4": "Allegiant Air (G4)"
+    "G4": "Allegiant Air (G4)",
+    "CO": "Continental Airlines (CO - Historical)",
+    "US": "US Airways (US - Historical)",
+    "NW": "Northwest Airlines (NW - Historical)"
 }
 
-col_f1, col_f2, col_f3 = st.columns([2.5, 1.2, 1.8])
+col_f1, col_f2, col_f3 = st.columns([2.2, 1.2, 2.6])
 
 with col_f1:
     selected_code = st.selectbox(
@@ -72,15 +80,52 @@ with col_f1:
 with col_f2:
     selected_year = st.selectbox(
         "Analysis Year",
-        options=[2025, 2024, 2023, 2022, 2021, 2020, 2019, 2018],
+        options=[2025, 2024, 2023, 2022, 2021, 2020, 2019, 2018, 2015, 2010, 2005, 2000],
         index=0,
         label_visibility="collapsed"
     )
 
+# Alliance & Branding Lookup
+carrier_logo = get_carrier_logo_url(selected_code)
+alliance_info = get_carrier_alliance(selected_code, selected_year)
+
 with col_f3:
     carrier_strat = CARRIER_STRATEGY.get(selected_code, {})
     hubs_str = ", ".join(carrier_strat.get("hubs", []))
-    st.markdown(f"<div style='color: #64D2FF; font-size: 12px; margin-top: 6px;'><b>Primary Hubs:</b> {hubs_str}</div>", unsafe_allow_html=True)
+    
+    alliance_badge = ""
+    if alliance_info:
+        a_name = alliance_info["alliance_name"]
+        a_logo = alliance_info.get("alliance_logo_url", "")
+        alliance_badge = f"<span style='background: rgba(10, 132, 255, 0.18); border: 1px solid #0A84FF; color: #64D2FF; padding: 2px 8px; border-radius: 6px; font-weight: 600; font-size: 11px; margin-left: 8px;'>🌐 {a_name}</span>"
+    else:
+        alliance_badge = "<span style='background: rgba(255, 255, 255, 0.08); color: #8E8E93; padding: 2px 8px; border-radius: 6px; font-size: 11px; margin-left: 8px;'>Independent / Unaligned</span>"
+    
+    logo_html = f"<img src='{carrier_logo}' style='height: 22px; max-width: 80px; object-fit: contain; vertical-align: middle; margin-right: 8px; filter: brightness(1.1);'/>" if carrier_logo else ""
+    
+    st.markdown(
+        f"<div style='display: flex; align-items: center; margin-top: 4px;'>"
+        f"{logo_html}"
+        f"<span style='font-size: 13px; font-weight: 600; color: #F5F5F7;'>{carriers_dict.get(selected_code, selected_code)}</span>"
+        f"{alliance_badge}"
+        f"</div>"
+        f"<div style='color: #8E8E93; font-size: 11px; margin-top: 4px;'><b>Primary Hubs:</b> {hubs_str if hubs_str else 'N/A'}</div>",
+        unsafe_allow_html=True
+    )
+
+# Historical Alliance & Corporate Transition Timeline expander
+timeline = get_carrier_alliance_timeline(selected_code)
+if timeline:
+    with st.expander(f"📜 {carriers_dict.get(selected_code, selected_code)}: Alliance & Corporate History", expanded=False):
+        for t in timeline:
+            join = t.get("join_date", "Unknown")
+            exit_d = t.get("exit_date") or "Present"
+            status_emoji = "🟢" if exit_d == "Present" else "⚪"
+            st.markdown(
+                f"- **{status_emoji} {t['alliance_name']}** ({join} ➔ {exit_d}): "
+                f"{t.get('transition_notes', '')} "
+                f"[Source Citation ↗]({t.get('source_url', '#')})"
+            )
 
 # -------------------------------------------------------------
 # 2. Top KPI Cards

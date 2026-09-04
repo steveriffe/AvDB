@@ -1,0 +1,1026 @@
+#!/usr/bin/env python3
+"""
+Generator for comprehensive airline alliance history and carrier logos.
+Outputs:
+- app/data/alliances_history.json
+- app/data/ref_alliances.py
+- app/utils/alliances.py
+"""
+
+import json
+from pathlib import Path
+
+REPO_ROOT = Path(__file__).resolve().parent.parent
+DATA_DIR = REPO_ROOT / "app" / "data"
+UTILS_DIR = REPO_ROOT / "app" / "utils"
+DATA_DIR.mkdir(parents=True, exist_ok=True)
+UTILS_DIR.mkdir(parents=True, exist_ok=True)
+
+# 1. Master Alliances Metadata
+ALLIANCES_METADATA = {
+    "Star Alliance": {
+        "alliance_id": "star_alliance",
+        "alliance_name": "Star Alliance",
+        "founded_date": "1997-05-14",
+        "dissolved_date": None,
+        "headquarters": "Frankfurt am Main, Germany",
+        "website": "https://www.staralliance.com",
+        "logo_url": "https://upload.wikimedia.org/wikipedia/commons/7/77/Star_Alliance_logo.svg",
+        "description": "The world's first and largest global airline alliance, founded on May 14, 1997 by United Airlines, Lufthansa, Air Canada, SAS, and Thai Airways.",
+        "is_active": True,
+        "type": "Global Multilateral Alliance"
+    },
+    "oneworld": {
+        "alliance_id": "oneworld",
+        "alliance_name": "oneworld",
+        "founded_date": "1999-02-01",
+        "dissolved_date": None,
+        "headquarters": "Fort Worth, Texas, USA",
+        "website": "https://www.oneworld.com",
+        "logo_url": "https://upload.wikimedia.org/wikipedia/commons/4/49/Oneworld_logo.svg",
+        "description": "Premier global airline alliance founded on February 1, 1999 by American Airlines, British Airways, Cathay Pacific, Qantas, and Canadian Airlines.",
+        "is_active": True,
+        "type": "Global Multilateral Alliance"
+    },
+    "SkyTeam": {
+        "alliance_id": "skyteam",
+        "alliance_name": "SkyTeam",
+        "founded_date": "2000-06-22",
+        "dissolved_date": None,
+        "headquarters": "Amstelveen, Netherlands",
+        "website": "https://www.skyteam.com",
+        "logo_url": "https://upload.wikimedia.org/wikipedia/commons/8/87/SkyTeam_logo.svg",
+        "description": "Global airline alliance founded on June 22, 2000 by Delta Air Lines, Air France, Aeroméxico, and Korean Air.",
+        "is_active": True,
+        "type": "Global Multilateral Alliance"
+    },
+    "Wings Alliance": {
+        "alliance_id": "wings_alliance",
+        "alliance_name": "Wings Alliance",
+        "founded_date": "1989-08-01",
+        "dissolved_date": "2004-09-13",
+        "headquarters": "Amsterdam, Netherlands / Minneapolis, MN, USA",
+        "website": "https://en.wikipedia.org/wiki/Wings_Alliance",
+        "logo_url": "https://upload.wikimedia.org/wikipedia/commons/5/58/Wings_Alliance_Logo.svg",
+        "description": "Pioneering transatlantic joint-venture alliance anchored by Northwest Airlines and KLM Royal Dutch Airlines, later joined by Continental Airlines. Formally merged into SkyTeam in September 2004.",
+        "is_active": False,
+        "type": "Historical Alliance"
+    },
+    "Qualiflyer": {
+        "alliance_id": "qualiflyer",
+        "alliance_name": "Qualiflyer",
+        "founded_date": "1992-04-01",
+        "dissolved_date": "2002-03-31",
+        "headquarters": "Zurich, Switzerland",
+        "website": "https://en.wikipedia.org/wiki/The_Qualiflyer_Group",
+        "logo_url": "https://upload.wikimedia.org/wikipedia/en/b/b5/Qualiflyer_logo.svg",
+        "description": "European airline alliance centered around SAirGroup (Swissair and Crossair), expanding to Sabena, Austrian Airlines, TAP Air Portugal, Turkish Airlines, and LOT. Dissolved in 2002 following Swissair's bankruptcy.",
+        "is_active": False,
+        "type": "Historical Alliance"
+    }
+}
+
+# 2. Carrier Brand Logos
+CARRIER_LOGOS = {
+    # US Airlines
+    "AA": "https://upload.wikimedia.org/wikipedia/commons/0/07/American_Airlines_logo_2013.svg",
+    "DL": "https://upload.wikimedia.org/wikipedia/commons/d/d1/Delta_logo.svg",
+    "UA": "https://upload.wikimedia.org/wikipedia/commons/e/e0/United_Airlines_Logo.svg",
+    "WN": "https://upload.wikimedia.org/wikipedia/commons/c/c4/Southwest_Airlines_logo_2014.svg",
+    "AS": "https://upload.wikimedia.org/wikipedia/commons/1/17/Alaska_Airlines_logo.svg",
+    "B6": "https://upload.wikimedia.org/wikipedia/commons/3/30/JetBlue_Airways_Logo.svg",
+    "NK": "https://upload.wikimedia.org/wikipedia/commons/8/87/Spirit_Airlines_logo_2014.svg",
+    "F9": "https://upload.wikimedia.org/wikipedia/commons/8/86/Frontier_Airlines_Logo.svg",
+    "HA": "https://upload.wikimedia.org/wikipedia/commons/5/52/Hawaiian_Airlines_Logo.svg",
+    "G4": "https://upload.wikimedia.org/wikipedia/commons/7/77/Allegiant_Air_logo.svg",
+    "SY": "https://upload.wikimedia.org/wikipedia/commons/3/3f/Sun_Country_Airlines_logo.svg",
+    "VX": "https://upload.wikimedia.org/wikipedia/commons/5/5a/Virgin_America_Logo.svg",
+    "CO": "https://upload.wikimedia.org/wikipedia/commons/b/b2/Continental_Airlines_Logo_1991.svg",
+    "US": "https://upload.wikimedia.org/wikipedia/commons/2/23/US_Airways_logo.svg",
+    "NW": "https://upload.wikimedia.org/wikipedia/commons/e/ec/Northwest_Airlines_Logo.svg",
+    "TW": "https://upload.wikimedia.org/wikipedia/commons/2/2c/Trans_World_Airlines_Logo.svg",
+    "PA": "https://upload.wikimedia.org/wikipedia/commons/2/26/Pan_Am_Logo.svg",
+    "HP": "https://upload.wikimedia.org/wikipedia/commons/f/f3/America_West_Airlines_logo.svg",
+    # European Airlines
+    "BA": "https://upload.wikimedia.org/wikipedia/en/4/42/British_Airways_Logo.svg",
+    "LH": "https://upload.wikimedia.org/wikipedia/commons/b/b8/Lufthansa_Logo_2018.svg",
+    "AF": "https://upload.wikimedia.org/wikipedia/commons/c/c3/Air_France_Logo.svg",
+    "KL": "https://upload.wikimedia.org/wikipedia/commons/c/c7/KLM_logo.svg",
+    "IB": "https://upload.wikimedia.org/wikipedia/commons/8/82/Iberia_Logo_2013.svg",
+    "SK": "https://upload.wikimedia.org/wikipedia/commons/9/90/Scandinavian_Airlines_logo.svg",
+    "AY": "https://upload.wikimedia.org/wikipedia/commons/6/60/Finnair_logo.svg",
+    "EI": "https://upload.wikimedia.org/wikipedia/commons/8/87/Aer_Lingus_logo_2019.svg",
+    "VS": "https://upload.wikimedia.org/wikipedia/en/c/cc/Virgin_Atlantic_logo.svg",
+    "LX": "https://upload.wikimedia.org/wikipedia/commons/f/f8/Swiss_International_Air_Lines_Logo_2011.svg",
+    "OS": "https://upload.wikimedia.org/wikipedia/commons/e/ea/Austrian_Airlines_logo.svg",
+    "SN": "https://upload.wikimedia.org/wikipedia/commons/4/45/Brussels_Airlines_Logo_2021.svg",
+    "AZ": "https://upload.wikimedia.org/wikipedia/commons/9/9c/ITA_Airways_logo.svg",
+    "TP": "https://upload.wikimedia.org/wikipedia/commons/a/a2/TAP_Air_Portugal_Logo.svg",
+    "TK": "https://upload.wikimedia.org/wikipedia/commons/b/b8/Turkish_Airlines_logo_2019.svg",
+    "LO": "https://upload.wikimedia.org/wikipedia/commons/6/6d/LOT_Polish_Airlines_logo.svg",
+    "A3": "https://upload.wikimedia.org/wikipedia/commons/1/1d/Aegean_Airlines_Logo.svg",
+    "OU": "https://upload.wikimedia.org/wikipedia/commons/f/fa/Croatia_Airlines_Logo.svg",
+    "UX": "https://upload.wikimedia.org/wikipedia/commons/7/7d/Air_Europa_logo.svg",
+    "RO": "https://upload.wikimedia.org/wikipedia/commons/6/60/TAROM_logo.svg",
+    "OK": "https://upload.wikimedia.org/wikipedia/commons/9/92/Czech_Airlines_Logo.svg",
+    "SU": "https://upload.wikimedia.org/wikipedia/commons/2/25/Aeroflot_Russian_Airlines_logo.svg",
+    "S7": "https://upload.wikimedia.org/wikipedia/commons/d/d3/S7_Airlines_logo.svg",
+    # Historical European
+    "SR": "https://upload.wikimedia.org/wikipedia/commons/5/52/Swissair_Logo.svg",
+    "SAB": "https://upload.wikimedia.org/wikipedia/commons/7/77/Sabena_logo.svg",
+    "BD": "https://upload.wikimedia.org/wikipedia/commons/0/07/BMI_logo.svg",
+    "JK": "https://upload.wikimedia.org/wikipedia/commons/f/fe/Spanair_Logo.svg",
+    "AB": "https://upload.wikimedia.org/wikipedia/commons/7/72/Air_Berlin_logo.svg",
+    "MA": "https://upload.wikimedia.org/wikipedia/commons/8/87/Mal%C3%A9v_Hungarian_Airlines_Logo.svg",
+    # Americas
+    "AC": "https://upload.wikimedia.org/wikipedia/commons/2/24/Air_Canada_Logo.svg",
+    "CP": "https://upload.wikimedia.org/wikipedia/commons/a/ae/Canadian_Airlines_logo.svg",
+    "WS": "https://upload.wikimedia.org/wikipedia/commons/d/df/WestJet_Logo.svg",
+    "AM": "https://upload.wikimedia.org/wikipedia/commons/3/36/Aeromexico_Logo.svg",
+    "MX": "https://upload.wikimedia.org/wikipedia/commons/c/ce/Mexicana_de_Aviaci%C3%B3n_logo_%282008%29.svg",
+    "CM": "https://upload.wikimedia.org/wikipedia/commons/5/52/Copa_Airlines_logo.svg",
+    "AV": "https://upload.wikimedia.org/wikipedia/commons/7/77/Avianca_logo.svg",
+    "LA": "https://upload.wikimedia.org/wikipedia/commons/4/43/LATAM_Airlines_logo.svg",
+    "JJ": "https://upload.wikimedia.org/wikipedia/commons/c/cf/TAM_Airlines_logo.svg",
+    "AR": "https://upload.wikimedia.org/wikipedia/commons/6/62/Aerol%C3%ADneas_Argentinas_logo.svg",
+    "G3": "https://upload.wikimedia.org/wikipedia/commons/0/09/Gol_Linhas_A%C3%A9reas_Inteligentes_logo.svg",
+    "RG": "https://upload.wikimedia.org/wikipedia/commons/c/cd/Varig_Logo_1997.svg",
+    # Asia & Pacific
+    "SQ": "https://upload.wikimedia.org/wikipedia/en/6/6b/Singapore_Airlines_Logo_2.svg",
+    "CX": "https://upload.wikimedia.org/wikipedia/en/0/07/Cathay_Pacific_logo_%282014%29.svg",
+    "QF": "https://upload.wikimedia.org/wikipedia/commons/4/4b/Qantas_Logo_2016.svg",
+    "NZ": "https://upload.wikimedia.org/wikipedia/commons/9/97/Air_New_Zealand_Logo_2012.svg",
+    "NH": "https://upload.wikimedia.org/wikipedia/commons/8/87/All_Nippon_Airways_Logo.svg",
+    "JL": "https://upload.wikimedia.org/wikipedia/commons/d/df/Japan_Airlines_Logo.svg",
+    "KE": "https://upload.wikimedia.org/wikipedia/commons/2/29/Korean_Air_logo.svg",
+    "OZ": "https://upload.wikimedia.org/wikipedia/commons/1/11/Asiana_Airlines_Logo.svg",
+    "TG": "https://upload.wikimedia.org/wikipedia/en/9/91/Thai_Airways_Logo.svg",
+    "MH": "https://upload.wikimedia.org/wikipedia/commons/9/90/Malaysia_Airlines_Logo.svg",
+    "GA": "https://upload.wikimedia.org/wikipedia/commons/2/2b/Garuda_Indonesia_Logo.svg",
+    "VN": "https://upload.wikimedia.org/wikipedia/commons/5/54/Vietnam_Airlines_logo.svg",
+    "CI": "https://upload.wikimedia.org/wikipedia/commons/6/6e/China_Airlines_logo.svg",
+    "BR": "https://upload.wikimedia.org/wikipedia/commons/e/eb/EVA_Air_logo.svg",
+    "CA": "https://upload.wikimedia.org/wikipedia/commons/1/1b/Air_China_Logo.svg",
+    "MU": "https://upload.wikimedia.org/wikipedia/commons/1/1e/China_Eastern_Airlines_logo.svg",
+    "CZ": "https://upload.wikimedia.org/wikipedia/commons/3/35/China_Southern_Airlines_logo.svg",
+    "MF": "https://upload.wikimedia.org/wikipedia/commons/6/6f/XiamenAir_logo.svg",
+    "AI": "https://upload.wikimedia.org/wikipedia/commons/8/82/Air_India_2023_logo.svg",
+    "UL": "https://upload.wikimedia.org/wikipedia/en/b/b6/SriLankan_Airlines_logo.svg",
+    "FJ": "https://upload.wikimedia.org/wikipedia/en/1/14/Fiji_Airways_logo.svg",
+    # Middle East & Africa
+    "EK": "https://upload.wikimedia.org/wikipedia/commons/d/d0/Emirates_logo.svg",
+    "QR": "https://upload.wikimedia.org/wikipedia/en/9/9b/Qatar_Airways_Logo.svg",
+    "EY": "https://upload.wikimedia.org/wikipedia/commons/7/70/Etihad_Airways_logo.svg",
+    "SV": "https://upload.wikimedia.org/wikipedia/commons/4/4f/Saudia_Logo_2023.svg",
+    "WY": "https://upload.wikimedia.org/wikipedia/en/6/6f/Oman_Air_logo.svg",
+    "RJ": "https://upload.wikimedia.org/wikipedia/en/8/88/Royal_Jordanian_logo.svg",
+    "ME": "https://upload.wikimedia.org/wikipedia/en/b/b3/Middle_East_Airlines_logo.svg",
+    "ET": "https://upload.wikimedia.org/wikipedia/commons/1/1b/Ethiopian_Airlines_Logo.svg",
+    "MS": "https://upload.wikimedia.org/wikipedia/en/2/25/EgyptAir_Logo.svg",
+    "SA": "https://upload.wikimedia.org/wikipedia/en/7/74/South_African_Airways_logo.svg",
+    "KQ": "https://upload.wikimedia.org/wikipedia/commons/2/29/Kenya_Airways_Logo.svg",
+    "AT": "https://upload.wikimedia.org/wikipedia/commons/6/6c/Royal_Air_Maroc_Logo.svg"
+}
+
+# 3. Comprehensive Historical Alliance Membership Intervals
+ALLIANCE_MEMBERSHIPS = [
+    # -------------------------------------------------------------
+    # SAS Scandinavian Airlines: Star Founding 1997 -> SkyTeam 2024
+    # -------------------------------------------------------------
+    {
+        "carrier_code": "SK",
+        "icao_code": "SAS",
+        "carrier_name": "Scandinavian Airlines (SAS)",
+        "alliance_name": "Star Alliance",
+        "status": "former",
+        "join_date": "1997-05-14",
+        "exit_date": "2024-08-31",
+        "transition_notes": "Founding member of Star Alliance on May 14, 1997. Exited following Chapter 11 restructuring and acquisition of a 19.9% equity stake by the Air France-KLM consortium.",
+        "source_url": "https://www.flysas.com/en/press-releases/2024/sas-officially-joins-skyteam-global-airline-alliance/",
+        "logo_url": CARRIER_LOGOS["SK"],
+        "alliance_logo_url": ALLIANCES_METADATA["Star Alliance"]["logo_url"]
+    },
+    {
+        "carrier_code": "SK",
+        "icao_code": "SAS",
+        "carrier_name": "Scandinavian Airlines (SAS)",
+        "alliance_name": "SkyTeam",
+        "status": "current",
+        "join_date": "2024-09-01",
+        "exit_date": None,
+        "transition_notes": "Formally joined SkyTeam on September 1, 2024, expanding SkyTeam connectivity in Scandinavia and entering transatlantic joint venture alignment with Air France-KLM and Delta.",
+        "source_url": "https://www.skyteam.com/en/about/press-releases/press-releases-2024/sas-officially-joins-skyteam",
+        "logo_url": CARRIER_LOGOS["SK"],
+        "alliance_logo_url": ALLIANCES_METADATA["SkyTeam"]["logo_url"]
+    },
+
+    # -------------------------------------------------------------
+    # Aer Lingus: oneworld 2000 -> Former/Independent 2007
+    # -------------------------------------------------------------
+    {
+        "carrier_code": "EI",
+        "icao_code": "EIN",
+        "carrier_name": "Aer Lingus",
+        "alliance_name": "oneworld",
+        "status": "former",
+        "join_date": "2000-06-01",
+        "exit_date": "2007-04-01",
+        "transition_notes": "Joined oneworld on June 1, 2000. Left on April 1, 2007 to reposition the airline as a low-fares value carrier following deregulation and privatization, though later acquired by IAG in 2015.",
+        "source_url": "https://www.oneworld.com/news/2006-05-30-aer-lingus-to-leave-oneworld",
+        "logo_url": CARRIER_LOGOS["EI"],
+        "alliance_logo_url": ALLIANCES_METADATA["oneworld"]["logo_url"]
+    },
+
+    # -------------------------------------------------------------
+    # Continental Airlines: Wings -> SkyTeam 2004 -> Star 2009 -> UA Merger 2012
+    # -------------------------------------------------------------
+    {
+        "carrier_code": "CO",
+        "icao_code": "COA",
+        "carrier_name": "Continental Airlines",
+        "alliance_name": "Wings Alliance",
+        "status": "former",
+        "join_date": "1998-01-26",
+        "exit_date": "2004-09-13",
+        "transition_notes": "Entered transatlantic alliance partnership with Northwest Airlines and KLM Royal Dutch Airlines.",
+        "source_url": "https://en.wikipedia.org/wiki/Wings_Alliance",
+        "logo_url": CARRIER_LOGOS["CO"],
+        "alliance_logo_url": ALLIANCES_METADATA["Wings Alliance"]["logo_url"]
+    },
+    {
+        "carrier_code": "CO",
+        "icao_code": "COA",
+        "carrier_name": "Continental Airlines",
+        "alliance_name": "SkyTeam",
+        "status": "former",
+        "join_date": "2004-09-13",
+        "exit_date": "2009-10-24",
+        "transition_notes": "Joined SkyTeam alongside Northwest Airlines and KLM on September 13, 2004. Withdrew on October 24, 2009 to link up with United Airlines.",
+        "source_url": "https://www.skyteam.com/en/about/press-releases/press-releases-2009/continental-airlines-departs-skyteam",
+        "logo_url": CARRIER_LOGOS["CO"],
+        "alliance_logo_url": ALLIANCES_METADATA["SkyTeam"]["logo_url"]
+    },
+    {
+        "carrier_code": "CO",
+        "icao_code": "COA",
+        "carrier_name": "Continental Airlines",
+        "alliance_name": "Star Alliance",
+        "status": "former",
+        "join_date": "2009-10-27",
+        "exit_date": "2012-03-03",
+        "transition_notes": "Joined Star Alliance on October 27, 2009. Merged into United Airlines under a single operating certificate on March 3, 2012.",
+        "source_url": "https://www.staralliance.com/en/news-article?newsArticleId=23773",
+        "logo_url": CARRIER_LOGOS["CO"],
+        "alliance_logo_url": ALLIANCES_METADATA["Star Alliance"]["logo_url"]
+    },
+
+    # -------------------------------------------------------------
+    # US Airways: Star Alliance 2004 -> oneworld 2014 -> AA Merger 2015
+    # -------------------------------------------------------------
+    {
+        "carrier_code": "US",
+        "icao_code": "USA",
+        "carrier_name": "US Airways",
+        "alliance_name": "Star Alliance",
+        "status": "former",
+        "join_date": "2004-05-04",
+        "exit_date": "2014-03-30",
+        "transition_notes": "Joined Star Alliance on May 4, 2004. Transitioned out following antitrust approval of merger with American Airlines.",
+        "source_url": "https://www.staralliance.com/en/news-article?newsArticleId=29002",
+        "logo_url": CARRIER_LOGOS["US"],
+        "alliance_logo_url": ALLIANCES_METADATA["Star Alliance"]["logo_url"]
+    },
+    {
+        "carrier_code": "US",
+        "icao_code": "USA",
+        "carrier_name": "US Airways",
+        "alliance_name": "oneworld",
+        "status": "former",
+        "join_date": "2014-03-31",
+        "exit_date": "2015-10-17",
+        "transition_notes": "Joined oneworld on March 31, 2014 as part of the American Airlines Group merger integration until full brand consolidation on October 17, 2015.",
+        "source_url": "https://www.oneworld.com/news/2014-03-31-us-airways-joins-oneworld",
+        "logo_url": CARRIER_LOGOS["US"],
+        "alliance_logo_url": ALLIANCES_METADATA["oneworld"]["logo_url"]
+    },
+
+    # -------------------------------------------------------------
+    # Canadian Airlines: oneworld Founding 1999 -> Air Canada Merger 2000
+    # -------------------------------------------------------------
+    {
+        "carrier_code": "CP",
+        "icao_code": "CDN",
+        "carrier_name": "Canadian Airlines",
+        "alliance_name": "oneworld",
+        "status": "former",
+        "join_date": "1999-02-01",
+        "exit_date": "2000-06-01",
+        "transition_notes": "Founding member of oneworld on February 1, 1999. Exited on June 1, 2000 following acquisition and consolidation into Star Alliance founding member Air Canada.",
+        "source_url": "https://www.oneworld.com/news/2000-03-14-canadian-airlines-to-leave-oneworld",
+        "logo_url": CARRIER_LOGOS["CP"],
+        "alliance_logo_url": ALLIANCES_METADATA["oneworld"]["logo_url"]
+    },
+
+    # -------------------------------------------------------------
+    # Mexicana de Aviación: Star 2000-2004 -> oneworld 2009-2010
+    # -------------------------------------------------------------
+    {
+        "carrier_code": "MX",
+        "icao_code": "MXA",
+        "carrier_name": "Mexicana de Aviación",
+        "alliance_name": "Star Alliance",
+        "status": "former",
+        "join_date": "2000-07-01",
+        "exit_date": "2004-03-31",
+        "transition_notes": "Joined Star Alliance on July 1, 2000. Left on March 31, 2004 due to codeshare disputes and antitrust immunity issues with United Airlines.",
+        "source_url": "https://en.wikipedia.org/wiki/Mexicana_de_Aviaci%C3%B3n",
+        "logo_url": CARRIER_LOGOS["MX"],
+        "alliance_logo_url": ALLIANCES_METADATA["Star Alliance"]["logo_url"]
+    },
+    {
+        "carrier_code": "MX",
+        "icao_code": "MXA",
+        "carrier_name": "Mexicana de Aviación",
+        "alliance_name": "oneworld",
+        "status": "former",
+        "join_date": "2009-11-10",
+        "exit_date": "2010-08-28",
+        "transition_notes": "Joined oneworld on November 10, 2009. Ceased all operations on August 28, 2010 due to severe financial insolvency and bankruptcy.",
+        "source_url": "https://www.oneworld.com/news/2009-11-10-mexicana-joins-oneworld",
+        "logo_url": CARRIER_LOGOS["MX"],
+        "alliance_logo_url": ALLIANCES_METADATA["oneworld"]["logo_url"]
+    },
+
+    # -------------------------------------------------------------
+    # TAM / LAN / LATAM: Star Alliance -> oneworld -> Independent
+    # -------------------------------------------------------------
+    {
+        "carrier_code": "JJ",
+        "icao_code": "TAM",
+        "carrier_name": "TAM Airlines (LATAM Brasil)",
+        "alliance_name": "Star Alliance",
+        "status": "former",
+        "join_date": "2010-05-13",
+        "exit_date": "2014-03-30",
+        "transition_notes": "Joined Star Alliance on May 13, 2010. Following merger with LAN Airlines to form LATAM Airlines Group, TAM aligned with LAN in oneworld.",
+        "source_url": "https://www.staralliance.com/en/news-article?newsArticleId=29003",
+        "logo_url": CARRIER_LOGOS["JJ"],
+        "alliance_logo_url": ALLIANCES_METADATA["Star Alliance"]["logo_url"]
+    },
+    {
+        "carrier_code": "LA",
+        "icao_code": "LAN",
+        "carrier_name": "LATAM Airlines (LAN / TAM)",
+        "alliance_name": "oneworld",
+        "status": "former",
+        "join_date": "2000-06-01",
+        "exit_date": "2020-05-01",
+        "transition_notes": "LAN joined oneworld in June 2000; TAM joined in March 2014. LATAM exited oneworld on May 1, 2020 following Delta Air Lines' acquisition of a 20% equity stake.",
+        "source_url": "https://www.oneworld.com/news/2020-01-31-latam-to-leave-oneworld-on-1-may-2020",
+        "logo_url": CARRIER_LOGOS["LA"],
+        "alliance_logo_url": ALLIANCES_METADATA["oneworld"]["logo_url"]
+    },
+
+    # -------------------------------------------------------------
+    # Alaska Airlines: oneworld 2021-Present
+    # -------------------------------------------------------------
+    {
+        "carrier_code": "AS",
+        "icao_code": "ASA",
+        "carrier_name": "Alaska Airlines",
+        "alliance_name": "oneworld",
+        "status": "current",
+        "join_date": "2021-03-31",
+        "exit_date": None,
+        "transition_notes": "Formally joined oneworld on March 31, 2021 as its 14th full member, strengthening West Coast and Pacific coverage alongside American Airlines.",
+        "source_url": "https://news.alaskaair.com/alaska-airlines/alaska-airlines-officially-joins-oneworld/",
+        "logo_url": CARRIER_LOGOS["AS"],
+        "alliance_logo_url": ALLIANCES_METADATA["oneworld"]["logo_url"]
+    },
+
+    # -------------------------------------------------------------
+    # Hawaiian Airlines: Joining oneworld via Alaska Merger (2024/2026)
+    # -------------------------------------------------------------
+    {
+        "carrier_code": "HA",
+        "icao_code": "HAL",
+        "carrier_name": "Hawaiian Airlines",
+        "alliance_name": "oneworld",
+        "status": "future",
+        "join_date": "2024-09-18",
+        "exit_date": None,
+        "transition_notes": "Following DOJ antitrust clearance and acquisition close by Alaska Air Group on September 18, 2024, Hawaiian is transitioning into oneworld.",
+        "source_url": "https://newsroom.hawaiianairlines.com/releases/alaska-air-group-completes-acquisition-of-hawaiian-airlines",
+        "logo_url": CARRIER_LOGOS["HA"],
+        "alliance_logo_url": ALLIANCES_METADATA["oneworld"]["logo_url"]
+    },
+
+    # -------------------------------------------------------------
+    # Virgin Atlantic: SkyTeam 2023-Present
+    # -------------------------------------------------------------
+    {
+        "carrier_code": "VS",
+        "icao_code": "VIR",
+        "carrier_name": "Virgin Atlantic",
+        "alliance_name": "SkyTeam",
+        "status": "current",
+        "join_date": "2023-03-02",
+        "exit_date": None,
+        "transition_notes": "Became SkyTeam's first UK member airline on March 2, 2023, formalizing its deep joint-venture ties with Delta Air Lines and Air France-KLM.",
+        "source_url": "https://www.skyteam.com/en/about/press-releases/press-releases-2023/virgin-atlantic-officially-joins-skyteam",
+        "logo_url": CARRIER_LOGOS["VS"],
+        "alliance_logo_url": ALLIANCES_METADATA["SkyTeam"]["logo_url"]
+    },
+
+    # -------------------------------------------------------------
+    # ITA Airways / Alitalia: SkyTeam 2021-Present
+    # -------------------------------------------------------------
+    {
+        "carrier_code": "AZ",
+        "icao_code": "ITY",
+        "carrier_name": "ITA Airways (formerly Alitalia)",
+        "alliance_name": "SkyTeam",
+        "status": "current",
+        "join_date": "2021-10-29",
+        "exit_date": None,
+        "transition_notes": "Alitalia joined SkyTeam on July 27, 2001. Upon cessation and restructuring, successor ITA Airways joined SkyTeam on October 29, 2021 (with pending Lufthansa Group stake transition to Star Alliance).",
+        "source_url": "https://www.skyteam.com/en/about/press-releases/press-releases-2021/ita-airways-joins-skyteam",
+        "logo_url": CARRIER_LOGOS["AZ"],
+        "alliance_logo_url": ALLIANCES_METADATA["SkyTeam"]["logo_url"]
+    },
+
+    # -------------------------------------------------------------
+    # Oman Air: oneworld 2024/2025
+    # -------------------------------------------------------------
+    {
+        "carrier_code": "WY",
+        "icao_code": "OMA",
+        "carrier_name": "Oman Air",
+        "alliance_name": "oneworld",
+        "status": "future",
+        "join_date": "2024-10-01",
+        "exit_date": None,
+        "transition_notes": "Elected to join oneworld in June 2022, sponsored by Qatar Airways, finalizing full integration to strengthen Middle Eastern and Indian Ocean network connectivity.",
+        "source_url": "https://www.oneworld.com/news/2022-06-20-oman-air-to-join-oneworld-alliance",
+        "logo_url": CARRIER_LOGOS["WY"],
+        "alliance_logo_url": ALLIANCES_METADATA["oneworld"]["logo_url"]
+    },
+
+    # -------------------------------------------------------------
+    # Fiji Airways: oneworld Connect 2018 -> Full Member 2024
+    # -------------------------------------------------------------
+    {
+        "carrier_code": "FJ",
+        "icao_code": "FJI",
+        "carrier_name": "Fiji Airways",
+        "alliance_name": "oneworld",
+        "status": "current",
+        "join_date": "2018-12-05",
+        "exit_date": None,
+        "transition_notes": "Debuted as the inaugural 'oneworld connect' partner on December 5, 2018. Transitioned to 15th full oneworld member airline in June 2024.",
+        "source_url": "https://www.oneworld.com/news/2024-06-03-fiji-airways-to-become-15th-full-member-of-oneworld-alliance",
+        "logo_url": CARRIER_LOGOS["FJ"],
+        "alliance_logo_url": ALLIANCES_METADATA["oneworld"]["logo_url"]
+    },
+
+    # -------------------------------------------------------------
+    # Founding & Pillar Members: Star Alliance
+    # -------------------------------------------------------------
+    {
+        "carrier_code": "UA",
+        "icao_code": "UAL",
+        "carrier_name": "United Airlines",
+        "alliance_name": "Star Alliance",
+        "status": "current",
+        "join_date": "1997-05-14",
+        "exit_date": None,
+        "transition_notes": "Founding member of Star Alliance on May 14, 1997.",
+        "source_url": "https://www.staralliance.com/en/about",
+        "logo_url": CARRIER_LOGOS["UA"],
+        "alliance_logo_url": ALLIANCES_METADATA["Star Alliance"]["logo_url"]
+    },
+    {
+        "carrier_code": "LH",
+        "icao_code": "DLH",
+        "carrier_name": "Lufthansa",
+        "alliance_name": "Star Alliance",
+        "status": "current",
+        "join_date": "1997-05-14",
+        "exit_date": None,
+        "transition_notes": "Founding member of Star Alliance on May 14, 1997.",
+        "source_url": "https://www.staralliance.com/en/about",
+        "logo_url": CARRIER_LOGOS["LH"],
+        "alliance_logo_url": ALLIANCES_METADATA["Star Alliance"]["logo_url"]
+    },
+    {
+        "carrier_code": "AC",
+        "icao_code": "ACA",
+        "carrier_name": "Air Canada",
+        "alliance_name": "Star Alliance",
+        "status": "current",
+        "join_date": "1997-05-14",
+        "exit_date": None,
+        "transition_notes": "Founding member of Star Alliance on May 14, 1997.",
+        "source_url": "https://www.staralliance.com/en/about",
+        "logo_url": CARRIER_LOGOS["AC"],
+        "alliance_logo_url": ALLIANCES_METADATA["Star Alliance"]["logo_url"]
+    },
+    {
+        "carrier_code": "TG",
+        "icao_code": "THA",
+        "carrier_name": "Thai Airways International",
+        "alliance_name": "Star Alliance",
+        "status": "current",
+        "join_date": "1997-05-14",
+        "exit_date": None,
+        "transition_notes": "Founding member of Star Alliance on May 14, 1997.",
+        "source_url": "https://www.staralliance.com/en/about",
+        "logo_url": CARRIER_LOGOS["TG"],
+        "alliance_logo_url": ALLIANCES_METADATA["Star Alliance"]["logo_url"]
+    },
+    {
+        "carrier_code": "SQ",
+        "icao_code": "SIA",
+        "carrier_name": "Singapore Airlines",
+        "alliance_name": "Star Alliance",
+        "status": "current",
+        "join_date": "2000-04-01",
+        "exit_date": None,
+        "transition_notes": "Joined Star Alliance on April 1, 2000.",
+        "source_url": "https://www.staralliance.com/en/singapore-airlines",
+        "logo_url": CARRIER_LOGOS["SQ"],
+        "alliance_logo_url": ALLIANCES_METADATA["Star Alliance"]["logo_url"]
+    },
+    {
+        "carrier_code": "NH",
+        "icao_code": "ANA",
+        "carrier_name": "All Nippon Airways (ANA)",
+        "alliance_name": "Star Alliance",
+        "status": "current",
+        "join_date": "1999-10-15",
+        "exit_date": None,
+        "transition_notes": "Joined Star Alliance on October 15, 1999.",
+        "source_url": "https://www.staralliance.com/en/ana",
+        "logo_url": CARRIER_LOGOS["NH"],
+        "alliance_logo_url": ALLIANCES_METADATA["Star Alliance"]["logo_url"]
+    },
+    {
+        "carrier_code": "NZ",
+        "icao_code": "ANZ",
+        "carrier_name": "Air New Zealand",
+        "alliance_name": "Star Alliance",
+        "status": "current",
+        "join_date": "1999-03-30",
+        "exit_date": None,
+        "transition_notes": "Joined Star Alliance on March 30, 1999.",
+        "source_url": "https://www.staralliance.com/en/air-new-zealand",
+        "logo_url": CARRIER_LOGOS["NZ"],
+        "alliance_logo_url": ALLIANCES_METADATA["Star Alliance"]["logo_url"]
+    },
+    {
+        "carrier_code": "OS",
+        "icao_code": "AUA",
+        "carrier_name": "Austrian Airlines",
+        "alliance_name": "Star Alliance",
+        "status": "current",
+        "join_date": "2000-03-26",
+        "exit_date": None,
+        "transition_notes": "Joined Star Alliance on March 26, 2000 (formerly member of Qualiflyer).",
+        "source_url": "https://www.staralliance.com/en/austrian",
+        "logo_url": CARRIER_LOGOS["OS"],
+        "alliance_logo_url": ALLIANCES_METADATA["Star Alliance"]["logo_url"]
+    },
+    {
+        "carrier_code": "LX",
+        "icao_code": "SWR",
+        "carrier_name": "Swiss International Air Lines",
+        "alliance_name": "Star Alliance",
+        "status": "current",
+        "join_date": "2006-04-01",
+        "exit_date": None,
+        "transition_notes": "Joined Star Alliance on April 1, 2006 following integration into Lufthansa Group.",
+        "source_url": "https://www.staralliance.com/en/swiss",
+        "logo_url": CARRIER_LOGOS["LX"],
+        "alliance_logo_url": ALLIANCES_METADATA["Star Alliance"]["logo_url"]
+    },
+    {
+        "carrier_code": "TP",
+        "icao_code": "TAP",
+        "carrier_name": "TAP Air Portugal",
+        "alliance_name": "Star Alliance",
+        "status": "current",
+        "join_date": "2005-03-14",
+        "exit_date": None,
+        "transition_notes": "Joined Star Alliance on March 14, 2005 (formerly member of Qualiflyer).",
+        "source_url": "https://www.staralliance.com/en/tap-portugal",
+        "logo_url": CARRIER_LOGOS["TP"],
+        "alliance_logo_url": ALLIANCES_METADATA["Star Alliance"]["logo_url"]
+    },
+    {
+        "carrier_code": "TK",
+        "icao_code": "THY",
+        "carrier_name": "Turkish Airlines",
+        "alliance_name": "Star Alliance",
+        "status": "current",
+        "join_date": "2008-04-01",
+        "exit_date": None,
+        "transition_notes": "Joined Star Alliance on April 1, 2008 (formerly member of Qualiflyer).",
+        "source_url": "https://www.staralliance.com/en/turkish-airlines",
+        "logo_url": CARRIER_LOGOS["TK"],
+        "alliance_logo_url": ALLIANCES_METADATA["Star Alliance"]["logo_url"]
+    },
+    {
+        "carrier_code": "AV",
+        "icao_code": "AVA",
+        "carrier_name": "Avianca",
+        "alliance_name": "Star Alliance",
+        "status": "current",
+        "join_date": "2012-06-21",
+        "exit_date": None,
+        "transition_notes": "Joined Star Alliance on June 21, 2012 alongside TACA Airlines.",
+        "source_url": "https://www.staralliance.com/en/avianca",
+        "logo_url": CARRIER_LOGOS["AV"],
+        "alliance_logo_url": ALLIANCES_METADATA["Star Alliance"]["logo_url"]
+    },
+    {
+        "carrier_code": "CM",
+        "icao_code": "CMP",
+        "carrier_name": "Copa Airlines",
+        "alliance_name": "Star Alliance",
+        "status": "current",
+        "join_date": "2012-06-21",
+        "exit_date": None,
+        "transition_notes": "SkyTeam associate 2007-2009; joined Star Alliance on June 21, 2012.",
+        "source_url": "https://www.staralliance.com/en/copa-airlines",
+        "logo_url": CARRIER_LOGOS["CM"],
+        "alliance_logo_url": ALLIANCES_METADATA["Star Alliance"]["logo_url"]
+    },
+
+    # -------------------------------------------------------------
+    # Founding & Pillar Members: oneworld
+    # -------------------------------------------------------------
+    {
+        "carrier_code": "AA",
+        "icao_code": "AAL",
+        "carrier_name": "American Airlines",
+        "alliance_name": "oneworld",
+        "status": "current",
+        "join_date": "1999-02-01",
+        "exit_date": None,
+        "transition_notes": "Founding member of oneworld on February 1, 1999.",
+        "source_url": "https://www.oneworld.com/members/american-airlines",
+        "logo_url": CARRIER_LOGOS["AA"],
+        "alliance_logo_url": ALLIANCES_METADATA["oneworld"]["logo_url"]
+    },
+    {
+        "carrier_code": "BA",
+        "icao_code": "BAW",
+        "carrier_name": "British Airways",
+        "alliance_name": "oneworld",
+        "status": "current",
+        "join_date": "1999-02-01",
+        "exit_date": None,
+        "transition_notes": "Founding member of oneworld on February 1, 1999.",
+        "source_url": "https://www.oneworld.com/members/british-airways",
+        "logo_url": CARRIER_LOGOS["BA"],
+        "alliance_logo_url": ALLIANCES_METADATA["oneworld"]["logo_url"]
+    },
+    {
+        "carrier_code": "CX",
+        "icao_code": "CPA",
+        "carrier_name": "Cathay Pacific",
+        "alliance_name": "oneworld",
+        "status": "current",
+        "join_date": "1999-02-01",
+        "exit_date": None,
+        "transition_notes": "Founding member of oneworld on February 1, 1999.",
+        "source_url": "https://www.oneworld.com/members/cathay-pacific",
+        "logo_url": CARRIER_LOGOS["CX"],
+        "alliance_logo_url": ALLIANCES_METADATA["oneworld"]["logo_url"]
+    },
+    {
+        "carrier_code": "QF",
+        "icao_code": "QFA",
+        "carrier_name": "Qantas",
+        "alliance_name": "oneworld",
+        "status": "current",
+        "join_date": "1999-02-01",
+        "exit_date": None,
+        "transition_notes": "Founding member of oneworld on February 1, 1999.",
+        "source_url": "https://www.oneworld.com/members/qantas",
+        "logo_url": CARRIER_LOGOS["QF"],
+        "alliance_logo_url": ALLIANCES_METADATA["oneworld"]["logo_url"]
+    },
+    {
+        "carrier_code": "IB",
+        "icao_code": "IBE",
+        "carrier_name": "Iberia",
+        "alliance_name": "oneworld",
+        "status": "current",
+        "join_date": "1999-09-01",
+        "exit_date": None,
+        "transition_notes": "Joined oneworld on September 1, 1999.",
+        "source_url": "https://www.oneworld.com/members/iberia",
+        "logo_url": CARRIER_LOGOS["IB"],
+        "alliance_logo_url": ALLIANCES_METADATA["oneworld"]["logo_url"]
+    },
+    {
+        "carrier_code": "AY",
+        "icao_code": "FIN",
+        "carrier_name": "Finnair",
+        "alliance_name": "oneworld",
+        "status": "current",
+        "join_date": "1999-09-01",
+        "exit_date": None,
+        "transition_notes": "Joined oneworld on September 1, 1999.",
+        "source_url": "https://www.oneworld.com/members/finnair",
+        "logo_url": CARRIER_LOGOS["AY"],
+        "alliance_logo_url": ALLIANCES_METADATA["oneworld"]["logo_url"]
+    },
+    {
+        "carrier_code": "JL",
+        "icao_code": "JAL",
+        "carrier_name": "Japan Airlines (JAL)",
+        "alliance_name": "oneworld",
+        "status": "current",
+        "join_date": "2007-04-01",
+        "exit_date": None,
+        "transition_notes": "Joined oneworld on April 1, 2007.",
+        "source_url": "https://www.oneworld.com/members/japan-airlines",
+        "logo_url": CARRIER_LOGOS["JL"],
+        "alliance_logo_url": ALLIANCES_METADATA["oneworld"]["logo_url"]
+    },
+    {
+        "carrier_code": "QR",
+        "icao_code": "QTR",
+        "carrier_name": "Qatar Airways",
+        "alliance_name": "oneworld",
+        "status": "current",
+        "join_date": "2013-10-30",
+        "exit_date": None,
+        "transition_notes": "Joined oneworld on October 30, 2013, becoming first Gulf carrier in a global alliance.",
+        "source_url": "https://www.oneworld.com/members/qatar-airways",
+        "logo_url": CARRIER_LOGOS["QR"],
+        "alliance_logo_url": ALLIANCES_METADATA["oneworld"]["logo_url"]
+    },
+
+    # -------------------------------------------------------------
+    # Founding & Pillar Members: SkyTeam
+    # -------------------------------------------------------------
+    {
+        "carrier_code": "DL",
+        "icao_code": "DAL",
+        "carrier_name": "Delta Air Lines",
+        "alliance_name": "SkyTeam",
+        "status": "current",
+        "join_date": "2000-06-22",
+        "exit_date": None,
+        "transition_notes": "Founding member of SkyTeam on June 22, 2000.",
+        "source_url": "https://www.skyteam.com/en/about/members/delta-air-lines",
+        "logo_url": CARRIER_LOGOS["DL"],
+        "alliance_logo_url": ALLIANCES_METADATA["SkyTeam"]["logo_url"]
+    },
+    {
+        "carrier_code": "AF",
+        "icao_code": "AFR",
+        "carrier_name": "Air France",
+        "alliance_name": "SkyTeam",
+        "status": "current",
+        "join_date": "2000-06-22",
+        "exit_date": None,
+        "transition_notes": "Founding member of SkyTeam on June 22, 2000.",
+        "source_url": "https://www.skyteam.com/en/about/members/air-france",
+        "logo_url": CARRIER_LOGOS["AF"],
+        "alliance_logo_url": ALLIANCES_METADATA["SkyTeam"]["logo_url"]
+    },
+    {
+        "carrier_code": "AM",
+        "icao_code": "AMX",
+        "carrier_name": "Aeroméxico",
+        "alliance_name": "SkyTeam",
+        "status": "current",
+        "join_date": "2000-06-22",
+        "exit_date": None,
+        "transition_notes": "Founding member of SkyTeam on June 22, 2000.",
+        "source_url": "https://www.skyteam.com/en/about/members/aeromexico",
+        "logo_url": CARRIER_LOGOS["AM"],
+        "alliance_logo_url": ALLIANCES_METADATA["SkyTeam"]["logo_url"]
+    },
+    {
+        "carrier_code": "KE",
+        "icao_code": "KAL",
+        "carrier_name": "Korean Air",
+        "alliance_name": "SkyTeam",
+        "status": "current",
+        "join_date": "2000-06-22",
+        "exit_date": None,
+        "transition_notes": "Founding member of SkyTeam on June 22, 2000.",
+        "source_url": "https://www.skyteam.com/en/about/members/korean-air",
+        "logo_url": CARRIER_LOGOS["KE"],
+        "alliance_logo_url": ALLIANCES_METADATA["SkyTeam"]["logo_url"]
+    },
+    {
+        "carrier_code": "KL",
+        "icao_code": "KLM",
+        "carrier_name": "KLM Royal Dutch Airlines",
+        "alliance_name": "Wings Alliance",
+        "status": "former",
+        "join_date": "1989-08-01",
+        "exit_date": "2004-09-13",
+        "transition_notes": "Anchor carrier of Wings Alliance alongside Northwest Airlines.",
+        "source_url": "https://en.wikipedia.org/wiki/Wings_Alliance",
+        "logo_url": CARRIER_LOGOS["KL"],
+        "alliance_logo_url": ALLIANCES_METADATA["Wings Alliance"]["logo_url"]
+    },
+    {
+        "carrier_code": "KL",
+        "icao_code": "KLM",
+        "carrier_name": "KLM Royal Dutch Airlines",
+        "alliance_name": "SkyTeam",
+        "status": "current",
+        "join_date": "2004-09-13",
+        "exit_date": None,
+        "transition_notes": "Joined SkyTeam on September 13, 2004 following merger into Air France-KLM Group.",
+        "source_url": "https://www.skyteam.com/en/about/members/klm",
+        "logo_url": CARRIER_LOGOS["KL"],
+        "alliance_logo_url": ALLIANCES_METADATA["SkyTeam"]["logo_url"]
+    },
+    {
+        "carrier_code": "NW",
+        "icao_code": "NWA",
+        "carrier_name": "Northwest Airlines",
+        "alliance_name": "Wings Alliance",
+        "status": "former",
+        "join_date": "1989-08-01",
+        "exit_date": "2004-09-13",
+        "transition_notes": "Anchor carrier of Wings Alliance joint venture with KLM.",
+        "source_url": "https://en.wikipedia.org/wiki/Wings_Alliance",
+        "logo_url": CARRIER_LOGOS["NW"],
+        "alliance_logo_url": ALLIANCES_METADATA["Wings Alliance"]["logo_url"]
+    },
+    {
+        "carrier_code": "NW",
+        "icao_code": "NWA",
+        "carrier_name": "Northwest Airlines",
+        "alliance_name": "SkyTeam",
+        "status": "former",
+        "join_date": "2004-09-13",
+        "exit_date": "2010-01-31",
+        "transition_notes": "Joined SkyTeam on September 13, 2004. Merged into Delta Air Lines on January 31, 2010.",
+        "source_url": "https://www.skyteam.com/en/about/press-releases/press-releases-2004/skyteam-welcomes-continental-klm-and-northwest",
+        "logo_url": CARRIER_LOGOS["NW"],
+        "alliance_logo_url": ALLIANCES_METADATA["SkyTeam"]["logo_url"]
+    },
+
+    # -------------------------------------------------------------
+    # Historical SAirGroup: Qualiflyer
+    # -------------------------------------------------------------
+    {
+        "carrier_code": "SR",
+        "icao_code": "SWR",
+        "carrier_name": "Swissair",
+        "alliance_name": "Qualiflyer",
+        "status": "former",
+        "join_date": "1992-04-01",
+        "exit_date": "2002-03-31",
+        "transition_notes": "Lead carrier of Qualiflyer Group. Grounded and declared bankrupt on March 31, 2002; assets restructured into Swiss International Air Lines (SWISS).",
+        "source_url": "https://en.wikipedia.org/wiki/The_Qualiflyer_Group",
+        "logo_url": CARRIER_LOGOS["SR"],
+        "alliance_logo_url": ALLIANCES_METADATA["Qualiflyer"]["logo_url"]
+    },
+    {
+        "carrier_code": "SAB",
+        "icao_code": "SAB",
+        "carrier_name": "Sabena",
+        "alliance_name": "Qualiflyer",
+        "status": "former",
+        "join_date": "1995-05-01",
+        "exit_date": "2001-11-07",
+        "transition_notes": "Core partner of Swissair in Qualiflyer. Ceased operations on November 7, 2001 due to bankruptcy; succeeded by SN Brussels Airlines.",
+        "source_url": "https://en.wikipedia.org/wiki/Sabena",
+        "logo_url": CARRIER_LOGOS["SAB"],
+        "alliance_logo_url": ALLIANCES_METADATA["Qualiflyer"]["logo_url"]
+    }
+]
+
+
+def write_json_dataset():
+    json_path = DATA_DIR / "alliances_history.json"
+    data = {
+        "metadata": {
+            "title": "AvDB Historical Airline Alliances & Branding Dataset",
+            "version": "1.0",
+            "generated_at": "2026-09-04",
+            "total_records": len(ALLIANCE_MEMBERSHIPS),
+            "alliances": ALLIANCES_METADATA,
+        },
+        "memberships": ALLIANCE_MEMBERSHIPS,
+        "carrier_logos": CARRIER_LOGOS
+    }
+    with open(json_path, "w", encoding="utf-8") as f:
+        json.dump(data, f, indent=2, ensure_ascii=False)
+    print(f"✅ Generated {json_path} with {len(ALLIANCE_MEMBERSHIPS)} membership records.")
+
+
+def write_py_dataset():
+    import pprint
+    py_path = DATA_DIR / "ref_alliances.py"
+    with open(py_path, "w", encoding="utf-8") as f:
+        f.write('"""\nAvDB Airline Alliance & Brand Logo Reference Tables\nAuthoritative membership timelines with transition rationale and source citations.\n"""\n\n')
+        f.write(f"ALLIANCES_METADATA = {pprint.pformat(ALLIANCES_METADATA, indent=4)}\n\n")
+        f.write(f"CARRIER_LOGOS = {pprint.pformat(CARRIER_LOGOS, indent=4)}\n\n")
+        f.write(f"ALLIANCE_MEMBERSHIPS = {pprint.pformat(ALLIANCE_MEMBERSHIPS, indent=4)}\n")
+    print(f"✅ Generated {py_path}")
+
+
+def write_utils_module():
+    utils_path = UTILS_DIR / "alliances.py"
+    code = '''"""
+AvDB Airline Alliance & Branding Utility Layer
+Enables temporal alliance lookups, carrier alliance timelines, and logo resolutions.
+"""
+from typing import Optional, List, Dict, Any
+from app.data.ref_alliances import ALLIANCES_METADATA, CARRIER_LOGOS, ALLIANCE_MEMBERSHIPS
+
+
+def get_carrier_alliance(carrier_code: str, year: int) -> Optional[Dict[str, Any]]:
+    """
+    Returns the alliance for a carrier during a specific calendar year,
+    taking into account join and exit dates.
+    """
+    c = carrier_code.strip().upper()
+    target_date = f"{year}-07-01"  # Mid-year reference
+
+    for m in ALLIANCE_MEMBERSHIPS:
+        if m["carrier_code"] == c:
+            join = m["join_date"] or "1900-01-01"
+            exit_d = m["exit_date"] or "2099-12-31"
+            if join <= target_date <= exit_d:
+                return m
+    return None
+
+
+def get_alliance_carriers(alliance_name: str, year: int) -> List[str]:
+    """
+    Returns list of member carrier codes (IATA) belonging to an alliance in a specific year.
+    """
+    target_date = f"{year}-07-01"
+    carriers = set()
+    norm = alliance_name.strip().lower()
+
+    for m in ALLIANCE_MEMBERSHIPS:
+        if m["alliance_name"].strip().lower() == norm:
+            join = m["join_date"] or "1900-01-01"
+            exit_d = m["exit_date"] or "2099-12-31"
+            if join <= target_date <= exit_d:
+                carriers.add(m["carrier_code"])
+    return sorted(list(carriers))
+
+
+def get_all_alliances_for_year(year: int) -> List[Dict[str, Any]]:
+    """
+    Returns all active alliances and their member count for a given year.
+    """
+    target_date = f"{year}-07-01"
+    res = []
+    for a_name, a_info in ALLIANCES_METADATA.items():
+        found = a_info["founded_date"] or "1900-01-01"
+        diss = a_info["dissolved_date"] or "2099-12-31"
+        if found <= target_date <= diss:
+            members = get_alliance_carriers(a_name, year)
+            res.append({
+                "alliance_name": a_name,
+                "alliance_id": a_info["alliance_id"],
+                "logo_url": a_info["logo_url"],
+                "member_count": len(members),
+                "members": members,
+                "website": a_info["website"]
+            })
+    return res
+
+
+def get_carrier_logo_url(carrier_code: str) -> Optional[str]:
+    """
+    Returns verified SVG/PNG brand logo URL for a carrier code.
+    """
+    c = carrier_code.strip().upper()
+    return CARRIER_LOGOS.get(c, None)
+
+
+def get_carrier_alliance_timeline(carrier_code: str) -> List[Dict[str, Any]]:
+    """
+    Returns full chronological history of alliance memberships and transitions for an airline.
+    """
+    c = carrier_code.strip().upper()
+    timeline = [m for m in ALLIANCE_MEMBERSHIPS if m["carrier_code"] == c]
+    return sorted(timeline, key=lambda x: x["join_date"])
+'''
+    with open(utils_path, "w", encoding="utf-8") as f:
+        f.write(code)
+    print(f"✅ Generated {utils_path}")
+
+
+if __name__ == "__main__":
+    write_json_dataset()
+    write_py_dataset()
+    write_utils_module()
