@@ -141,6 +141,16 @@ def require_auth() -> bool:
     stops execution and renders landing/unauthorized page.
     Returns True if execution can proceed.
     """
+    if settings.local_dev_bypass_auth:
+        if "user" not in st.session_state or not st.session_state["user"]:
+            st.session_state["user"] = {
+                "email": settings.allowed_emails[0] if settings.allowed_emails else "steve@riffe.co.uk",
+                "name": "Steve (Local Dev)",
+                "picture": ""
+            }
+        render_user_sidebar()
+        return True
+
     if not settings.google_client_id:
         return True
 

@@ -19,6 +19,15 @@ class Settings(BaseSettings):
     allowed_emails_raw: str = os.getenv("ALLOWED_EMAILS", "steve@riffe.co.uk")
     redirect_uri_override: str = os.getenv("REDIRECT_URI_OVERRIDE", "")
 
+    # Local Dev Bypass
+    local_dev_bypass_auth: bool = os.getenv("LOCAL_DEV_BYPASS_AUTH", "false").lower() in ("true", "1", "yes")
+
+    # Mapbox Settings
+    mapbox_token: str = os.getenv("MAPBOX_ACCESS_TOKEN_PUBLIC", os.getenv("MAPBOX_API_KEY", ""))
+    mapbox_style_personal: str = os.getenv("MAPBOX_STYLE_URL_PERSONAL", "")
+    mapbox_style_love: str = os.getenv("MAPBOX_STYLE_URL_LOVE", "")
+    mapbox_style_mono: str = os.getenv("MAPBOX_STYLE_URL_MONO", "")
+
     @property
     def allowed_emails(self) -> list[str]:
         return [email.strip().lower() for email in self.allowed_emails_raw.split(",") if email.strip()]

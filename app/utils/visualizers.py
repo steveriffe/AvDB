@@ -8,6 +8,7 @@ import plotly.express as px
 import plotly.graph_objects as go
 import pandas as pd
 from typing import Optional, Dict, Any
+from app.config import settings
 
 
 # Clean luxury color palette
@@ -40,6 +41,11 @@ FAMILY_COLORS = {
 
 # Map Themes & Cartography Styles
 MAP_THEMES = {
+    "personal": settings.mapbox_style_personal or "mapbox://styles/steveriffe/ck6vgf67d0ize1isbb0zwh9vi",
+    "love": settings.mapbox_style_love or "mapbox://styles/steveriffe/clo1pnnf2005301q29moshbss",
+    "mono": settings.mapbox_style_mono or "mapbox://styles/steveriffe/clkd2zev8001401px6p3m3s8u",
+    "dark-v11": "mapbox://styles/mapbox/dark-v11",
+    "light-v11": "mapbox://styles/mapbox/light-v11",
     "midnight": "https://basemaps.cartocdn.com/gl/dark-matter-nolabels-gl-style/style.json",
     "paper": "https://basemaps.cartocdn.com/gl/positron-nolabels-gl-style/style.json",
     "slate": "dark",
@@ -376,14 +382,15 @@ def build_route_map_deck(
         bearing=0,
     )
 
-    map_style = mapbox_style or MAP_THEMES.get(theme, MAP_THEMES["midnight"])
+    token = mapbox_api_key or settings.mapbox_token or os.getenv("MAPBOX_ACCESS_TOKEN_PUBLIC", "") or os.getenv("MAPBOX_API_KEY", "")
+    map_style = mapbox_style or MAP_THEMES.get(theme, MAP_THEMES["personal"] if token else MAP_THEMES["midnight"])
 
     return pdk.Deck(
         layers=layers,
         initial_view_state=view_state,
         tooltip=_build_retro_tooltip(theme),
         map_style=map_style,
-        api_keys={"mapbox": mapbox_api_key} if mapbox_api_key else None
+        api_keys={"mapbox": token} if token else None
     )
 
 
@@ -585,14 +592,15 @@ def build_airline_network_deck(
         bearing=0,
     )
 
-    map_style = mapbox_style or MAP_THEMES.get(theme, MAP_THEMES["midnight"])
+    token = mapbox_api_key or settings.mapbox_token or os.getenv("MAPBOX_ACCESS_TOKEN_PUBLIC", "") or os.getenv("MAPBOX_API_KEY", "")
+    map_style = mapbox_style or MAP_THEMES.get(theme, MAP_THEMES["personal"] if token else MAP_THEMES["midnight"])
 
     return pdk.Deck(
         layers=layers,
         initial_view_state=view_state,
         tooltip=_build_retro_tooltip(theme),
         map_style=map_style,
-        api_keys={"mapbox": mapbox_api_key} if mapbox_api_key else None
+        api_keys={"mapbox": token} if token else None
     )
 
 

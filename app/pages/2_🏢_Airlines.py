@@ -120,12 +120,30 @@ if not df_carrier_routes.empty:
     with col_am1:
         air_theme_label = st.selectbox(
             "Cartography Theme",
-            options=["🌌 Midnight Navy (Dark)", "📜 Classic In-Flight Paper (Light)", "🌑 Minimal Slate (Dark)"],
+            options=[
+                "🎨 Mapbox: Personal (Custom)",
+                "💖 Mapbox: Love (Custom)",
+                "🏁 Mapbox: Mono (Custom)",
+                "🌌 Midnight Navy (Dark)",
+                "📜 Classic In-Flight Paper (Light)",
+                "🌑 Minimal Slate (Dark)"
+            ],
             index=0,
             key="air_map_theme",
             label_visibility="collapsed"
         )
-        air_theme = "midnight" if "Midnight" in air_theme_label else ("paper" if "Paper" in air_theme_label else "slate")
+        if "Personal" in air_theme_label:
+            air_theme = "personal"
+        elif "Love" in air_theme_label:
+            air_theme = "love"
+        elif "Mono" in air_theme_label:
+            air_theme = "mono"
+        elif "Midnight" in air_theme_label:
+            air_theme = "midnight"
+        elif "Paper" in air_theme_label:
+            air_theme = "paper"
+        else:
+            air_theme = "slate"
         
     with col_am2:
         air_color_label = st.selectbox(
