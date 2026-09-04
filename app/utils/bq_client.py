@@ -53,8 +53,9 @@ def run_query(query: str, params: Optional[Dict[str, Any]] = None) -> pd.DataFra
     """
     client = get_bigquery_client()
     job_config = bigquery.QueryJobConfig()
-    # 🛡️ Wallet Protection Guardrail: Max 1 GB scanned per query
-    job_config.maximum_bytes_billed = 1_000_000_000
+    # 🛡️ Wallet Protection Guardrail: Max 10 GB scanned per query (~$0.06 ceiling)
+    job_config.maximum_bytes_billed = 10_000_000_000
+
     
     if params:
         query_params = []
