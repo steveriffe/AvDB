@@ -798,3 +798,42 @@ def get_fleet_aircraft_breakdown(family_filter: str, year: int) -> pd.DataFrame:
         LIMIT 15
     """
     return run_query(query, params=params)
+
+
+@st.cache_data(ttl=3600, show_spinner=False)
+def get_fleet_operators_breakdown(family_filter: str, year: int) -> pd.DataFrame:
+    """Fetches top airline operators for the selected aircraft family, applying regional attribution."""
+    where_sql, extra_params = _build_fleet_where(family_filter)
+    params = {"year": year, **extra_params}
+
+    query = f"""
+        WITH attributed AS (
+            SELECT 
+                {REGIONAL_ATTRIBUTION_SQL} AS carrier_code,
+                carrier_name,
+                departures_performed,
+                total_seats,
+                operational_passengers,
+                avg_od_fare
+            FROM `db1b-1.reporting.mart_fleet_route_dynamics`
+            {where_sql}
+        ),
+        carrier_agg AS (
+            SELECT 
+                carrier_code AS unique_carrier,
+                {CARRIER_NAME_LOOKUP_SQL} AS carrier_name,
+                SUM(departures_performed) AS departures_performed,
+                SUM(total_seats) AS total_seats,
+                SUM(operational_passengers) AS operational_passengers,
+                ROUND(SAFE_DIVIDE(SUM(operational_passengers), SUM(total_seats)) * 100, 1) AS load_factor_pct,
+                ROUND(AVG(avg_od_fare), 2) AS avg_segment_fare
+            FROM attributed
+            GROUP BY 1, 2
+        )
+        SELECT * FROM carrier_agg
+        WHERE total_seats > 0
+        ORDER BY total_seats DESC
+        LIMIT 10
+    """
+    return run_query(query, params=params)
+

@@ -16,9 +16,11 @@ from app.utils.styling import apply_apple_style, render_kpi_card
 from app.utils.queries import (
     get_fleet_kpis,
     get_fleet_aircraft_breakdown,
+    get_fleet_operators_breakdown,
 )
 from app.utils.visualizers import FAMILY_COLORS
-
+from app.utils.alliances import get_carrier_logo_url
+from app.data.ref_aircraft_specs import get_aircraft_spec
 from app.utils.auth import require_auth
 
 st.set_page_config(
@@ -159,7 +161,78 @@ with c2:
         st.plotly_chart(fig_scatter, width="stretch", config={"displayModeBar": False})
 
 # -------------------------------------------------------------
-# 4. Detailed Data Table
+# 4. Aircraft Technical Specifications & Operator Branding
+# -------------------------------------------------------------
+st.markdown("<div style='margin-top: 24px;'></div>", unsafe_allow_html=True)
+st.subheader("🛠️ Aircraft Technical Specifications & Operator Deployment")
+
+model_options = df_fleet["aircraft_description"].tolist() if not df_fleet.empty else ["Boeing 737-900ER"]
+selected_model = st.selectbox("Inspect Aircraft Model Specifications", options=model_options, index=0)
+spec = get_aircraft_spec(selected_model)
+
+if spec:
+    spec_col1, spec_col2 = st.columns([1.1, 1.0])
+    with spec_col1:
+        st.markdown(
+            f"""
+            <div style="background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 12px; padding: 18px; margin-bottom: 12px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                    <span style="color: #F5F5F7; font-size: 18px; font-weight: 700;">{selected_model}</span>
+                    <span style="background: rgba(10, 132, 255, 0.2); color: #0A84FF; padding: 4px 8px; border-radius: 6px; font-size: 12px; font-weight: 600;">{spec['category']}</span>
+                </div>
+                <p style="color: #8E8E93; font-size: 13px; margin-bottom: 14px;">{spec['summary']}</p>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; font-size: 13px;">
+                    <div><span style="color: #8E8E93;">Typical Gauge:</span> <b style="color: #F5F5F7;">{spec['seats_typical']}</b></div>
+                    <div><span style="color: #8E8E93;">Max Range:</span> <b style="color: #30D158;">{spec['range_miles']:,} statute miles</b></div>
+                    <div><span style="color: #8E8E93;">Wingspan / Length:</span> <b style="color: #F5F5F7;">{spec['wingspan_ft']} ft / {spec['length_ft']} ft</b></div>
+                    <div><span style="color: #8E8E93;">Cruise Speed:</span> <b style="color: #F5F5F7;">{spec['cruise_speed']}</b></div>
+                    <div style="grid-column: span 2;"><span style="color: #8E8E93;">Powerplant:</span> <b style="color: #FF9F0A;">{spec['engines']}</b></div>
+                </div>
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
+    with spec_col2:
+        st.markdown(f"**Primary US Operators ({selected_model})**")
+        ops = spec.get("key_operators", [])
+        logo_htmls = []
+        for op in ops:
+            l_url = get_carrier_logo_url(op)
+            logo_htmls.append(
+                f"""
+                <div style="display: inline-flex; align-items: center; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 8px; padding: 8px 12px; margin: 4px;">
+                    <img src="{l_url}" style="height: 22px; width: 42px; object-fit: contain; margin-right: 8px;" />
+                    <span style="color: #F5F5F7; font-weight: 600; font-size: 13px;">{op}</span>
+                </div>
+                """
+            )
+        st.markdown("".join(logo_htmls), unsafe_allow_html=True)
+else:
+    st.info(f"Engineering specification card not yet configured for {selected_model}.")
+
+# -------------------------------------------------------------
+# 5. Top Operating Carriers for Category
+# -------------------------------------------------------------
+st.markdown("<div style='margin-top: 20px;'></div>", unsafe_allow_html=True)
+st.markdown(f"### 🏢 Leading Airline Operators for {selected_family}")
+df_ops = get_fleet_operators_breakdown(selected_family, selected_year)
+
+if not df_ops.empty:
+    cols = st.columns(min(len(df_ops), 5))
+    for i, (_, row) in enumerate(df_ops.head(5).iterrows()):
+        with cols[i]:
+            c_code = row["unique_carrier"]
+            c_logo = get_carrier_logo_url(c_code)
+            seats_k = f"{row['total_seats']/1e6:.1f}M" if row['total_seats'] >= 1e6 else f"{row['total_seats']/1e3:.0f}K"
+            render_kpi_card(
+                title=f"{c_code} — {row['carrier_name'].split(' ')[0]}",
+                value=f"{seats_k} seats",
+                subtitle=f"LF: {row['load_factor_pct']:.1f}% | Fare: ${row['avg_segment_fare']:.0f}",
+                logo_url=c_logo
+            )
+
+# -------------------------------------------------------------
+# 6. Detailed Data Table
 # -------------------------------------------------------------
 with st.expander("📋 Detailed Fleet Deployment & Revenue Data Table", expanded=True):
     if not df_fleet.empty:
@@ -180,3 +253,4 @@ with st.expander("📋 Detailed Fleet Deployment & Revenue Data Table", expanded
             "yield_per_mile": "Yield ($/mi)"
         })
         st.dataframe(display_fleet, width="stretch", hide_index=True)
+
