@@ -4,9 +4,18 @@
 # ==============================================================================
 set -e
 
+# Auto-load secrets from .env file if present
+if [ -f .env ]; then
+  echo "🔑 Loading secrets from .env file..."
+  set -o allexport
+  source .env
+  set +o allexport
+fi
+
 PROJECT_ID=${GCP_PROJECT_ID:-"db1b-1"}
 REGION=${GCP_REGION:-"us-west1"}
 SERVICE_NAME="avdb"
+
 
 IMAGE_NAME="${REGION}-docker.pkg.dev/${PROJECT_ID}/avdb/app:latest"
 ALLOWED_EMAILS=${ALLOWED_EMAILS:-"steve@riffe.co.uk"}
