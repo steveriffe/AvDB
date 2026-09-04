@@ -288,12 +288,18 @@ with st.expander("🎯 Target Destination Proposals (Unserved Connecting Markets
         fig_unserved = build_unserved_markets_scatter_chart(df_unserved)
         st.plotly_chart(fig_unserved, width="stretch", config={"displayModeBar": False})
         
-        display_unserved = df_unserved.head(10)[[
-            "route_label", "metro_status", "annual_connecting_pax", "pdew",
+        cols_to_show = ["route_label", "metro_status"]
+        if "historical_service" in df_unserved.columns:
+            cols_to_show.append("historical_service")
+        cols_to_show.extend([
+            "annual_connecting_pax", "pdew",
             "avg_fare", "yield_per_mile", "market_type", "aligned_carrier"
-        ]].rename(columns={
+        ])
+        
+        display_unserved = df_unserved.head(10)[cols_to_show].rename(columns={
             "route_label": "Proposed Route (Origin ➔ Dest)",
             "metro_status": "Catchment Market Status",
+            "historical_service": "Prior Nonstop Service History",
             "annual_connecting_pax": "Annual Pax (1-Stop)",
             "pdew": "PDEW",
             "avg_fare": "Avg Fare ($)",

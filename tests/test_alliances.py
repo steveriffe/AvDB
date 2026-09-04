@@ -63,3 +63,4 @@ def test_alliance_transitions():
 
 if __name__ == "__main__":
     test_alliance_transitions()
+

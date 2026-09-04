@@ -27,8 +27,6 @@ credentials/
 
 # Data files (keep raw & processed datasets out of git)
 /data/
-!app/data/
-*.csv
 *.tsv
 *.parquet
 *.feather
@@ -42,3 +40,12 @@ credentials/
 
 # Logs
 *.log
+
+# Swift / Xcode
+.build/
+.swiftpm/
+DerivedData/
+
+# Scratch
+scratch/
+

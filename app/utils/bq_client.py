@@ -37,13 +37,12 @@ def get_credentials():
 
 @st.cache_resource
 def get_bigquery_client(project_id: Optional[str] = None) -> bigquery.Client:
-    """Instantiate and cache a BigQuery client."""
+    """Instantiate and cache a BigQuery client with smart credential resolution."""
     proj = project_id or settings.gcp_project_id or "db1b-1"
-    try:
-        return bigquery.Client(project=proj)
-    except Exception:
-        creds = get_credentials()
+    creds = get_credentials()
+    if creds:
         return bigquery.Client(project=proj, credentials=creds)
+    return bigquery.Client(project=proj)
 
 
 @st.cache_data(ttl=3600, show_spinner=False)

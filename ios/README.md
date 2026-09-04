@@ -93,13 +93,33 @@ ios/
 2. Product Name: `AvDB`
    - Interface: `SwiftUI`
    - Language: `Swift`
-3. Drag the folder `ios/AvDB/Sources/AvDB` into your new Xcode project, or add `ios/AvDB` via **File ➔ Add Package Dependencies... ➔ Add Local...**.
+3. Add the package via **File ➔ Add Package Dependencies... ➔ Add Local...** and choose `ios/AvDB` (Module: `AvDBCore`), or drag `ios/AvDB/Sources/AvDB` into your target.
 4. In the target's **Signing & Capabilities** tab:
    - Check **Automatically manage signing**.
    - Team: Select your **Personal Team** (free Apple ID account, no \$99 developer subscription required for development on your own iPhone).
    - Bundle Identifier: `com.yourname.avdb`
 5. Connect your iPhone via USB or Wi-Fi, select it from the device target menu, and click **Run (Cmd + R)**.
    > **Note for Physical Devices**: On your iPhone, go to **Settings ➔ General ➔ VPN & Device Management**, tap your Apple ID under Developer App, and tap **Trust**. Enable Developer Mode under **Settings ➔ Privacy & Security ➔ Developer Mode** if prompted.
+
+### 🚨 Troubleshooting: "Multiple commands produce ... AvDB.swiftmodule"
+If Xcode reports:
+```text
+Multiple commands produce '.../Build/Products/Debug-iphoneos/AvDB.swiftmodule/Project/arm64-apple-ios.swiftsourceinfo'
+Multiple commands produce '.../Build/Products/Debug-iphoneos/AvDB.swiftmodule/arm64-apple-ios.swiftmodule'
+```
+**Why this happens**:
+Both your Xcode App target (`AvDB`) and the Swift Package were attempting to compile modules with the identical name `AvDB`, causing the build system to collide on output file paths.
+
+**How to resolve**:
+1. We have renamed the Swift package product/target to **`AvDBCore`**, eliminating module name collisions.
+2. In Terminal, wipe the cached conflicted build artifacts:
+   ```bash
+   rm -rf ~/Library/Developer/Xcode/DerivedData/AvDB-*
+   ```
+3. In Xcode:
+   - Choose **Product ➔ Clean Build Folder** (`Shift + Cmd + K`).
+   - If using `import AvDB`, update to `import AvDBCore`.
+   - Press **Cmd + R** to build and run on your iPhone 16 Pro Max (iOS 18 / iOS 27 Beta).
 
 ---
 

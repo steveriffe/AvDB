@@ -107,3 +107,73 @@ def format_merger_lineage_html(carrier_code: str) -> str:
         )
     
     return ""
+
+
+def enrich_historical_route_service(
+    origin: str, 
+    dest: str, 
+    last_year: Optional[Any], 
+    carriers: Optional[str]
+) -> str:
+    """
+    Synthesizes historical route service with merger lineage.
+    E.g. ANC -> DTW previously flown by DL is tagged as '🔄 Flown until 2024 (NW/DL)'.
+    """
+    import pandas as pd
+    if last_year is None or pd.isna(last_year):
+        return "✨ Never Flown Nonstop"
+    
+    try:
+        yr = int(last_year)
+    except (ValueError, TypeError):
+        return "✨ Never Flown Nonstop"
+        
+    carrier_tokens = [c.strip().upper() for c in str(carriers).split('/') if c.strip()]
+    enriched_tokens = []
+    
+    hub_overrides = {
+        ("DL", "DTW"): "NW/DL",
+        ("DL", "MSP"): "NW/DL",
+        ("DL", "MEM"): "NW/DL",
+        ("UA", "IAH"): "CO/UA",
+        ("UA", "EWR"): "CO/UA",
+        ("UA", "CLE"): "CO/UA",
+        ("UA", "GUM"): "CO/UA",
+        ("AA", "CLT"): "US/AA",
+        ("AA", "PHL"): "US/AA",
+        ("AA", "PHX"): "HP/US/AA",
+        ("AA", "LAS"): "HP/US/AA",
+        ("AA", "RNO"): "QQ/AA",
+        ("AA", "SJC"): "QQ/AA",
+        ("AA", "STL"): "TW/AA",
+        ("AS", "HNL"): "HA/AS",
+        ("AS", "OGG"): "HA/AS",
+        ("AS", "KOA"): "HA/AS",
+        ("AS", "SFO"): "VX/AS",
+        ("WN", "ATL"): "FL/WN",
+        ("F9", "MKE"): "YX/F9",
+    }
+    
+    for c in carrier_tokens:
+        matched = False
+        for (carrier, hub), tag in hub_overrides.items():
+            if c == carrier and (origin == hub or dest == hub):
+                enriched_tokens.append(tag)
+                matched = True
+                break
+        if not matched:
+            # Check dynamic hub absorption in mergers catalog
+            for m in get_mergers_as_successor(c):
+                hubs = m.get("hubs_absorbed", [])
+                if origin in hubs or dest in hubs:
+                    enriched_tokens.append(f"{m['predecessor_code']}/{c}")
+                    matched = True
+                    break
+        if not matched:
+            enriched_tokens.append(c)
+            
+    # Deduplicate while preserving order
+    unique_tokens = list(dict.fromkeys(enriched_tokens))
+    carrier_str = "/".join(unique_tokens) if unique_tokens else "Unknown"
+    return f"🔄 Flown until {yr} ({carrier_str})"
+

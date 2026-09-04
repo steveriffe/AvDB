@@ -6,6 +6,7 @@ import streamlit as st
 import pandas as pd
 from typing import Optional, List, Dict, Any
 from app.utils.bq_client import run_query
+from app.utils.mergers import enrich_historical_route_service
 from app.config import settings
 
 # -------------------------------------------------------------
@@ -114,6 +115,62 @@ def _recommend_aligned_carrier(origin: str, dest: str, distance_miles: float, yi
 
 
 # -------------------------------------------------------------
+# Regional Operating Carrier Attribution SQL Expressions
+# Maps contract and subsidiary regional flights to consumer-facing marketing brands
+# (e.g. attributing SkyWest OO and Horizon QX flights on EUG-SEA to DL and AS)
+# -------------------------------------------------------------
+REGIONAL_ATTRIBUTION_SQL = """
+    CASE
+        WHEN unique_carrier = 'QX' THEN 'AS'
+        WHEN unique_carrier = '9E' THEN 'DL'
+        WHEN unique_carrier IN ('MQ', 'OH', 'PT') THEN 'AA'
+        WHEN unique_carrier IN ('C5', 'G7') THEN 'UA'
+        WHEN unique_carrier = 'OO' AND (
+            (origin = 'EUG' AND dest = 'SEA') OR (origin = 'SEA' AND dest = 'EUG') OR
+            dest IN ('ATL', 'MSP', 'DTW', 'SLC') OR origin IN ('ATL', 'MSP', 'DTW', 'SLC')
+        ) THEN 'DL'
+        WHEN unique_carrier = 'OO' AND (
+            dest IN ('ORD', 'DEN', 'IAH', 'EWR', 'IAD', 'SFO') OR origin IN ('ORD', 'DEN', 'IAH', 'EWR', 'IAD', 'SFO')
+        ) THEN 'UA'
+        WHEN unique_carrier = 'OO' AND (
+            dest IN ('DFW', 'CLT', 'MIA', 'PHX', 'PHL') OR origin IN ('DFW', 'CLT', 'MIA', 'PHX', 'PHL')
+        ) THEN 'AA'
+        WHEN unique_carrier = 'OO' AND (
+            dest IN ('SEA', 'PDX', 'SAN') OR origin IN ('SEA', 'PDX', 'SAN')
+        ) THEN 'AS'
+        WHEN unique_carrier = 'CP' THEN 'DL'
+        ELSE unique_carrier
+    END
+"""
+
+CARRIER_NAME_LOOKUP_SQL = """
+    CASE 
+        WHEN carrier_code = 'DL' THEN 'Delta Air Lines Inc.'
+        WHEN carrier_code = 'AS' THEN 'Alaska Airlines Inc.'
+        WHEN carrier_code = 'UA' THEN 'United Air Lines Inc.'
+        WHEN carrier_code = 'AA' THEN 'American Airlines Inc.'
+        WHEN carrier_code = 'WN' THEN 'Southwest Airlines Co.'
+        WHEN carrier_code = 'B6' THEN 'JetBlue Airways'
+        WHEN carrier_code = 'NK' THEN 'Spirit Airlines'
+        WHEN carrier_code = 'F9' THEN 'Frontier Airlines'
+        WHEN carrier_code = 'G4' THEN 'Allegiant Air'
+        WHEN carrier_code = 'CO' THEN 'Continental Airlines'
+        WHEN carrier_code = 'NW' THEN 'Northwest Airlines'
+        WHEN carrier_code = 'US' THEN 'US Airways'
+        WHEN carrier_code = 'HP' THEN 'America West Airlines'
+        WHEN carrier_code = 'QQ' THEN 'Reno Air'
+        WHEN carrier_code = 'TW' THEN 'Trans World Airlines'
+        WHEN carrier_code = 'FL' THEN 'AirTran Airways'
+        WHEN carrier_code = 'VX' THEN 'Virgin America'
+        WHEN carrier_code = 'YX' THEN 'Midwest Airlines'
+        WHEN carrier_code = 'HA' THEN 'Hawaiian Airlines'
+        WHEN carrier_code = 'PA' THEN 'Pan American World Airways'
+        ELSE carrier_name
+    END
+"""
+
+
+# -------------------------------------------------------------
 # AIRPORT EXPLORER QUERIES
 # -------------------------------------------------------------
 
@@ -173,7 +230,7 @@ def get_airport_kpis(
         WITH route_grouped AS (
             SELECT 
                 dest,
-                unique_carrier,
+                {REGIONAL_ATTRIBUTION_SQL} AS unique_carrier,
                 SUM(departures_performed) AS departures_performed,
                 SUM(total_seats) AS total_seats,
                 SUM(operational_passengers) AS operational_passengers,
@@ -225,7 +282,7 @@ def get_airport_routes_dataset(
     passenger_only: bool = True,
     min_departures: int = 10
 ) -> pd.DataFrame:
-    """Fetches full route network details with GPS coordinates, applying min_departures frequency filter."""
+    """Fetches full route network details with GPS coordinates, applying regional carrier attribution."""
     query = f"""
         WITH route_agg AS (
             SELECT 
@@ -248,7 +305,7 @@ def get_airport_routes_dataset(
                 ROUND(SAFE_DIVIDE(SUM(total_seats), NULLIF(SUM(departures_performed), 0)), 1) AS avg_gauge_seats,
                 AVG(distance_miles) AS distance_miles,
                 ROUND(AVG(avg_od_fare), 2) AS avg_od_fare,
-                STRING_AGG(DISTINCT unique_carrier, ', ' ORDER BY unique_carrier) AS operating_carriers
+                STRING_AGG(DISTINCT {REGIONAL_ATTRIBUTION_SQL}, ', ' ORDER BY {REGIONAL_ATTRIBUTION_SQL}) AS operating_carriers
             FROM `db1b-1.reporting.mart_airport_network_summary`
             WHERE origin = @airport_code 
               AND year = @year
@@ -271,20 +328,29 @@ def get_airport_carrier_breakdown(
     passenger_only: bool = True,
     min_departures: int = 10
 ) -> pd.DataFrame:
-    """Fetches carrier market share breakdown by seats and passenger volume."""
+    """Fetches carrier market share breakdown attributed to consumer marketing brands."""
     query = f"""
-        WITH carrier_agg AS (
+        WITH carrier_attributed AS (
             SELECT 
-                unique_carrier,
-                carrier_name,
+                {REGIONAL_ATTRIBUTION_SQL} AS carrier_code,
+                departures_performed,
+                total_seats,
+                operational_passengers,
+                avg_od_fare
+            FROM `db1b-1.reporting.mart_airport_network_summary`
+            WHERE origin = @airport_code AND year = @year
+            {'AND operational_passengers > 0 AND total_seats > 0' if passenger_only else ''}
+        ),
+        carrier_agg AS (
+            SELECT 
+                carrier_code AS unique_carrier,
+                {CARRIER_NAME_LOOKUP_SQL} AS carrier_name,
                 SUM(departures_performed) AS departures_performed,
                 SUM(total_seats) AS total_seats,
                 SUM(operational_passengers) AS operational_passengers,
                 ROUND(SAFE_DIVIDE(SUM(operational_passengers), SUM(total_seats)) * 100, 1) AS load_factor_pct,
                 ROUND(AVG(avg_od_fare), 2) AS avg_fare
-            FROM `db1b-1.reporting.mart_airport_network_summary`
-            WHERE origin = @airport_code AND year = @year
-            {'AND operational_passengers > 0 AND total_seats > 0' if passenger_only else ''}
+            FROM carrier_attributed
             GROUP BY 1, 2
         )
         SELECT * FROM carrier_agg
@@ -341,7 +407,7 @@ def get_unserved_connecting_markets(
     classifies Business vs. Leisure demand by yield ($/mile), tags hub-strategy aligned carriers,
     and identifies Metro Catchment status (e.g. HOU served via IAH vs 100% New City Market).
     """
-    query = """
+    query = f"""
         WITH nonstop_serviced AS (
             SELECT dest
             FROM `db1b-1.reporting.mart_airport_network_summary`
@@ -357,6 +423,15 @@ def get_unserved_connecting_markets(
             SELECT DISTINCT m.market_code
             FROM nonstop_serviced n
             JOIN metro_members m ON n.dest = m.airport_code
+        ),
+        historical_routes AS (
+            SELECT 
+                dest,
+                MAX(year) AS last_year_served,
+                STRING_AGG(DISTINCT {REGIONAL_ATTRIBUTION_SQL}, '/' ORDER BY {REGIONAL_ATTRIBUTION_SQL}) AS historical_carriers
+            FROM `db1b-1.reporting.mart_airport_network_summary`
+            WHERE origin = @airport_code AND year < @year AND departures_performed >= 10
+            GROUP BY dest
         ),
         od_demand AS (
             SELECT 
@@ -385,9 +460,12 @@ def get_unserved_connecting_markets(
             ROUND(SAFE_DIVIDE(d.annual_od_passengers, 365.0), 1) AS pdew,
             ROUND(d.avg_fare, 2) AS avg_fare,
             -- Estimate distance using geographic coordinates if available
-            ROUND(ST_DISTANCE(ST_GEOGPOINT(o_apt.longitude, o_apt.latitude), ST_GEOGPOINT(d_apt.longitude, d_apt.latitude)) / 1609.34, 0) AS distance_miles
+            ROUND(ST_DISTANCE(ST_GEOGPOINT(o_apt.longitude, o_apt.latitude), ST_GEOGPOINT(d_apt.longitude, d_apt.latitude)) / 1609.34, 0) AS distance_miles,
+            h.last_year_served,
+            h.historical_carriers
         FROM od_demand d
         LEFT JOIN nonstop_serviced n ON d.dest = n.dest
+        LEFT JOIN historical_routes h ON d.dest = h.dest
         LEFT JOIN metro_members m ON d.dest = m.airport_code
         LEFT JOIN nonstop_metros nm ON m.market_code = nm.market_code
         LEFT JOIN `db1b-1.reporting.ref_airports` o_apt ON d.origin = o_apt.airport_code
@@ -409,6 +487,17 @@ def get_unserved_connecting_markets(
     df["distance_miles"] = df["distance_miles"].fillna(800.0)
     df["yield_per_mile"] = (df["avg_fare"] / df["distance_miles"].replace(0, 1)).round(4)
     df["route_label"] = df["origin"] + " ➔ " + df["dest"] + " (" + df["dest_city"] + ")"
+    
+    # Enrich historical route service badge with merger lineage
+    df["historical_service"] = df.apply(
+        lambda r: enrich_historical_route_service(
+            airport_code, 
+            r["dest"], 
+            r["last_year_served"] if "last_year_served" in r and pd.notna(r["last_year_served"]) else None, 
+            r["historical_carriers"] if "historical_carriers" in r and pd.notna(r["historical_carriers"]) else None
+        ),
+        axis=1
+    )
     
     # Classify Business vs Leisure demand
     def classify_market(row):

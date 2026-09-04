@@ -34,3 +34,4 @@ def test_sample_flighty_generation():
 if __name__ == "__main__":
     test_subfleet_classification()
     test_sample_flighty_generation()
+

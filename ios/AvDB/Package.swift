@@ -2,7 +2,7 @@
 import PackageDescription
 
 let package = Package(
-    name: "AvDB",
+    name: "AvDBCore",
     defaultLocalization: "en",
     platforms: [
         .iOS(.v17),
@@ -10,8 +10,8 @@ let package = Package(
     ],
     products: [
         .library(
-            name: "AvDB",
-            targets: ["AvDB"]
+            name: "AvDBCore",
+            targets: ["AvDBCore"]
         ),
     ],
     dependencies: [
@@ -19,13 +19,13 @@ let package = Package(
     ],
     targets: [
         .target(
-            name: "AvDB",
+            name: "AvDBCore",
             dependencies: [],
             path: "Sources/AvDB"
         ),
         .testTarget(
             name: "AvDBTests",
-            dependencies: ["AvDB"],
+            dependencies: ["AvDBCore"],
             path: "Tests/AvDBTests"
         )
     ]

@@ -1,6 +1,6 @@
 import XCTest
 import CoreLocation
-@testable import AvDB
+@testable import AvDBCore
 
 final class AvDBTests: XCTestCase {
     func testGeodesicCoordinatesCalculation() {
