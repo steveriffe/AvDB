@@ -59,13 +59,13 @@ def main():
     st.markdown("---")
 
     st.markdown("### 🧭 Analytical Lenses")
-    lcol1, lcol2, lcol3 = st.columns(3)
+    lcol1, lcol2, lcol3, lcol4 = st.columns(4)
 
     with lcol1:
         st.markdown("""
-            <div class="metric-container" style="min-height: 180px;">
-                <div style="font-size: 1.3rem; font-weight: 600; color: #F5F5F7; margin-bottom: 8px;">✈️ Airport Explorer</div>
-                <div style="color: #8E8E93; font-size: 0.9rem; line-height: 1.5; margin-bottom: 14px;">
+            <div class="metric-container" style="min-height: 190px;">
+                <div style="font-size: 1.25rem; font-weight: 600; color: #F5F5F7; margin-bottom: 8px;">✈️ Airport Explorer</div>
+                <div style="color: #8E8E93; font-size: 0.88rem; line-height: 1.5; margin-bottom: 14px;">
                     Explore direct destinations, carrier seat share, O&D fare yields, and interactive great-circle route maps.
                 </div>
                 <a href="/Airports" target="_self" style="color: #0A84FF; font-weight: 500; text-decoration: none; font-size: 0.92rem;">Open Airport Explorer →</a>
@@ -74,9 +74,9 @@ def main():
 
     with lcol2:
         st.markdown("""
-            <div class="metric-container" style="min-height: 180px;">
-                <div style="font-size: 1.3rem; font-weight: 600; color: #F5F5F7; margin-bottom: 8px;">🏢 Airline Explorer</div>
-                <div style="color: #8E8E93; font-size: 0.9rem; line-height: 1.5; margin-bottom: 14px;">
+            <div class="metric-container" style="min-height: 190px;">
+                <div style="font-size: 1.25rem; font-weight: 600; color: #F5F5F7; margin-bottom: 8px;">🏢 Airline Explorer</div>
+                <div style="color: #8E8E93; font-size: 0.88rem; line-height: 1.5; margin-bottom: 14px;">
                     Inspect route networks, hub concentration, passenger market share, and revenue passenger mile (RPM) yields.
                 </div>
                 <a href="/Airlines" target="_self" style="color: #0A84FF; font-weight: 500; text-decoration: none; font-size: 0.92rem;">Open Airline Explorer →</a>
@@ -85,12 +85,23 @@ def main():
 
     with lcol3:
         st.markdown("""
-            <div class="metric-container" style="min-height: 180px;">
-                <div style="font-size: 1.3rem; font-weight: 600; color: #F5F5F7; margin-bottom: 8px;">💺 Fleet & Routes</div>
-                <div style="color: #8E8E93; font-size: 0.9rem; line-height: 1.5; margin-bottom: 14px;">
+            <div class="metric-container" style="min-height: 190px;">
+                <div style="font-size: 1.25rem; font-weight: 600; color: #F5F5F7; margin-bottom: 8px;">💺 Fleet & Routes</div>
+                <div style="color: #8E8E93; font-size: 0.88rem; line-height: 1.5; margin-bottom: 14px;">
                     Analyze aircraft type allocation, up-gauging / down-gauging trends, and stage-length economics.
                 </div>
                 <a href="/Fleet_Routes" target="_self" style="color: #0A84FF; font-weight: 500; text-decoration: none; font-size: 0.92rem;">Open Fleet Analytics →</a>
+            </div>
+        """, unsafe_allow_html=True)
+
+    with lcol4:
+        st.markdown("""
+            <div class="metric-container" style="min-height: 190px;">
+                <div style="font-size: 1.25rem; font-weight: 600; color: #F5F5F7; margin-bottom: 8px;">📱 Personal Traveler</div>
+                <div style="color: #8E8E93; font-size: 0.88rem; line-height: 1.5; margin-bottom: 14px;">
+                    Upload Flighty travel logs, analyze granular subfleet variants (737-900ER vs MAX), and plot personal route maps.
+                </div>
+                <a href="/Flighty_Traveler" target="_self" style="color: #0A84FF; font-weight: 500; text-decoration: none; font-size: 0.92rem;">Open Personal Traveler →</a>
             </div>
         """, unsafe_allow_html=True)
 
