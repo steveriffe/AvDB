@@ -2,7 +2,6 @@
 
 **Last Updated**: 2026-09-04
 **Current Phase**: Phase 9 Delivered (Airline Mergers Lineage, Regional Capacity Attribution, Unserved Route History, Personal Flight Analytics Expansion, and Fleet Technical Specs)
-
 ---
 
 ## 🎯 Active Focus
@@ -14,6 +13,7 @@ Delivered the comprehensive analytical and engineering roadmap enhancements requ
 5. **Personal Analytics Dashboard (`4_📱_Flighty_Traveler.py`)**: YoY travel volume & cumulative air miles trends, temporal alliance loyalty breakdown, seat placement preference (Window/Aisle/Middle), and aviation $CO_2$ carbon footprint metrics with tree offset equivalents.
 6. **Fleet Technical Specifications & Operator Breakdown**: Detailed engineering specs (wingspan, range, typical gauge, engines) and leading operators with carrier logos on Fleet Explorer (`app/data/ref_aircraft_specs.py`).
 7. **Xcode iOS Build Collision Fix**: Resolved module collision on iPhone 16 Pro Max (iOS 27 beta) by renaming the Swift Package target to `AvDBCore`.
+8. **Cloud Run Production Deployment**: Deployed revision `avdb-00005-jrn` to `us-west1` serving 100% of production traffic at `https://avdb.riffe.co.uk`.
 
 ---
 

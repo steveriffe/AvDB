@@ -210,3 +210,4 @@ AIRLINE_MERGERS: List[Dict[str, Any]] = [
 def get_all_airline_mergers() -> List[Dict[str, Any]]:
     """Returns all recorded airline mergers in chronological order."""
     return sorted(AIRLINE_MERGERS, key=lambda m: m["announced_date"])
+
