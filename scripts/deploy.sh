@@ -28,12 +28,14 @@ gcloud run deploy "${SERVICE_NAME}" \
   --region "${REGION}" \
   --project "${PROJECT_ID}" \
   --allow-unauthenticated \
+  --no-invoker-iam-check \
   --min-instances 0 \
   --max-instances 2 \
   --concurrency 80 \
   --cpu 1 \
   --memory 2Gi \
   --set-env-vars GCP_PROJECT_ID="${PROJECT_ID}",ALLOWED_EMAILS="${ALLOWED_EMAILS}",GOOGLE_CLIENT_ID="${GOOGLE_CLIENT_ID}",GOOGLE_CLIENT_SECRET="${GOOGLE_CLIENT_SECRET}"
+
 
 echo "🌐 Mapping custom domain avdb.riffe.co.uk to Cloud Run..."
 gcloud beta run domain-mappings create \
