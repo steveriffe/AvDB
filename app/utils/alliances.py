@@ -77,3 +77,57 @@ def get_carrier_alliance_timeline(carrier_code: str) -> List[Dict[str, Any]]:
     c = carrier_code.strip().upper()
     timeline = [m for m in ALLIANCE_MEMBERSHIPS if m["carrier_code"] == c]
     return sorted(timeline, key=lambda x: x["join_date"])
+
+
+ALLIANCE_COLORS = {
+    "Star Alliance": "#C5A059",
+    "oneworld": "#1A2C80",
+    "SkyTeam": "#0090DA",
+    "Wings Alliance": "#4A90E2",
+    "Qualiflyer": "#D0021B",
+    "Independent / Unaligned": "#8E8E93"
+}
+
+
+def get_airport_alliance_breakdown(df_carriers, year: int):
+    """
+    Aggregates airport carrier breakdown by global alliance for a given year.
+    Returns DataFrame with alliance_name, total_seats, operational_passengers, seat_share_pct.
+    """
+    import pandas as pd
+    if df_carriers is None or df_carriers.empty:
+        return pd.DataFrame()
+    
+    rows = []
+    for _, r in df_carriers.iterrows():
+        c_code = str(r.get("unique_carrier", "")).strip().upper()
+        a_info = get_carrier_alliance(c_code, year)
+        a_name = a_info["alliance_name"] if a_info else "Independent / Unaligned"
+        
+        rows.append({
+            "carrier_code": c_code,
+            "carrier_name": r.get("carrier_name", c_code),
+            "alliance_name": a_name,
+            "total_seats": r.get("total_seats", 0),
+            "operational_passengers": r.get("operational_passengers", 0),
+            "departures_performed": r.get("departures_performed", 0)
+        })
+    
+    df_raw = pd.DataFrame(rows)
+    if df_raw.empty:
+        return pd.DataFrame()
+        
+    agg = df_raw.groupby("alliance_name").agg(
+        total_seats=("total_seats", "sum"),
+        operational_passengers=("operational_passengers", "sum"),
+        departures_performed=("departures_performed", "sum"),
+        carriers=("carrier_code", lambda x: ", ".join(sorted(x.unique())))
+    ).reset_index()
+    
+    tot_seats = agg["total_seats"].sum()
+    agg["seat_share_pct"] = (agg["total_seats"] / tot_seats * 100).round(1) if tot_seats > 0 else 0
+    tot_pax = agg["operational_passengers"].sum()
+    agg["pax_share_pct"] = (agg["operational_passengers"] / tot_pax * 100).round(1) if tot_pax > 0 else 0
+    
+    return agg.sort_values(by="total_seats", ascending=False)
+

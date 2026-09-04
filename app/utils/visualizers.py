@@ -696,6 +696,53 @@ def build_carrier_market_share_donut(df_carriers: pd.DataFrame) -> go.Figure:
     return fig
 
 
+def build_airport_alliance_share_donut(df_alliance: pd.DataFrame) -> go.Figure:
+    """Renders an Apple-inspired airport alliance seat capacity donut chart."""
+    if df_alliance.empty:
+        return go.Figure()
+
+    alliance_colors_map = {
+        "Star Alliance": "#C5A059",
+        "oneworld": "#1A2C80",
+        "SkyTeam": "#0090DA",
+        "Wings Alliance": "#4A90E2",
+        "Qualiflyer": "#D0021B",
+        "Independent / Unaligned": "#8E8E93"
+    }
+
+    colors = [alliance_colors_map.get(name, "#64D2FF") for name in df_alliance["alliance_name"]]
+
+    fig = go.Figure(data=[go.Pie(
+        labels=df_alliance["alliance_name"],
+        values=df_alliance["total_seats"],
+        hole=0.68,
+        marker=dict(colors=colors),
+        textinfo="percent",
+        textfont=dict(size=11, color="#F5F5F7"),
+        hovertemplate="<b>%{label}</b><br>Seats: %{value:,.0f}<br>Share: %{percent}<br>Airlines: %{customdata[0]}<extra></extra>",
+        customdata=df_alliance[["carriers"]]
+    )])
+
+    fig.update_layout(
+        title=dict(text="Global Alliance Capacity Share", font=dict(size=13, color="#F5F5F7")),
+        margin=dict(l=10, r=10, t=32, b=10),
+        paper_bgcolor="rgba(0,0,0,0)",
+        plot_bgcolor="rgba(0,0,0,0)",
+        height=290,
+        showlegend=True,
+        legend=dict(
+            orientation="v",
+            yanchor="middle",
+            y=0.5,
+            xanchor="left",
+            x=1.02,
+            font=dict(size=9.5, color="#8E8E93")
+        )
+    )
+    return fig
+
+
+
 def build_airport_fleet_bar_chart(df_fleet: pd.DataFrame, top_n: int = 7) -> go.Figure:
     """
     Renders an Apple-inspired horizontal bar chart showing top aircraft models by passenger volume.

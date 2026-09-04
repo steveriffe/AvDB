@@ -25,9 +25,15 @@ from app.utils.visualizers import (
     build_route_map_deck,
     build_top_routes_bar_chart,
     build_carrier_market_share_donut,
+    build_airport_alliance_share_donut,
     build_airport_fleet_bar_chart,
     build_unserved_markets_scatter_chart,
     build_carrier_premium_bar_chart,
+)
+from app.utils.alliances import (
+    get_carrier_alliance,
+    get_carrier_logo_url,
+    get_airport_alliance_breakdown,
 )
 
 from app.utils.auth import require_auth
@@ -133,28 +139,57 @@ with kpi4:
     render_kpi_card("Inferred Avg Fare", fare_val)
 
 with kpi5:
-    render_kpi_card("Leading Carrier", f"{kpi_data.get('leading_carrier', '—')}")
+    leading_c = kpi_data.get('leading_carrier', '—')
+    # Resolve leading carrier code for logo and alliance lookup
+    leading_code = leading_c.split('—')[0].strip() if '—' in leading_c else leading_c.strip()
+    if "(" in leading_c and ")" in leading_c:
+        leading_code = leading_c.split("(")[-1].split(")")[0].strip()
+    leading_logo = get_carrier_logo_url(leading_code)
+    leading_alliance = get_carrier_alliance(leading_code, selected_year)
+    leading_sub = f"🌐 {leading_alliance['alliance_name']}" if leading_alliance else "Independent / Unaligned"
+    render_kpi_card("Leading Carrier", leading_c, subtitle=leading_sub, logo_url=leading_logo)
 
 # -------------------------------------------------------------
-# 3. Analytical Charts (Top Routes, Carrier Donut, Fleet Mix)
+# 3. Analytical Charts (Top Routes, Carrier/Alliance Donut, Fleet Mix)
 # -------------------------------------------------------------
 df_routes = get_airport_routes_dataset(selected_airport, selected_year, passenger_only=is_pax_only, min_departures=min_deps)
 df_carriers = get_airport_carrier_breakdown(selected_airport, selected_year, passenger_only=is_pax_only, min_departures=min_deps)
 df_fleet = get_airport_fleet_mix(selected_airport, selected_year, passenger_only=is_pax_only, min_departures=min_deps)
 
-chart_col1, chart_col2, chart_col3 = st.columns([1.15, 0.95, 1.1])
+chart_col1, chart_col2, chart_col3 = st.columns([1.15, 1.05, 1.1])
 
 with chart_col1:
     fig_routes = build_top_routes_bar_chart(df_routes, top_n=7)
     st.plotly_chart(fig_routes, width="stretch", config={"displayModeBar": False})
 
 with chart_col2:
-    fig_carriers = build_carrier_market_share_donut(df_carriers)
-    st.plotly_chart(fig_carriers, width="stretch", config={"displayModeBar": False})
+    tab_c, tab_a = st.tabs(["🏢 Carriers", "🌐 Alliances"])
+    with tab_c:
+        fig_carriers = build_carrier_market_share_donut(df_carriers)
+        st.plotly_chart(fig_carriers, width="stretch", config={"displayModeBar": False})
+    with tab_a:
+        df_alliance = get_airport_alliance_breakdown(df_carriers, selected_year)
+        fig_alliance = build_airport_alliance_share_donut(df_alliance)
+        st.plotly_chart(fig_alliance, width="stretch", config={"displayModeBar": False})
 
 with chart_col3:
     fig_fleet = build_airport_fleet_bar_chart(df_fleet, top_n=7)
     st.plotly_chart(fig_fleet, width="stretch", config={"displayModeBar": False})
+
+if not df_carriers.empty:
+    df_alliance_summary = get_airport_alliance_breakdown(df_carriers, selected_year)
+    if not df_alliance_summary.empty:
+        pills = []
+        for _, a_row in df_alliance_summary.iterrows():
+            a_name = a_row["alliance_name"]
+            share = a_row["seat_share_pct"]
+            pills.append(f"<b>{a_name}</b>: {share:.1f}%")
+        pills_str = " &nbsp;|&nbsp; ".join(pills)
+        st.markdown(f"""
+            <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; padding: 7px 14px; margin-top: 4px; margin-bottom: 18px; font-size: 0.85rem; color: #EBEBF5;">
+                🌐 <b>Airport Global Alliance Capacity Share ({selected_year})</b>: &nbsp;{pills_str}
+            </div>
+        """, unsafe_allow_html=True)
 
 # -------------------------------------------------------------
 # 4. Hero Section: 1990s Airline Route Atlas & Geodesic Network
