@@ -13,7 +13,14 @@ import plotly.graph_objects as go
 from app.config import settings
 from app.utils.styling import apply_apple_style, render_kpi_card
 from app.utils.auth import require_auth
-from app.utils.visualizers import MAP_THEMES, ROUTE_COLORWAYS
+from app.utils.alliances import get_carrier_logo_url
+from app.utils.visualizers import (
+    MAP_THEMES, 
+    ROUTE_COLORWAYS, 
+    build_flighty_alliance_donut, 
+    build_flighty_yoy_trends, 
+    build_flighty_seat_preference_donut
+)
 from app.utils.flighty import (
     parse_flighty_csv,
     generate_sample_flighty_data,
@@ -98,18 +105,26 @@ unique_airports = len(set(df_flights["origin"]).union(set(df_flights["dest"])))
 favorite_subfleet = df_flights["aircraft_subfleet"].value_counts().index[0] if not df_flights.empty else "N/A"
 top_route = df_flights["route"].value_counts().index[0] if not df_flights.empty else "N/A"
 top_carrier = df_flights["carrier"].value_counts().index[0] if not df_flights.empty else "N/A"
+top_carrier_code = df_flights["carrier_code"].value_counts().index[0] if "carrier_code" in df_flights.columns and not df_flights.empty else "AS"
+top_carrier_logo = get_carrier_logo_url(top_carrier_code)
 
-kpi1, kpi2, kpi3, kpi4, kpi5 = st.columns(5)
+total_co2_kg = df_flights["co2_kg"].sum() if "co2_kg" in df_flights.columns else 0.0
+total_co2_tonnes = total_co2_kg / 1000.0
+trees_offset = int(total_co2_tonnes * 45)
+
+kpi1, kpi2, kpi3, kpi4, kpi5, kpi6 = st.columns(6)
 with kpi1:
-    render_kpi_card("Total Flights", f"{total_flights:,}", subtitle="Personal flight segments")
+    render_kpi_card("Total Flights", f"{total_flights:,}", subtitle="Flight segments")
 with kpi2:
-    render_kpi_card("Total Distance", f"{total_miles:,} mi", subtitle="Great-circle air miles")
+    render_kpi_card("Total Distance", f"{total_miles:,} mi", subtitle="Air miles flown")
 with kpi3:
     render_kpi_card("Airports Visited", f"{unique_airports}", subtitle="Unique IATA hubs")
 with kpi4:
-    render_kpi_card("Top Aircraft Subfleet", favorite_subfleet, subtitle="Most flown equipment")
+    render_kpi_card("Top Subfleet", favorite_subfleet, subtitle="Most flown model")
 with kpi5:
-    render_kpi_card("Top Carrier", top_carrier, subtitle=f"Top Route: {top_route}")
+    render_kpi_card("Top Carrier", top_carrier, subtitle=f"Top Route: {top_route}", logo_url=top_carrier_logo)
+with kpi6:
+    render_kpi_card("CO₂ Footprint", f"{total_co2_tonnes:.1f} t", subtitle=f"~{trees_offset:,} trees offset")
 
 st.markdown("<div style='margin-top: 24px;'></div>", unsafe_allow_html=True)
 
@@ -210,35 +225,44 @@ with fcol2:
     st.plotly_chart(fig_donut, width="stretch")
 
 # ----------------------------------------------------------------------
-# Flown Routes & Cabin Class Breakdown
+# Year-over-Year Travel Dynamics & Alliance Loyalty
 # ----------------------------------------------------------------------
-rcol1, rcol2 = st.columns([3, 2])
+st.markdown("<div style='margin-top: 28px;'></div>", unsafe_allow_html=True)
+st.subheader("📈 Annual Travel Trends & Global Alliance Loyalty")
+st.markdown(
+    "<p style='color: #8E8E93; font-size: 0.92rem; margin-top: -6px; margin-bottom: 18px;'>"
+    "Track year-over-year flight volume and cumulative air miles alongside historical global alliance loyalty shares "
+    "(Star Alliance, oneworld, SkyTeam, and Independent carriers)."
+    "</p>",
+    unsafe_allow_html=True
+)
 
-with rcol1:
-    st.markdown("#### 🛫 Top Flown Routes")
-    top_routes_df = df_flights.groupby(["route", "origin", "dest"]).agg(
-        flights=("flight_date", "count"),
-        total_miles=("distance_miles", "sum"),
-        carriers=("carrier", lambda x: ", ".join(sorted(x.unique()))),
-        equipment=("aircraft_subfleet", lambda x: ", ".join(sorted(x.unique())))
-    ).reset_index().sort_values(by="flights", ascending=False).head(10)
+ycol1, ycol2 = st.columns([3, 2])
+with ycol1:
+    fig_yoy = build_flighty_yoy_trends(df_flights)
+    st.plotly_chart(fig_yoy, width="stretch")
+with ycol2:
+    fig_alliance = build_flighty_alliance_donut(df_flights)
+    st.plotly_chart(fig_alliance, width="stretch")
 
-    st.dataframe(
-        top_routes_df[[
-            "route", "flights", "total_miles", "carriers", "equipment"
-        ]].rename(columns={
-            "route": "Route",
-            "flights": "Flights",
-            "total_miles": "Total Miles",
-            "carriers": "Airlines Flown",
-            "equipment": "Subfleet Variants"
-        }),
-        width="stretch",
-        hide_index=True
-    )
+# ----------------------------------------------------------------------
+# In-Flight Experience: Seating Preference & Cabin Class
+# ----------------------------------------------------------------------
+st.markdown("<div style='margin-top: 28px;'></div>", unsafe_allow_html=True)
+st.subheader("💺 In-Flight Experience & Cabin Seating Preferences")
+st.markdown(
+    "<p style='color: #8E8E93; font-size: 0.92rem; margin-top: -6px; margin-bottom: 18px;'>"
+    "Analyze your seating behavior across aircraft cabins: Window vs. Aisle vs. Middle seat selection, "
+    "and premium cabin allocation."
+    "</p>",
+    unsafe_allow_html=True
+)
 
-with rcol2:
-    st.markdown("#### 💺 Cabin Class Distribution")
+scol1, scol2 = st.columns(2)
+with scol1:
+    fig_seat = build_flighty_seat_preference_donut(df_flights)
+    st.plotly_chart(fig_seat, width="stretch")
+with scol2:
     cabin_counts = df_flights["cabin_class"].value_counts().reset_index()
     cabin_counts.columns = ["cabin_class", "count"]
     fig_cabin = px.pie(
@@ -249,24 +273,83 @@ with rcol2:
         color_discrete_sequence=["#30D158", "#0A84FF", "#BF5AF2", "#FF9F0A"]
     )
     fig_cabin.update_layout(
+        title=dict(text="Cabin Class Distribution", font=dict(size=14, color="#F5F5F7")),
         paper_bgcolor="rgba(0,0,0,0)",
         plot_bgcolor="rgba(0,0,0,0)",
-        height=220,
-        margin=dict(l=10, r=10, t=20, b=10),
-        legend=dict(orientation="h", font=dict(color="#F5F5F7", size=10))
+        height=280,
+        margin=dict(l=10, r=10, t=35, b=10),
+        legend=dict(orientation="h", yanchor="bottom", y=-0.15, xanchor="center", x=0.5, font=dict(color="#F5F5F7", size=10)),
+        showlegend=True
     )
     st.plotly_chart(fig_cabin, width="stretch")
+
+# ----------------------------------------------------------------------
+# Flown Routes & Carbon Footprint Analysis
+# ----------------------------------------------------------------------
+st.markdown("<div style='margin-top: 28px;'></div>", unsafe_allow_html=True)
+st.subheader("🛫 Frequent Routes & Environmental Footprint")
+
+rcol1, rcol2 = st.columns([3, 2])
+with rcol1:
+    st.markdown("##### 📍 Top Flown Route Corridors")
+    top_routes_df = df_flights.groupby(["route", "origin", "dest"]).agg(
+        flights=("flight_date", "count"),
+        total_miles=("distance_miles", "sum"),
+        carriers=("carrier", lambda x: ", ".join(sorted(x.unique()))),
+        equipment=("aircraft_subfleet", lambda x: ", ".join(sorted(x.unique()))),
+        total_co2=("co2_kg", "sum") if "co2_kg" in df_flights.columns else ("flight_date", "count")
+    ).reset_index().sort_values(by="flights", ascending=False).head(10)
+    top_routes_df["co2_tonnes"] = (top_routes_df["total_co2"] / 1000.0).round(2) if "co2_kg" in df_flights.columns else 0.0
+
+    st.dataframe(
+        top_routes_df[[
+            "route", "flights", "total_miles", "carriers", "equipment", "co2_tonnes"
+        ]].rename(columns={
+            "route": "Route",
+            "flights": "Flights",
+            "total_miles": "Total Miles",
+            "carriers": "Airlines Flown",
+            "equipment": "Subfleet Variants",
+            "co2_tonnes": "Est. CO₂ (t)"
+        }),
+        width="stretch",
+        hide_index=True
+    )
+
+with rcol2:
+    st.markdown("##### 🌿 Carbon Emissions & Offsets")
+    st.markdown(
+        f"""
+        <div style="background: rgba(48, 209, 88, 0.08); border: 1px solid rgba(48, 209, 88, 0.25); border-radius: 10px; padding: 18px; margin-top: 4px;">
+            <div style="color: #30D158; font-size: 15px; font-weight: 700; margin-bottom: 8px;">🌱 Aviation Sustainability Metrics</div>
+            <div style="color: #F5F5F7; font-size: 13px; line-height: 1.6;">
+                • <b>Total Flight CO₂</b>: <span style="color: #30D158; font-weight: 700;">{total_co2_tonnes:.2f} metric tons</span><br/>
+                • <b>Average per Flight</b>: <b>{total_co2_kg / max(total_flights, 1):.0f} kg CO₂</b><br/>
+                • <b>Forest Offset Equivalent</b>: <b>~{trees_offset:,} mature urban trees</b> growing for one full year to sequester this output.<br/>
+                • <b>Efficiency Profile</b>: Stage lengths & modern high-bypass fleet matching significantly reduce per-passenger emissions.
+            </div>
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
 
 # ----------------------------------------------------------------------
 # Searchable Complete Flight Log
 # ----------------------------------------------------------------------
 with st.expander("📋 View Complete Personal Flight Log", expanded=False):
+    log_cols = [
+        "flight_date", "carrier", "carrier_code", "alliance", "flight_number", 
+        "origin", "dest", "aircraft_subfleet", "aircraft_generation", 
+        "cabin_class", "seat", "seat_position", "distance_miles", "co2_kg"
+    ]
+    available_cols = [c for c in log_cols if c in df_flights.columns]
+    
     st.dataframe(
-        df_flights[[
-            "flight_date", "carrier", "flight_number", "origin", "dest", "aircraft_subfleet", "aircraft_generation", "cabin_class", "seat", "distance_miles"
-        ]].rename(columns={
+        df_flights[available_cols].rename(columns={
             "flight_date": "Date",
             "carrier": "Airline",
+            "carrier_code": "IATA",
+            "alliance": "Alliance",
             "flight_number": "Flight #",
             "origin": "Origin",
             "dest": "Dest",
@@ -274,8 +357,12 @@ with st.expander("📋 View Complete Personal Flight Log", expanded=False):
             "aircraft_generation": "Generation",
             "cabin_class": "Cabin",
             "seat": "Seat",
-            "distance_miles": "Distance (mi)"
+            "seat_position": "Seat Position",
+            "distance_miles": "Distance (mi)",
+            "co2_kg": "CO₂ (kg)"
         }),
         width="stretch",
         hide_index=True
     )
+
+

@@ -883,3 +883,144 @@ def build_carrier_premium_bar_chart(df_comp: pd.DataFrame) -> go.Figure:
         yaxis=dict(showgrid=False, tickfont=dict(color="#F5F5F7"))
     )
     return fig
+
+
+def build_flighty_alliance_donut(df_flights: pd.DataFrame) -> go.Figure:
+    """
+    Renders an interactive donut chart showing personal loyalty share across
+    Star Alliance, oneworld, SkyTeam, and Independent / Unaligned carriers.
+    """
+    if df_flights.empty or "alliance" not in df_flights.columns:
+        return go.Figure()
+
+    from app.utils.alliances import ALLIANCE_COLORS
+    
+    alliance_counts = df_flights["alliance"].value_counts().reset_index()
+    alliance_counts.columns = ["alliance", "flights"]
+    
+    colors = [ALLIANCE_COLORS.get(a, "#8E8E93") for a in alliance_counts["alliance"]]
+
+    fig = go.Figure()
+    fig.add_trace(go.Pie(
+        labels=alliance_counts["alliance"],
+        values=alliance_counts["flights"],
+        hole=0.58,
+        marker=dict(colors=colors, line=dict(color="#1C1C1E", width=2)),
+        textinfo="percent+label",
+        hoverinfo="label+value+percent",
+        textfont=dict(color="#F5F5F7", size=11)
+    ))
+
+    fig.update_layout(
+        title=dict(text="Global Alliance Loyalty Breakdown", font=dict(size=14, color="#F5F5F7")),
+        paper_bgcolor="rgba(0,0,0,0)",
+        plot_bgcolor="rgba(0,0,0,0)",
+        height=300,
+        margin=dict(l=10, r=10, t=35, b=10),
+        legend=dict(orientation="h", yanchor="bottom", y=-0.2, xanchor="center", x=0.5, font=dict(color="#F5F5F7", size=10)),
+        showlegend=True
+    )
+    return fig
+
+
+def build_flighty_yoy_trends(df_flights: pd.DataFrame) -> go.Figure:
+    """
+    Renders YoY personal flight volume and cumulative air miles trends.
+    """
+    if df_flights.empty or "year" not in df_flights.columns:
+        return go.Figure()
+
+    yoy = df_flights.groupby("year").agg(
+        flights=("flight_date", "count"),
+        total_miles=("distance_miles", "sum")
+    ).reset_index().sort_values("year")
+
+    fig = go.Figure()
+    # Left axis: Flights count bars
+    fig.add_trace(go.Bar(
+        x=yoy["year"].astype(str),
+        y=yoy["flights"],
+        name="Flights",
+        marker=dict(color="#0A84FF", opacity=0.85),
+        yaxis="y1",
+        text=yoy["flights"],
+        textposition="outside",
+        textfont=dict(color="#F5F5F7", size=11)
+    ))
+    # Right axis: Miles line
+    fig.add_trace(go.Scatter(
+        x=yoy["year"].astype(str),
+        y=yoy["total_miles"],
+        name="Distance (mi)",
+        mode="lines+markers",
+        line=dict(color="#30D158", width=3),
+        marker=dict(size=8, color="#30D158"),
+        yaxis="y2"
+    ))
+
+    fig.update_layout(
+        title=dict(text="📅 Year-over-Year Travel Volume & Air Miles", font=dict(size=14, color="#F5F5F7")),
+        paper_bgcolor="rgba(0,0,0,0)",
+        plot_bgcolor="rgba(0,0,0,0)",
+        height=300,
+        margin=dict(l=10, r=10, t=35, b=10),
+        xaxis=dict(showgrid=False, tickfont=dict(color="#F5F5F7")),
+        yaxis=dict(
+            title=dict(text="Flights", font=dict(color="#0A84FF")),
+            tickfont=dict(color="#0A84FF"),
+            showgrid=True,
+            gridcolor="rgba(255,255,255,0.06)"
+        ),
+        yaxis2=dict(
+            title=dict(text="Miles", font=dict(color="#30D158")),
+            tickfont=dict(color="#30D158"),
+            overlaying="y",
+            side="right",
+            showgrid=False
+        ),
+        legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1, font=dict(color="#F5F5F7", size=10))
+    )
+    return fig
+
+
+def build_flighty_seat_preference_donut(df_flights: pd.DataFrame) -> go.Figure:
+    """
+    Renders personal seat position preference: Window vs Aisle vs Middle.
+    """
+    if df_flights.empty or "seat_position" not in df_flights.columns:
+        return go.Figure()
+
+    seat_counts = df_flights["seat_position"].value_counts().reset_index()
+    seat_counts.columns = ["position", "count"]
+
+    seat_colors = {
+        "Window": "#0A84FF",
+        "Aisle": "#30D158",
+        "Middle": "#FF9F0A",
+        "Unassigned / Open": "#8E8E93",
+        "Other": "#64D2FF"
+    }
+    colors = [seat_colors.get(p, "#8E8E93") for p in seat_counts["position"]]
+
+    fig = go.Figure()
+    fig.add_trace(go.Pie(
+        labels=seat_counts["position"],
+        values=seat_counts["count"],
+        hole=0.55,
+        marker=dict(colors=colors, line=dict(color="#1C1C1E", width=2)),
+        textinfo="percent+label",
+        hoverinfo="label+value+percent",
+        textfont=dict(color="#F5F5F7", size=11)
+    ))
+
+    fig.update_layout(
+        title=dict(text="🪟 Seat Placement Preference", font=dict(size=14, color="#F5F5F7")),
+        paper_bgcolor="rgba(0,0,0,0)",
+        plot_bgcolor="rgba(0,0,0,0)",
+        height=280,
+        margin=dict(l=10, r=10, t=35, b=10),
+        legend=dict(orientation="h", yanchor="bottom", y=-0.15, xanchor="center", x=0.5, font=dict(color="#F5F5F7", size=10)),
+        showlegend=True
+    )
+    return fig
+

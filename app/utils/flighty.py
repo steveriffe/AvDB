@@ -289,6 +289,119 @@ def calculate_haversine_distance(lat1: float, lon1: float, lat2: float, lon2: fl
     return round(r * c, 1)
 
 
+def normalize_carrier_code(carrier_str: str, flight_str: str = "") -> str:
+    """Normalizes raw airline name or flight number to standard 2-letter IATA code."""
+    import re
+    from app.data.ref_alliances import CARRIER_LOGOS
+    c = str(carrier_str).strip().upper()
+    f = str(flight_str).strip().upper()
+    
+    # 1. Check flight number prefix (e.g. 'AS 12' or 'UA450')
+    if f:
+        m = re.match(r"^([A-Z0-9]{2})\s*\d+", f)
+        if m:
+            prefix = m.group(1)
+            if prefix in CARRIER_LOGOS or prefix in ["AS", "UA", "DL", "AA", "WN", "B6", "NK", "F9", "HA", "BA", "LH", "AF", "KL", "QF", "SQ", "NH", "JL"]:
+                return prefix
+
+    # 2. Check if already 2 letters
+    if len(c) == 2 and c.isalpha():
+        return c
+
+    # 3. Common airline names
+    airline_map = {
+        "ALASKA": "AS",
+        "HORIZON": "AS",
+        "UNITED": "UA",
+        "DELTA": "DL",
+        "AMERICAN": "AA",
+        "SOUTHWEST": "WN",
+        "JETBLUE": "B6",
+        "SPIRIT": "NK",
+        "FRONTIER": "F9",
+        "HAWAIIAN": "HA",
+        "ALLEGIANT": "G4",
+        "BRITISH AIRWAYS": "BA",
+        "LUFTHANSA": "LH",
+        "AIR FRANCE": "AF",
+        "KLM": "KL",
+        "VIRGIN": "VS",
+        "AIR CANADA": "AC",
+        "QANTAS": "QF",
+        "SINGAPORE": "SQ",
+        "ANA": "NH",
+        "JAPAN AIRLINES": "JL",
+        "CATHAY": "CX",
+        "EMIRATES": "EK",
+        "QATAR": "QR",
+        "AEROMEXICO": "AM",
+        "AVIANCA": "AV",
+        "COPA": "CM",
+        "IBERIA": "IB",
+        "FINNAIR": "AY",
+        "SWISS": "LX",
+        "AUSTRIAN": "OS",
+        "SAS": "SK",
+        "TURKISH": "TK"
+    }
+    for name, code in airline_map.items():
+        if name in c:
+            return code
+            
+    return c[:2] if len(c) >= 2 else "UA"
+
+
+def classify_seat_position(seat_str: str) -> str:
+    """Classifies seat identifier into Window, Aisle, Middle, or Unassigned."""
+    if not seat_str or pd.isna(seat_str):
+        return "Unassigned / Open"
+    s = str(seat_str).strip().upper()
+    if s in ["ANY", "OPEN", "GENERAL", "UNASSIGNED", "NONE", "NAN", ""]:
+        return "Unassigned / Open"
+    
+    letter = s[-1] if s[-1].isalpha() else ""
+    if not letter:
+        return "Unassigned / Open"
+        
+    if letter in ["A", "F", "K"]:
+        return "Window"
+    elif letter in ["C", "D", "G", "H"]:
+        return "Aisle"
+    elif letter in ["B", "E", "J"]:
+        return "Middle"
+    else:
+        return "Other"
+
+
+def calculate_flight_carbon_footprint(distance_miles: float, cabin_class: str = "Economy", category: str = "Mainline Narrowbody") -> float:
+    """
+    Estimates kg of CO2 emissions for a passenger on a flight segment
+    based on stage length, aircraft category, and cabin class multiplier.
+    """
+    cat_lower = str(category).lower()
+    if "widebody" in cat_lower:
+        base_rate = 0.115
+    elif "regional" in cat_lower:
+        base_rate = 0.175
+    elif "turboprop" in cat_lower:
+        base_rate = 0.145
+    else:
+        base_rate = 0.135
+        
+    c_lower = str(cabin_class).lower()
+    if "first" in c_lower:
+        mult = 3.5
+    elif any(k in c_lower for k in ["business", "polaris", "one", "club"]):
+        mult = 2.4
+    elif any(k in c_lower for k in ["premium", "comfort", "extra", "plus"]):
+        mult = 1.4
+    else:
+        mult = 1.0
+        
+    return round(float(distance_miles) * base_rate * mult, 1)
+
+
+
 def parse_flighty_csv(file_or_content) -> pd.DataFrame:
     """
     Parses Flighty CSV export and enriches it with:
@@ -416,7 +529,31 @@ def parse_flighty_csv(file_or_content) -> pd.DataFrame:
     df["distance_miles"] = distances
 
     df["route"] = df["origin"] + " ➔ " + df["dest"]
+
+    # Normalize carrier codes and assign historical alliance
+    from app.utils.alliances import get_carrier_alliance
+    carrier_codes = []
+    alliances = []
+    for _, row in df.iterrows():
+        c_code = normalize_carrier_code(row.get("carrier", ""), row.get("flight_number", ""))
+        carrier_codes.append(c_code)
+        yr = int(row.get("year", 2023))
+        a_info = get_carrier_alliance(c_code, yr)
+        alliances.append(a_info["alliance_name"] if a_info else "Independent / Unaligned")
+    df["carrier_code"] = carrier_codes
+    df["alliance"] = alliances
+
+    # Seat position preference
+    df["seat_position"] = [classify_seat_position(s) for s in df["seat"]]
+
+    # CO2 footprint
+    df["co2_kg"] = [
+        calculate_flight_carbon_footprint(r["distance_miles"], r.get("cabin_class", "Economy"), r.get("aircraft_category", "Mainline Narrowbody"))
+        for _, r in df.iterrows()
+    ]
+
     return df
+
 
 
 def generate_sample_flighty_data() -> pd.DataFrame:
