@@ -96,7 +96,7 @@ with col_f1:
 with col_f2:
     selected_year = st.selectbox(
         "Analysis Year",
-        options=[2025, 2024, 2023, 2022, 2021, 2020, 2019, 2018, 2015, 2010, 2005, 2000],
+        options=[2025, 2024, 2023, 2022, 2021, 2020, 2019, 2018, 2015, 2010, 2005, 2000, 1995, 1990],
         index=0,
         label_visibility="collapsed"
     )
@@ -318,9 +318,10 @@ with c1:
 
 with c2:
     st.markdown("### 📈 Network Yield Curve (Stage Length vs Yield)")
-    if not df_yields.empty:
+    df_yields_valid = df_yields[df_yields["yield_per_mile"].notna() & (df_yields["yield_per_mile"] > 0)] if not df_yields.empty else pd.DataFrame()
+    if not df_yields_valid.empty:
         fig_yield = px.scatter(
-            df_yields,
+            df_yields_valid,
             x="stage_length_miles",
             y="yield_per_mile",
             size="operational_passengers",
@@ -339,7 +340,7 @@ with c2:
         )
         st.plotly_chart(fig_yield, width="stretch", config={"displayModeBar": False})
     else:
-        st.info("No yield curve data available.")
+        st.info(f"DB1B ticket survey fare data is pending ingestion for {selected_year}. Displaying complete T-100 flight network and hub metrics.")
 
 # -------------------------------------------------------------
 # 5. Target Network Expansion Proposals: Top 5 Next Routes by Hub

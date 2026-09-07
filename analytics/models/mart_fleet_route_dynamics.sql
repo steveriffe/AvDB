@@ -32,7 +32,7 @@ WITH segment_fleet AS (
     FROM `db1b-1.bts_t100_data.t100_segments` s
     LEFT JOIN `db1b-1.t100_data.L_AIRCRAFT_TYPE` ac
         ON SAFE_CAST(s.aircraft_type AS INT64) = ac.Code
-    WHERE s.year >= 2018
+    WHERE s.year >= 1990
     GROUP BY 1, 2, 3, 4, 5, 6, 7, 8, 9, 10
 ),
 db1b_fares AS (

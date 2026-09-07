@@ -170,4 +170,25 @@ flowchart LR
   - [x] Hardened `get_airport_kpis` and `get_airline_kpis` against `NoneType` comparison crashes on historical carriers and unserved years.
   - [x] Added `tests/run_all_tests.py` unified test and regression verification suite.
 
+---
+
+### Phase 10: Complete Historical Data Sourcing (1990–2026) & Filter Hardening
+- [ ] **10.1 Analytical Marts Historical Re-materialization (1990–2026)**:
+  - [ ] Remove `WHERE year >= 2018` from `mart_airport_network_summary.sql`, `mart_airline_network_performance.sql`, and `mart_fleet_route_dynamics.sql`.
+  - [ ] Re-materialize all 3 reporting marts across 36 years (14.03M T-100 segment rows).
+- [ ] **10.2 Phase 1 DB1B Fare Sourcing (2000 – 2025 Q2)**:
+  - [ ] Build automated PREZIP downloader and BigQuery loader for quarterly `DB1BMarket` files (2000 Q1 to 2025 Q2).
+  - [ ] Ingest remaining October–December 2025 OD40 parquet files from `gs://db1b-1/` into `OD40_DB1B_RAW`.
+- [ ] **10.3 Unified Fare & Yield Market View**:
+  - [ ] Update `db1b-1.DB1B_RAW.v_market_demand_itinerary` to unify 10% DB1B Market (2000–2025 Q2, 10x sample multiplier) with 40% OD40 (2025 Q3+, 2.5x sample multiplier).
+- [ ] **10.4 Dashboard Filter & Yield Handling Alignment**:
+  - [ ] Update `get_airline_yield_curve` to gracefully display stage lengths and passenger volumes when fares are missing.
+  - [ ] Align year dropdowns across Airports, Airlines, and Fleet dashboards to cover historical benchmark years down to 1990.
+- [ ] **10.5 Comprehensive Automated Filter Testing**:
+  - [ ] Assert non-zero operational and route data across historical airline tests (`AS` 2010, `CO` 2005, `NW` 2005, `US` 2010, `HP` 2000, `TW` 2000).
+- [ ] **10.6 [To-Do] Phase 2 Historical Fare Ingestion (1990 – 1999)**:
+  - [ ] Source early 10% DB1B data (1993–1999) from TranStats query export and NBER research archives.
+  - [ ] Source legacy Data Bank 1A (DB1A) datasets (1990–1992) to extend fare data to the 1990 origin boundary.
+
+
 

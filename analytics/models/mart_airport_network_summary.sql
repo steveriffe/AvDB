@@ -21,7 +21,7 @@ WITH t100_monthly AS (
         SUM(passengers) AS operational_passengers,
         AVG(distance) AS distance_miles
     FROM `db1b-1.bts_t100_data.t100_segments`
-    WHERE year >= 2018
+    WHERE year >= 1990
     GROUP BY 1, 2, 3, 4, 5, 6, 7
 ),
 db1b_monthly AS (

@@ -23,7 +23,7 @@ WITH base_segments AS (
         SUM(seats * distance) AS available_seat_miles,
         SUM(passengers * distance) AS revenue_passenger_miles
     FROM `db1b-1.bts_t100_data.t100_segments`
-    WHERE year >= 2018
+    WHERE year >= 1990
     GROUP BY 1, 2, 3, 4, 5, 6, 7
 ),
 route_totals AS (

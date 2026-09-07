@@ -674,7 +674,8 @@ def get_airline_yield_curve(carrier_code: str, year: int) -> pd.DataFrame:
             load_factor_pct
         FROM `db1b-1.reporting.mart_airline_network_performance`
         WHERE unique_carrier = @carrier_code AND year = @year
-          AND avg_od_fare > 20 AND avg_stage_length_miles > 50
+          AND avg_stage_length_miles > 50
+          AND (avg_od_fare IS NULL OR avg_od_fare > 20)
         ORDER BY operational_passengers DESC
         LIMIT 200
     """
