@@ -1,19 +1,18 @@
 # Current Project Status: AvDB
 
-**Last Updated**: 2026-09-04
-**Current Phase**: Phase 9 Delivered (Airline Mergers Lineage, Regional Capacity Attribution, Unserved Route History, Personal Flight Analytics Expansion, and Fleet Technical Specs)
+**Last Updated**: 2026-09-07
+**Current Phase**: Phase 9.7 Delivered (Packaging Fix for app.data, Open Google Authentication, Auth Gating, Fleet & Historical KPI Bug Fixes)
 ---
 
 ## 🎯 Active Focus
 Delivered the comprehensive analytical and engineering roadmap enhancements requested:
-1. **Historical Airline Merger Tracking Engine** (`ref_mergers.py`, `app/utils/mergers.py`): Authoritative timeline of 11 US commercial airline mergers since 1990 (Continental $\rightarrow$ UA, Northwest $\rightarrow$ DL, US Airways $\rightarrow$ AA, America West $\rightarrow$ US Airways, Reno Air $\rightarrow$ AA, TWA $\rightarrow$ AA, AirTran $\rightarrow$ WN, Virgin America $\rightarrow$ AS, Hawaiian $\rightarrow$ AS, Midwest $\rightarrow$ F9, Pan Am $\rightarrow$ DL).
-2. **Airport-Level Alliance Intelligence & Carrier Logos**: Interactive Global Alliance loyalty breakdown donut, capacity share indicators, and SVG carrier branding across Airports Explorer and Fleet Explorer.
-3. **Regional Carrier Capacity Attribution**: Direct marketing carrier resolution for contract regionals (`OO` SkyWest, `QX` Horizon, `9E`, `MQ`, `OH`, `PT`, `C5`, `G7`), successfully attributing Delta (`DL`) and Alaska (`AS`) on EUG-SEA and nationwide feeder routes.
-4. **Historical Route Service in Unserved Markets**: Nonstop service lookups joined against historical networks with corporate merger heritage (e.g. ANC $\rightarrow$ DTW tagged as `🔄 Flown until 2021 (NW/DL)`).
-5. **Personal Analytics Dashboard (`4_📱_Flighty_Traveler.py`)**: YoY travel volume & cumulative air miles trends, temporal alliance loyalty breakdown, seat placement preference (Window/Aisle/Middle), and aviation $CO_2$ carbon footprint metrics with tree offset equivalents.
-6. **Fleet Technical Specifications & Operator Breakdown**: Detailed engineering specs (wingspan, range, typical gauge, engines) and leading operators with carrier logos on Fleet Explorer (`app/data/ref_aircraft_specs.py`).
-7. **Xcode iOS Build Collision Fix**: Resolved module collision on iPhone 16 Pro Max (iOS 27 beta) by renaming the Swift Package target to `AvDBCore`.
-8. **Cloud Run Production Deployment**: Deployed revision `avdb-00005-jrn` to `us-west1` serving 100% of production traffic at `https://avdb.riffe.co.uk`.
+1. **Packaging & Build Fix for `app.data`**: Corrected `.dockerignore` and `.gcloudignore` from unanchored `data/` to `/data/` and `!app/data/`, ensuring `ref_mergers.py`, `ref_aircraft_specs.py`, `ref_alliances.py` are packaged into Cloud Run builds. Added `ENV PYTHONPATH=/app` in `Dockerfile`.
+2. **Open Registration for All Google Authenticated Users**: Opened access so any user authenticating via Google can use AvDB (`ALLOWED_EMAILS=*`).
+3. **Sidebar Auth Navigation Gating**: Hid `[data-testid='stSidebarNav']` when users are unauthenticated, preventing access to subpages before sign-in, and relocated `require_auth()` before heavy imports on all pages.
+4. **Fleet Explorer KPI Keyword Fix**: Fixed `TypeError: unexpected keyword argument 'title'` in `render_kpi_card` and added backward-compatible `title` alias support.
+5. **Historical Carriers & Airport Null-Safety**: Fixed `TypeError: '>=' not supported between instances of 'NoneType' and 'int'` when selecting historical carriers or empty route years.
+6. **Mapbox Public Token Resolution**: Fixed `1_✈️_Airports.py` to use `settings.mapbox_token` instead of looking for unset `MAPBOX_API_KEY`.
+7. **Unified Automated Test Suite**: Created `tests/run_all_tests.py` verifying all test suites and regression guards in a single run.
 
 ---
 

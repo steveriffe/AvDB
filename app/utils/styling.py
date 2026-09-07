@@ -95,8 +95,9 @@ def apply_apple_style():
     """, unsafe_allow_html=True)
 
 
-def render_kpi_card(label: str, value: str, delta: str = None, subtitle: str = None, logo_url: str = None):
+def render_kpi_card(label: str = None, value: str = "", delta: str = None, subtitle: str = None, logo_url: str = None, title: str = None):
     """Renders a sleek Apple-style KPI card with optional logo and subtitle."""
+    card_label = label or title or ""
     delta_html = f'<div class="metric-delta">{delta}</div>' if delta else ''
     sub_html = f'<div style="font-size: 0.76rem; color: #8E8E93; margin-top: 4px;">{subtitle}</div>' if subtitle else ''
     
@@ -104,7 +105,7 @@ def render_kpi_card(label: str, value: str, delta: str = None, subtitle: str = N
         card_content = f"""
             <div style="display: flex; justify-content: space-between; align-items: flex-start;">
                 <div>
-                    <div class="metric-label">{label}</div>
+                    <div class="metric-label">{card_label}</div>
                     <div class="metric-value">{value}</div>
                 </div>
                 <img src="{logo_url}" style="height: 28px; max-width: 65px; object-fit: contain; filter: brightness(1.1); margin-top: 2px;" alt=""/>
@@ -114,7 +115,7 @@ def render_kpi_card(label: str, value: str, delta: str = None, subtitle: str = N
         """
     else:
         card_content = f"""
-            <div class="metric-label">{label}</div>
+            <div class="metric-label">{card_label}</div>
             <div class="metric-value">{value}</div>
             {delta_html}
             {sub_html}

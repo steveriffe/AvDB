@@ -16,7 +16,7 @@ class Settings(BaseSettings):
     # Google OAuth & Security Settings
     google_client_id: str = os.getenv("GOOGLE_CLIENT_ID", "")
     google_client_secret: str = os.getenv("GOOGLE_CLIENT_SECRET", "")
-    allowed_emails_raw: str = os.getenv("ALLOWED_EMAILS", "steve@riffe.co.uk")
+    allowed_emails_raw: str = os.getenv("ALLOWED_EMAILS", "*")
     redirect_uri_override: str = os.getenv("REDIRECT_URI_OVERRIDE", "")
 
     # Local Dev Bypass

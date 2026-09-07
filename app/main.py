@@ -27,9 +27,11 @@ def main():
     if settings.google_client_id:
         user_info = init_auth()
         if not user_info:
+            st.markdown("<style>[data-testid='stSidebarNav'], [data-testid='stSidebar'] {display: none;}</style>", unsafe_allow_html=True)
             render_landing_page()
             return
         elif not is_authenticated():
+            st.markdown("<style>[data-testid='stSidebarNav'], [data-testid='stSidebar'] {display: none;}</style>", unsafe_allow_html=True)
             render_unauthorized_page(user_info)
             return
         else:

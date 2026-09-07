@@ -18,7 +18,7 @@ SERVICE_NAME="avdb"
 
 
 IMAGE_NAME="${REGION}-docker.pkg.dev/${PROJECT_ID}/avdb/app:latest"
-ALLOWED_EMAILS=${ALLOWED_EMAILS:-"steve@riffe.co.uk"}
+ALLOWED_EMAILS=${ALLOWED_EMAILS:-"*"}
 
 
 echo "🔧 Ensuring required GCP APIs (Cloud Build, Cloud Run, Artifact Registry) are enabled..."

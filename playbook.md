@@ -162,5 +162,12 @@ flowchart LR
   - [x] Category operator breakdown with carrier brand logos (`get_fleet_operators_breakdown`).
 - [x] **9.6 Xcode Duplicate Module Collision Fix**:
   - [x] Renamed Swift Package target to `AvDBCore` in `ios/AvDB/Package.swift` to resolve Xcode duplicate module build error on iPhone 16 Pro Max / iOS 27 beta.
+- [x] **9.7 Deployment Packaging, Open Registration & Runtime Hardening**:
+  - [x] Fixed `.dockerignore` and `.gcloudignore` so `app/data` is preserved in Docker and Cloud Build containers.
+  - [x] Opened registration and access to all Google-authenticated users (`ALLOWED_EMAILS=*`).
+  - [x] Hid `stSidebarNav` on landing page and subpages for unauthenticated users, moving `require_auth()` before heavy imports.
+  - [x] Resolved `TypeError` in `render_kpi_card` for Fleet Explorer.
+  - [x] Hardened `get_airport_kpis` and `get_airline_kpis` against `NoneType` comparison crashes on historical carriers and unserved years.
+  - [x] Added `tests/run_all_tests.py` unified test and regression verification suite.
 
 

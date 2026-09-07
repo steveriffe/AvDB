@@ -95,11 +95,16 @@ def init_auth() -> dict | None:
 
 
 def is_authenticated() -> bool:
-    """Returns True if the current user is logged in AND on the email allowlist."""
+    """Returns True if the current user is logged in with a verified Google account."""
     user = st.session_state.get("user")
     if not user or not isinstance(user, dict):
         return False
-    email = user.get("email", "").lower()
+    email = user.get("email", "").strip().lower()
+    if not email:
+        return False
+    # If allowed_emails is * or empty, open access to all valid Google authenticated accounts
+    if not settings.allowed_emails or "*" in settings.allowed_emails or "all" in settings.allowed_emails:
+        return True
     return email in settings.allowed_emails
 
 
@@ -158,10 +163,12 @@ def require_auth() -> bool:
 
     user_info = init_auth()
     if not user_info:
+        st.markdown("<style>[data-testid='stSidebarNav'] {display: none;}</style>", unsafe_allow_html=True)
         render_landing_page()
         st.stop()
         return False
     elif not is_authenticated():
+        st.markdown("<style>[data-testid='stSidebarNav'] {display: none;}</style>", unsafe_allow_html=True)
         render_unauthorized_page(user_info)
         st.stop()
         return False

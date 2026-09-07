@@ -9,10 +9,23 @@ if str(REPO_ROOT) not in sys.path:
 import os
 import streamlit as st
 import pandas as pd
-import plotly.express as px
-import plotly.graph_objects as go
 from app.config import settings
 from app.utils.styling import apply_apple_style, render_kpi_card
+from app.utils.auth import require_auth
+
+st.set_page_config(
+    page_title="Airlines Explorer | AvDB",
+    page_icon="🏢",
+    layout="wide",
+    initial_sidebar_state="collapsed",
+)
+
+# Apply Apple-esque CSS styling
+apply_apple_style()
+require_auth()
+
+import plotly.express as px
+import plotly.graph_objects as go
 from app.utils.queries import (
     get_airline_kpis,
     get_airline_hubs,
@@ -38,19 +51,6 @@ from app.utils.mergers import (
     format_merger_lineage_html,
     get_all_airline_mergers,
 )
-
-from app.utils.auth import require_auth
-
-st.set_page_config(
-    page_title="Airlines Explorer | AvDB",
-    page_icon="🏢",
-    layout="wide",
-    initial_sidebar_state="collapsed",
-)
-
-# Apply Apple-esque CSS styling
-apply_apple_style()
-require_auth()
 
 
 # -------------------------------------------------------------
@@ -187,23 +187,24 @@ kpis = get_airline_kpis(selected_code, selected_year)
 
 k1, k2, k3, k4, k5 = st.columns(5)
 
+tot_deps = kpis.get('total_departures') or 0
 with k1:
-    render_kpi_card("Active Routes", f"{kpis['active_routes']:,}")
+    render_kpi_card("Active Routes", f"{kpis.get('active_routes', 0):,}")
 
 with k2:
-    deps_val = f"{kpis['total_departures']/1e3:.1f}K" if kpis['total_departures'] >= 1000 else f"{kpis['total_departures']:,}"
+    deps_val = f"{tot_deps/1e3:.1f}K" if tot_deps >= 1000 else f"{tot_deps:,}"
     render_kpi_card("Total Departures", deps_val)
 
 with k3:
-    lf_str = f"{kpis['system_load_factor']:.1f}%" if kpis['system_load_factor'] else "—"
+    lf_str = f"{kpis['system_load_factor']:.1f}%" if kpis.get('system_load_factor') and not pd.isna(kpis['system_load_factor']) else "—"
     render_kpi_card("System Load Factor", lf_str)
 
 with k4:
-    yield_str = f"${kpis['avg_yield_per_mile']:.4f}" if kpis['avg_yield_per_mile'] else "—"
+    yield_str = f"${kpis['avg_yield_per_mile']:.4f}" if kpis.get('avg_yield_per_mile') and not pd.isna(kpis['avg_yield_per_mile']) else "—"
     render_kpi_card("Yield / Passenger-Mile", yield_str)
 
 with k5:
-    fare_str = f"${kpis['avg_network_fare']:.0f}" if kpis['avg_network_fare'] else "—"
+    fare_str = f"${kpis['avg_network_fare']:.0f}" if kpis.get('avg_network_fare') and not pd.isna(kpis['avg_network_fare']) else "—"
     render_kpi_card("Avg Network Fare", fare_str)
 
 # -------------------------------------------------------------

@@ -195,7 +195,10 @@ def get_available_airports() -> pd.DataFrame:
             is_commercial DESC,
             airport_code ASC
     """
-    return run_query(query)
+    try:
+        return run_query(query)
+    except Exception:
+        return pd.DataFrame()
 
 
 @st.cache_data(ttl=3600, show_spinner=False)
@@ -262,8 +265,10 @@ def get_airport_kpis(
         FROM filtered
     """
     df = run_query(query, params={"airport_code": airport_code, "year": year, "min_departures": min_departures})
-    if not df.empty:
-        return df.iloc[0].to_dict()
+    if not df.empty and df["total_passengers"].iloc[0] is not None and not pd.isna(df["total_passengers"].iloc[0]):
+        row = df.iloc[0].to_dict()
+        row["leading_carrier"] = row.get("leading_carrier") or "—"
+        return row
     return {
         "direct_destinations": 0,
         "total_departures": 0,
@@ -617,7 +622,7 @@ def get_airline_kpis(carrier_code: str, year: int) -> Dict[str, Any]:
         WHERE unique_carrier = @carrier_code AND year = @year
     """
     df = run_query(query, params={"carrier_code": carrier_code, "year": year})
-    if not df.empty:
+    if not df.empty and df["total_departures"].iloc[0] is not None and not pd.isna(df["total_departures"].iloc[0]):
         return df.iloc[0].to_dict()
     return {
         "active_routes": 0,

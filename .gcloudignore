@@ -10,9 +10,10 @@ __pycache__/
 .DS_Store
 .idea/
 .vscode/
-data/
-scratch/
-ios/
-tests/
-credentials/
+/data/
+!app/data/
+/scratch/
+/ios/
+/tests/
+/credentials/
 *.log

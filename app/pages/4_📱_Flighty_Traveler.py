@@ -8,11 +8,22 @@ if str(REPO_ROOT) not in sys.path:
 
 import streamlit as st
 import pandas as pd
-import plotly.express as px
-import plotly.graph_objects as go
 from app.config import settings
 from app.utils.styling import apply_apple_style, render_kpi_card
 from app.utils.auth import require_auth
+
+st.set_page_config(
+    page_title="Flighty Personal Traveler | AvDB",
+    page_icon="📱",
+    layout="wide",
+    initial_sidebar_state="collapsed",
+)
+
+apply_apple_style()
+require_auth()
+
+import plotly.express as px
+import plotly.graph_objects as go
 from app.utils.alliances import get_carrier_logo_url
 from app.utils.visualizers import (
     MAP_THEMES, 
@@ -27,16 +38,6 @@ from app.utils.flighty import (
     build_flighty_travel_deck,
     AIRPORT_COORDINATES
 )
-
-st.set_page_config(
-    page_title="Flighty Personal Traveler | AvDB",
-    page_icon="📱",
-    layout="wide",
-    initial_sidebar_state="collapsed",
-)
-
-apply_apple_style()
-require_auth()
 
 st.title("📱 Flighty Personal Traveler")
 st.markdown(

@@ -11,6 +11,19 @@ import streamlit as st
 import pandas as pd
 from app.config import settings
 from app.utils.styling import apply_apple_style, render_kpi_card
+from app.utils.auth import require_auth
+
+st.set_page_config(
+    page_title="Airports Explorer | AvDB",
+    page_icon="✈️",
+    layout="wide",
+    initial_sidebar_state="collapsed",
+)
+
+# Apply Apple-esque CSS styling
+apply_apple_style()
+require_auth()
+
 from app.utils.queries import (
     get_available_airports,
     get_airport_catchment_info,
@@ -35,19 +48,6 @@ from app.utils.alliances import (
     get_carrier_logo_url,
     get_airport_alliance_breakdown,
 )
-
-from app.utils.auth import require_auth
-
-st.set_page_config(
-    page_title="Airports Explorer | AvDB",
-    page_icon="✈️",
-    layout="wide",
-    initial_sidebar_state="collapsed",
-)
-
-# Apply Apple-esque CSS styling
-apply_apple_style()
-require_auth()
 
 
 # -------------------------------------------------------------
@@ -123,29 +123,30 @@ kpi_data = get_airport_kpis(selected_airport, selected_year, passenger_only=is_p
 
 kpi1, kpi2, kpi3, kpi4, kpi5 = st.columns(5)
 
+tot_pax = kpi_data.get('total_passengers') or 0
 with kpi1:
-    pax_val = f"{kpi_data['total_passengers'] / 1e6:.2f}M" if kpi_data['total_passengers'] >= 1e6 else f"{kpi_data['total_passengers']:,}"
+    pax_val = f"{tot_pax / 1e6:.2f}M" if tot_pax >= 1e6 else f"{tot_pax:,}"
     render_kpi_card("Total Passengers", pax_val)
 
 with kpi2:
-    render_kpi_card("Direct Destinations", f"{kpi_data['direct_destinations']}")
+    render_kpi_card("Direct Destinations", f"{kpi_data.get('direct_destinations', 0):,}")
 
 with kpi3:
-    lf_val = f"{kpi_data['load_factor_pct']:.1f}%" if kpi_data['load_factor_pct'] else "—"
+    lf_val = f"{kpi_data['load_factor_pct']:.1f}%" if kpi_data.get('load_factor_pct') is not None and not pd.isna(kpi_data['load_factor_pct']) else "—"
     render_kpi_card("Avg Load Factor", lf_val)
 
 with kpi4:
-    fare_val = f"${kpi_data['avg_od_fare']:.0f}" if kpi_data.get('avg_od_fare') else "—"
+    fare_val = f"${kpi_data['avg_od_fare']:.0f}" if kpi_data.get('avg_od_fare') is not None and not pd.isna(kpi_data['avg_od_fare']) else "—"
     render_kpi_card("Inferred Avg Fare", fare_val)
 
 with kpi5:
-    leading_c = kpi_data.get('leading_carrier', '—')
+    leading_c = kpi_data.get('leading_carrier') or '—'
     # Resolve leading carrier code for logo and alliance lookup
     leading_code = leading_c.split('—')[0].strip() if '—' in leading_c else leading_c.strip()
     if "(" in leading_c and ")" in leading_c:
         leading_code = leading_c.split("(")[-1].split(")")[0].strip()
-    leading_logo = get_carrier_logo_url(leading_code)
-    leading_alliance = get_carrier_alliance(leading_code, selected_year)
+    leading_logo = get_carrier_logo_url(leading_code) if leading_code != "—" else ""
+    leading_alliance = get_carrier_alliance(leading_code, selected_year) if leading_code != "—" else None
     leading_sub = f"🌐 {leading_alliance['alliance_name']}" if leading_alliance else "Independent / Unaligned"
     render_kpi_card("Leading Carrier", leading_c, subtitle=leading_sub, logo_url=leading_logo)
 
@@ -257,7 +258,7 @@ if not df_routes.empty:
         )
         label_density = "top30" if "Top 30" in label_opt else ("all" if "All" in label_opt else "none")
 
-    mapbox_token = os.getenv("MAPBOX_API_KEY", "")
+    mapbox_token = settings.mapbox_token
     mapbox_style = os.getenv("MAPBOX_STYLE", None)
 
     deck_map = build_route_map_deck(

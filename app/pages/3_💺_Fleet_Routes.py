@@ -9,18 +9,8 @@ if str(REPO_ROOT) not in sys.path:
 import os
 import streamlit as st
 import pandas as pd
-import plotly.express as px
-import plotly.graph_objects as go
 from app.config import settings
 from app.utils.styling import apply_apple_style, render_kpi_card
-from app.utils.queries import (
-    get_fleet_kpis,
-    get_fleet_aircraft_breakdown,
-    get_fleet_operators_breakdown,
-)
-from app.utils.visualizers import FAMILY_COLORS
-from app.utils.alliances import get_carrier_logo_url
-from app.data.ref_aircraft_specs import get_aircraft_spec
 from app.utils.auth import require_auth
 
 st.set_page_config(
@@ -33,6 +23,17 @@ st.set_page_config(
 # Apply Apple-esque CSS styling
 apply_apple_style()
 require_auth()
+
+import plotly.express as px
+import plotly.graph_objects as go
+from app.utils.queries import (
+    get_fleet_kpis,
+    get_fleet_aircraft_breakdown,
+    get_fleet_operators_breakdown,
+)
+from app.utils.visualizers import FAMILY_COLORS
+from app.utils.alliances import get_carrier_logo_url
+from app.data.ref_aircraft_specs import get_aircraft_spec
 
 
 # -------------------------------------------------------------
@@ -225,7 +226,7 @@ if not df_ops.empty:
             c_logo = get_carrier_logo_url(c_code)
             seats_k = f"{row['total_seats']/1e6:.1f}M" if row['total_seats'] >= 1e6 else f"{row['total_seats']/1e3:.0f}K"
             render_kpi_card(
-                title=f"{c_code} — {row['carrier_name'].split(' ')[0]}",
+                label=f"{c_code} — {row['carrier_name'].split(' ')[0]}",
                 value=f"{seats_k} seats",
                 subtitle=f"LF: {row['load_factor_pct']:.1f}% | Fare: ${row['avg_segment_fare']:.0f}",
                 logo_url=c_logo
