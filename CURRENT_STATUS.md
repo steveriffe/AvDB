@@ -13,6 +13,7 @@ Delivered the comprehensive analytical and engineering roadmap enhancements requ
 5. **Historical Carriers & Airport Null-Safety**: Fixed `TypeError: '>=' not supported between instances of 'NoneType' and 'int'` when selecting historical carriers or empty route years.
 6. **Mapbox Public Token Resolution**: Fixed `1_✈️_Airports.py` to use `settings.mapbox_token` instead of looking for unset `MAPBOX_API_KEY`.
 7. **Unified Automated Test Suite**: Created `tests/run_all_tests.py` verifying all test suites and regression guards in a single run.
+8. **Cloud Run Production Deployment**: Deployed revision `avdb-00006-9cs` to `us-west1` serving 100% of production traffic at `https://avdb.riffe.co.uk`.
 
 ---
 
