@@ -1,7 +1,7 @@
 # Current Project Status: AvDB
 
 **Last Updated**: 2026-09-07
-**Current Phase**: Phase 10.1–10.5 Delivered (Complete 1990–2026 Analytical Marts Backfill, Q4 2025 OD40 Parquet Load, Filter Alignment & Test Suite)
+**Current Phase**: Phase 10.1–10.5 Delivered (Complete 1990–2026 Analytical Marts Backfill, Q4 2025 OD40 Parquet Load, Filter Alignment & Test Suite, Live on Cloud Run revision avdb-00010-qp5)
 ---
 
 ## 🎯 Active Focus
