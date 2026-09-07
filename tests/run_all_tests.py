@@ -48,13 +48,28 @@ def test_ignore_rules():
     assert "app/data/" not in ignored, "Expected app/data/ NOT to be ignored"
     assert "app/data/ref_mergers.py" not in ignored, "Expected app/data/ref_mergers.py NOT to be ignored"
 
-    # Verify .dockerignore and .gcloudignore have /data/ and !app/data/
+    # Verify .dockerignore and .gcloudignore have /data/, !app/data/, and .env
     dockerignore = (REPO_ROOT / ".dockerignore").read_text()
     assert "/data/" in dockerignore and "!app/data/" in dockerignore, "Missing anchored data rules in .dockerignore"
+    assert ".env" in dockerignore, "Missing .env in .dockerignore"
 
     gcloudignore = (REPO_ROOT / ".gcloudignore").read_text()
     assert "/data/" in gcloudignore and "!app/data/" in gcloudignore, "Missing anchored data rules in .gcloudignore"
+    assert ".env" in gcloudignore, "Missing .env in .gcloudignore"
     print("✅ Ignore rules and packaging protection tests passed!")
+
+
+def test_carrier_breakdown_query():
+    """Verify get_airport_carrier_breakdown includes carrier_name in carrier_attributed CTE."""
+    from app.utils.queries import CARRIER_NAME_LOOKUP_SQL
+    import inspect
+    from app.utils import queries
+    
+    assert "COALESCE(carrier_name, carrier_code)" in CARRIER_NAME_LOOKUP_SQL, "CARRIER_NAME_LOOKUP_SQL missing safe COALESCE fallback"
+
+    source = inspect.getsource(queries.get_airport_carrier_breakdown)
+    assert "carrier_name," in source, "carrier_attributed CTE missing carrier_name column"
+    print("✅ Carrier breakdown query and name lookup SQL verified!")
 
 
 def run_existing_tests():
@@ -128,6 +143,7 @@ if __name__ == "__main__":
     test_kpi_styling_alias()
     test_auth_open_registration()
     test_ignore_rules()
+    test_carrier_breakdown_query()
     test_all_module_imports()
     run_existing_tests()
     print("\n==========================================")

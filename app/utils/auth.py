@@ -146,10 +146,14 @@ def require_auth() -> bool:
     stops execution and renders landing/unauthorized page.
     Returns True if execution can proceed.
     """
-    if settings.local_dev_bypass_auth:
+    import os
+    if settings.local_dev_bypass_auth and not os.getenv("K_SERVICE"):
         if "user" not in st.session_state or not st.session_state["user"]:
+            default_email = "steve@riffe.co.uk"
+            if settings.allowed_emails and settings.allowed_emails[0] not in ("*", "all"):
+                default_email = settings.allowed_emails[0]
             st.session_state["user"] = {
-                "email": settings.allowed_emails[0] if settings.allowed_emails else "steve@riffe.co.uk",
+                "email": default_email,
                 "name": "Steve (Local Dev)",
                 "picture": ""
             }

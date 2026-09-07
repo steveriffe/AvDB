@@ -19,8 +19,11 @@ class Settings(BaseSettings):
     allowed_emails_raw: str = os.getenv("ALLOWED_EMAILS", "*")
     redirect_uri_override: str = os.getenv("REDIRECT_URI_OVERRIDE", "")
 
-    # Local Dev Bypass
-    local_dev_bypass_auth: bool = os.getenv("LOCAL_DEV_BYPASS_AUTH", "false").lower() in ("true", "1", "yes")
+    # Local Dev Bypass (Strictly disabled in Cloud Run or production environments)
+    local_dev_bypass_auth: bool = (
+        os.getenv("LOCAL_DEV_BYPASS_AUTH", "false").lower() in ("true", "1", "yes")
+        and not bool(os.getenv("K_SERVICE"))
+    )
 
     # Mapbox Settings
     mapbox_token: str = os.getenv("MAPBOX_ACCESS_TOKEN_PUBLIC", os.getenv("MAPBOX_API_KEY", ""))

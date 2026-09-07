@@ -165,7 +165,7 @@ CARRIER_NAME_LOOKUP_SQL = """
         WHEN carrier_code = 'YX' THEN 'Midwest Airlines'
         WHEN carrier_code = 'HA' THEN 'Hawaiian Airlines'
         WHEN carrier_code = 'PA' THEN 'Pan American World Airways'
-        ELSE carrier_name
+        ELSE COALESCE(carrier_name, carrier_code)
     END
 """
 
@@ -338,6 +338,7 @@ def get_airport_carrier_breakdown(
         WITH carrier_attributed AS (
             SELECT 
                 {REGIONAL_ATTRIBUTION_SQL} AS carrier_code,
+                carrier_name,
                 departures_performed,
                 total_seats,
                 operational_passengers,
