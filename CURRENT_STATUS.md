@@ -1,14 +1,14 @@
 # Current Project Status: AvDB
 
 **Last Updated**: 2026-09-07
-**Current Phase**: Phase 9.9 Delivered (KPI Card HTML Escaping Resolution via st.html, Cloud Run Deployment avdb-00008-m6v)
+**Current Phase**: Phase 9.9 Delivered (KPI Card HTML Escaping Resolution via st.html, Cloud Run Deployment avdb-00009-g7q)
 ---
 
 ## 🎯 Active Focus
 Delivered critical UI rendering fix and production deployment:
 1. **KPI Card HTML Escaping Resolution**: Resolved the issue where raw HTML markup (`<div class="metric-label">...`) was rendered as plain text in KPI tiles across all tabs. In CommonMark parsing, lines indented with 4+ spaces inside multi-line strings are parsed as code blocks (`<pre><code>`), escaping HTML tags. Refactored `render_kpi_card`, `apply_apple_style`, and `render_feature_card` in `app/utils/styling.py` to use `render_html()` powered by Streamlit's native `st.html()` (which bypasses CommonMark and injects DOM nodes directly) and `textwrap.dedent()`.
-2. **Feature Cards & Landing Page Badges**: Replaced all raw indented `st.markdown(..., unsafe_allow_html=True)` blocks in `app/main.py`, `app/components/landing.py`, and `app/pages/1_✈️_Airports.py` with clean `render_html` and `render_feature_card` calls.
-3. **Cloud Run Production Deployment**: Deployed revision `avdb-00008-m6v` to `us-west1` serving 100% of production traffic at `https://avdb.riffe.co.uk`. All automated test suites passed.
+2. **Feature Cards & Landing Page Badges**: Replaced all raw indented `st.markdown(..., unsafe_allow_html=True)` blocks in `app/main.py`, `app/components/landing.py`, and `app/pages/1_✈️_Airports.py` with clean `render_html` and `render_feature_card` calls. Hardened `render_html` signature with `unsafe_allow_html: bool = True, **kwargs` for resilient backward compatibility.
+3. **Cloud Run Production Deployment**: Deployed revision `avdb-00009-g7q` to `us-west1` serving 100% of production traffic at `https://avdb.riffe.co.uk`. All automated test suites passed.
 
 ---
 
