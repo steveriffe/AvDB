@@ -10,7 +10,7 @@ import os
 import streamlit as st
 import pandas as pd
 from app.config import settings
-from app.utils.styling import apply_apple_style, render_kpi_card
+from app.utils.styling import apply_apple_style, render_kpi_card, render_html
 from app.utils.auth import require_auth
 
 st.set_page_config(
@@ -110,11 +110,11 @@ with filter_col4:
 catchment_info = get_airport_catchment_info(selected_airport)
 if catchment_info:
     members_str = ", ".join(catchment_info["member_airports"])
-    st.markdown(f"""
+    render_html(f"""
         <div class="catchment-badge">
             🏛️ <b>Metropolitan Catchment Market</b>: {catchment_info['market_name']} (Includes: {members_str})
         </div>
-    """, unsafe_allow_html=True)
+    """)
 
 # -------------------------------------------------------------
 # 2. Top-Level Apple-Style KPI Cards
@@ -186,11 +186,11 @@ if not df_carriers.empty:
             share = a_row["seat_share_pct"]
             pills.append(f"<b>{a_name}</b>: {share:.1f}%")
         pills_str = " &nbsp;|&nbsp; ".join(pills)
-        st.markdown(f"""
+        render_html(f"""
             <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; padding: 7px 14px; margin-top: 4px; margin-bottom: 18px; font-size: 0.85rem; color: #EBEBF5;">
                 🌐 <b>Airport Global Alliance Capacity Share ({selected_year})</b>: &nbsp;{pills_str}
             </div>
-        """, unsafe_allow_html=True)
+        """)
 
 # -------------------------------------------------------------
 # 4. Hero Section: 1990s Airline Route Atlas & Geodesic Network

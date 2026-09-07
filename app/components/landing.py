@@ -4,6 +4,7 @@ Apple-Modern HTML Landing Homepage & Access Control UI Component for AvDB
 import streamlit as st
 from app.config import settings
 from app.utils.auth import get_google_auth_url, get_redirect_uri, logout
+from app.utils.styling import render_html
 
 
 def render_landing_page():
@@ -14,7 +15,7 @@ def render_landing_page():
     redirect_uri = get_redirect_uri()
     auth_url = get_google_auth_url(redirect_uri)
 
-    st.markdown("""
+    render_html("""
         <style>
         .landing-hero {
             background: linear-gradient(135deg, rgba(28, 28, 30, 0.8) 0%, rgba(10, 10, 12, 0.95) 100%);
@@ -122,7 +123,7 @@ def render_landing_page():
     """, unsafe_allow_html=True)
 
     # Hero Section
-    st.markdown(f"""
+    render_html(f"""
         <div class="landing-hero">
             <div class="hero-badge">Enterprise Aviation Intelligence</div>
             <div class="hero-title">AvDB Analytics Platform</div>
@@ -136,47 +137,47 @@ def render_landing_page():
                 Protected access • Google OAuth 2.0 • Hosted on Google Cloud Run
             </div>
         </div>
-    """, unsafe_allow_html=True)
+    """)
 
     # Key Data Scale Strip
     col1, col2, col3, col4 = st.columns(4)
     with col1:
-        st.markdown("""
+        render_html("""
             <div class="metric-badge-box">
                 <div class="metric-val">2.52M</div>
                 <div class="metric-lbl">T-100 Operations Rows</div>
             </div>
-        """, unsafe_allow_html=True)
+        """)
     with col2:
-        st.markdown("""
+        render_html("""
             <div class="metric-badge-box">
                 <div class="metric-val">40.3M</div>
                 <div class="metric-lbl">DB1B Ticket Survey Rows</div>
             </div>
-        """, unsafe_allow_html=True)
+        """)
     with col3:
-        st.markdown("""
+        render_html("""
             <div class="metric-badge-box">
                 <div class="metric-val">50,409</div>
                 <div class="metric-lbl">Global Airport Coordinates</div>
             </div>
-        """, unsafe_allow_html=True)
+        """)
     with col4:
-        st.markdown("""
+        render_html("""
             <div class="metric-badge-box">
                 <div class="metric-val">&lt; 1.2s</div>
                 <div class="metric-lbl">BigQuery Query Latency</div>
             </div>
-        """, unsafe_allow_html=True)
+        """)
 
-    st.markdown("<div style='margin-top: 36px;'></div>", unsafe_allow_html=True)
+    render_html("<div style='margin-top: 36px;'></div>")
 
     # Feature Grid
     st.markdown("### 🧭 Analytical Lenses & Features")
     fcol1, fcol2, fcol3 = st.columns(3)
 
     with fcol1:
-        st.markdown("""
+        render_html("""
             <div class="feature-card">
                 <div class="feature-icon">✈️</div>
                 <div class="feature-title">Airport Intelligence</div>
@@ -184,10 +185,10 @@ def render_landing_page():
                     Analyze direct O&D route networks, carrier seat mix, catchment overlap (e.g. HOU vs IAH), and unserved market proposals with PDEW fare yields.
                 </div>
             </div>
-        """, unsafe_allow_html=True)
+        """)
 
     with fcol2:
-        st.markdown("""
+        render_html("""
             <div class="feature-card">
                 <div class="feature-icon">🏢</div>
                 <div class="feature-title">Airline Explorer</div>
@@ -195,10 +196,10 @@ def render_landing_page():
                     Inspect carrier network density, hub concentration, passenger market share, and revenue passenger mile (RPM) yield curves.
                 </div>
             </div>
-        """, unsafe_allow_html=True)
+        """)
 
     with fcol3:
-        st.markdown("""
+        render_html("""
             <div class="feature-card">
                 <div class="feature-icon">💺</div>
                 <div class="feature-title">Fleet & Gauge Dynamics</div>
@@ -206,7 +207,7 @@ def render_landing_page():
                     Track equipment allocation (Widebody, Narrowbody, RJ), gauge shifts (seats per departure), and stage-length economics.
                 </div>
             </div>
-        """, unsafe_allow_html=True)
+        """)
 
 
 def render_unauthorized_page(user_info: dict):
@@ -218,7 +219,7 @@ def render_unauthorized_page(user_info: dict):
     name = user_info.get("name", "User")
     picture = user_info.get("picture", "")
 
-    st.markdown("""
+    render_html("""
         <style>
         .restricted-card {
             background: linear-gradient(135deg, rgba(38, 38, 40, 0.9) 0%, rgba(20, 20, 22, 0.95) 100%);
@@ -231,9 +232,9 @@ def render_unauthorized_page(user_info: dict):
             box-shadow: 0 16px 36px rgba(0,0,0,0.6);
         }
         </style>
-    """, unsafe_allow_html=True)
+    """)
 
-    st.markdown(f"""
+    render_html(f"""
         <div class="restricted-card">
             <div style="font-size: 3rem; margin-bottom: 12px;">🔒</div>
             <div style="font-size: 1.8rem; font-weight: 700; color: #FF453A; margin-bottom: 8px;">Access Pending Approval</div>
@@ -244,10 +245,10 @@ def render_unauthorized_page(user_info: dict):
                 To request access for your email address, please contact <strong>steve@riffe.co.uk</strong>.
             </div>
         </div>
-    """, unsafe_allow_html=True)
+    """)
 
     c1, c2, c3 = st.columns([1, 2, 1])
     with c2:
-        if st.button("Sign Out & Try Another Account", type="primary", use_container_width=True):
+        if st.button("Sign Out & Try Another Account", type="primary", width="stretch"):
             logout()
 

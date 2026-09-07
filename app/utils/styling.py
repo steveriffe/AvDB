@@ -1,11 +1,18 @@
-"""
-AvDB Apple-esque Clean & Minimal Styling Helpers
-"""
+import textwrap
 import streamlit as st
+
+def render_html(html_str: str):
+    """Renders HTML cleanly using st.html without Markdown code-block indentation escaping."""
+    clean = textwrap.dedent(html_str).strip()
+    if hasattr(st, "html"):
+        st.html(clean)
+    else:
+        st.markdown(clean, unsafe_allow_html=True)
+
 
 def apply_apple_style():
     """Injects clean, minimalist, Apple-inspired CSS design elements."""
-    st.markdown("""
+    css = """
         <style>
             /* Typography & General Flow */
             html, body, [class*="css"] {
@@ -92,7 +99,8 @@ def apply_apple_style():
                 padding-bottom: 3rem;
             }
         </style>
-    """, unsafe_allow_html=True)
+    """
+    render_html(css)
 
 
 def render_kpi_card(label: str = None, value: str = "", delta: str = None, subtitle: str = None, logo_url: str = None, title: str = None):
@@ -102,28 +110,40 @@ def render_kpi_card(label: str = None, value: str = "", delta: str = None, subti
     sub_html = f'<div style="font-size: 0.76rem; color: #8E8E93; margin-top: 4px;">{subtitle}</div>' if subtitle else ''
     
     if logo_url:
-        card_content = f"""
-            <div style="display: flex; justify-content: space-between; align-items: flex-start;">
-                <div>
-                    <div class="metric-label">{card_label}</div>
-                    <div class="metric-value">{value}</div>
-                </div>
-                <img src="{logo_url}" style="height: 28px; max-width: 65px; object-fit: contain; filter: brightness(1.1); margin-top: 2px;" alt=""/>
-            </div>
-            {delta_html}
-            {sub_html}
-        """
+        card_content = (
+            f'<div style="display: flex; justify-content: space-between; align-items: flex-start;">'
+            f'<div>'
+            f'<div class="metric-label">{card_label}</div>'
+            f'<div class="metric-value">{value}</div>'
+            f'</div>'
+            f'<img src="{logo_url}" style="height: 28px; max-width: 65px; object-fit: contain; filter: brightness(1.1); margin-top: 2px;" alt=""/>'
+            f'</div>'
+            f'{delta_html}'
+            f'{sub_html}'
+        )
     else:
-        card_content = f"""
-            <div class="metric-label">{card_label}</div>
-            <div class="metric-value">{value}</div>
-            {delta_html}
-            {sub_html}
-        """
+        card_content = (
+            f'<div class="metric-label">{card_label}</div>'
+            f'<div class="metric-value">{value}</div>'
+            f'{delta_html}'
+            f'{sub_html}'
+        )
         
-    st.markdown(f"""
-        <div class="metric-container">
-            {card_content}
+    html = f'<div class="metric-container">{card_content}</div>'
+    render_html(html)
+
+
+def render_feature_card(title: str, description: str, link_url: str, link_text: str = "Open →"):
+    """Renders an Apple-style interactive feature card container with a navigation link."""
+    html = f"""
+        <div class="metric-container" style="min-height: 190px;">
+            <div style="font-size: 1.25rem; font-weight: 600; color: #F5F5F7; margin-bottom: 8px;">{title}</div>
+            <div style="color: #8E8E93; font-size: 0.88rem; line-height: 1.5; margin-bottom: 14px;">
+                {description}
+            </div>
+            <a href="{link_url}" target="_self" style="color: #0A84FF; font-weight: 500; text-decoration: none; font-size: 0.92rem;">{link_text}</a>
         </div>
-    """, unsafe_allow_html=True)
+    """
+    render_html(html)
+
 
