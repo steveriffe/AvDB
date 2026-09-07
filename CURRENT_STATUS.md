@@ -1,15 +1,14 @@
 # Current Project Status: AvDB
 
 **Last Updated**: 2026-09-07
-**Current Phase**: Phase 9.8 Delivered (Carrier Breakdown Query Fix, Production Cloud Run Google OAuth Enforced, Dev Mode Leak Sealed)
+**Current Phase**: Phase 9.9 Delivered (KPI Card HTML Escaping Resolution via st.html, Cloud Run Deployment avdb-00008-m6v)
 ---
 
 ## 🎯 Active Focus
-Delivered critical fixes and production deployment:
-1. **BigQuery 400 `carrier_name` Unrecognized Name Fix**: Resolved query error in `get_airport_carrier_breakdown` by selecting `carrier_name` in the `carrier_attributed` CTE and updating `CARRIER_NAME_LOOKUP_SQL` fallback to `ELSE COALESCE(carrier_name, carrier_code)`.
-2. **Production Container Auth Gating Sealed**: Fixed issue where production Cloud Run container booted into "Dev Mode" (mock user "Steve (Local Dev)"). Added `.env` and `.env.*` to `.dockerignore` and `.gcloudignore` so local dev flags never get bundled into Docker images. Set `ENV LOCAL_DEV_BYPASS_AUTH=false` in `Dockerfile`, passed `LOCAL_DEV_BYPASS_AUTH="false"` in `scripts/deploy.sh`, and added a hard safeguard in `app/config.py` and `app/utils/auth.py` disabling dev bypass whenever running on Cloud Run (`K_SERVICE` set).
-3. **Google Sign-In Registration Enforced**: Registration is open to any valid Google-authenticated user (`ALLOWED_EMAILS=*`), but all unauthenticated visitors are gated at the landing page and cannot access details or subpages before signing in with Google.
-4. **Cloud Run Production Deployment**: Deployed revision `avdb-00007-8fw` to `us-west1` serving 100% of production traffic at `https://avdb.riffe.co.uk`. All automated test suites passed.
+Delivered critical UI rendering fix and production deployment:
+1. **KPI Card HTML Escaping Resolution**: Resolved the issue where raw HTML markup (`<div class="metric-label">...`) was rendered as plain text in KPI tiles across all tabs. In CommonMark parsing, lines indented with 4+ spaces inside multi-line strings are parsed as code blocks (`<pre><code>`), escaping HTML tags. Refactored `render_kpi_card`, `apply_apple_style`, and `render_feature_card` in `app/utils/styling.py` to use `render_html()` powered by Streamlit's native `st.html()` (which bypasses CommonMark and injects DOM nodes directly) and `textwrap.dedent()`.
+2. **Feature Cards & Landing Page Badges**: Replaced all raw indented `st.markdown(..., unsafe_allow_html=True)` blocks in `app/main.py`, `app/components/landing.py`, and `app/pages/1_✈️_Airports.py` with clean `render_html` and `render_feature_card` calls.
+3. **Cloud Run Production Deployment**: Deployed revision `avdb-00008-m6v` to `us-west1` serving 100% of production traffic at `https://avdb.riffe.co.uk`. All automated test suites passed.
 
 ---
 
