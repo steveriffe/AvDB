@@ -1,19 +1,15 @@
 # Current Project Status: AvDB
 
 **Last Updated**: 2026-09-07
-**Current Phase**: Phase 9.7 Delivered (Packaging Fix for app.data, Open Google Authentication, Auth Gating, Fleet & Historical KPI Bug Fixes)
+**Current Phase**: Phase 9.8 Delivered (Carrier Breakdown Query Fix, Production Cloud Run Google OAuth Enforced, Dev Mode Leak Sealed)
 ---
 
 ## 🎯 Active Focus
-Delivered the comprehensive analytical and engineering roadmap enhancements requested:
-1. **Packaging & Build Fix for `app.data`**: Corrected `.dockerignore` and `.gcloudignore` from unanchored `data/` to `/data/` and `!app/data/`, ensuring `ref_mergers.py`, `ref_aircraft_specs.py`, `ref_alliances.py` are packaged into Cloud Run builds. Added `ENV PYTHONPATH=/app` in `Dockerfile`.
-2. **Open Registration for All Google Authenticated Users**: Opened access so any user authenticating via Google can use AvDB (`ALLOWED_EMAILS=*`).
-3. **Sidebar Auth Navigation Gating**: Hid `[data-testid='stSidebarNav']` when users are unauthenticated, preventing access to subpages before sign-in, and relocated `require_auth()` before heavy imports on all pages.
-4. **Fleet Explorer KPI Keyword Fix**: Fixed `TypeError: unexpected keyword argument 'title'` in `render_kpi_card` and added backward-compatible `title` alias support.
-5. **Historical Carriers & Airport Null-Safety**: Fixed `TypeError: '>=' not supported between instances of 'NoneType' and 'int'` when selecting historical carriers or empty route years.
-6. **Mapbox Public Token Resolution**: Fixed `1_✈️_Airports.py` to use `settings.mapbox_token` instead of looking for unset `MAPBOX_API_KEY`.
-7. **Unified Automated Test Suite**: Created `tests/run_all_tests.py` verifying all test suites and regression guards in a single run.
-8. **Cloud Run Production Deployment**: Deployed revision `avdb-00006-9cs` to `us-west1` serving 100% of production traffic at `https://avdb.riffe.co.uk`.
+Delivered critical fixes and production deployment:
+1. **BigQuery 400 `carrier_name` Unrecognized Name Fix**: Resolved query error in `get_airport_carrier_breakdown` by selecting `carrier_name` in the `carrier_attributed` CTE and updating `CARRIER_NAME_LOOKUP_SQL` fallback to `ELSE COALESCE(carrier_name, carrier_code)`.
+2. **Production Container Auth Gating Sealed**: Fixed issue where production Cloud Run container booted into "Dev Mode" (mock user "Steve (Local Dev)"). Added `.env` and `.env.*` to `.dockerignore` and `.gcloudignore` so local dev flags never get bundled into Docker images. Set `ENV LOCAL_DEV_BYPASS_AUTH=false` in `Dockerfile`, passed `LOCAL_DEV_BYPASS_AUTH="false"` in `scripts/deploy.sh`, and added a hard safeguard in `app/config.py` and `app/utils/auth.py` disabling dev bypass whenever running on Cloud Run (`K_SERVICE` set).
+3. **Google Sign-In Registration Enforced**: Registration is open to any valid Google-authenticated user (`ALLOWED_EMAILS=*`), but all unauthenticated visitors are gated at the landing page and cannot access details or subpages before signing in with Google.
+4. **Cloud Run Production Deployment**: Deployed revision `avdb-00007-8fw` to `us-west1` serving 100% of production traffic at `https://avdb.riffe.co.uk`. All automated test suites passed.
 
 ---
 
