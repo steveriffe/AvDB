@@ -21,6 +21,17 @@ def test_kpi_styling_alias():
     print("✅ Styling render_kpi_card alias tests passed!")
 
 
+def test_landing_page_rendering():
+    """Verify render_landing_page and render_html run without TypeError."""
+    from app.components.landing import render_landing_page, render_unauthorized_page
+    from app.utils.styling import render_html
+
+    render_html("<div>test</div>", unsafe_allow_html=True)
+    render_landing_page()
+    render_unauthorized_page({"email": "test@test.com", "name": "Tester", "picture": ""})
+    print("✅ Landing page and render_html tests passed!")
+
+
 def test_auth_open_registration():
     """Verify open registration allows any Google-authenticated user when ALLOWED_EMAILS is '*'."""
     import streamlit as st
@@ -141,6 +152,7 @@ if __name__ == "__main__":
     print("🚀 Running AvDB Complete Verification Suite")
     print("==========================================")
     test_kpi_styling_alias()
+    test_landing_page_rendering()
     test_auth_open_registration()
     test_ignore_rules()
     test_carrier_breakdown_query()

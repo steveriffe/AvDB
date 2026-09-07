@@ -1,13 +1,13 @@
 import textwrap
 import streamlit as st
 
-def render_html(html_str: str):
+def render_html(html_str: str, unsafe_allow_html: bool = True, **kwargs):
     """Renders HTML cleanly using st.html without Markdown code-block indentation escaping."""
     clean = textwrap.dedent(html_str).strip()
     if hasattr(st, "html"):
         st.html(clean)
     else:
-        st.markdown(clean, unsafe_allow_html=True)
+        st.markdown(clean, unsafe_allow_html=unsafe_allow_html)
 
 
 def apply_apple_style():

@@ -120,7 +120,7 @@ def render_landing_page():
             margin-top: 4px;
         }
         </style>
-    """, unsafe_allow_html=True)
+    """)
 
     # Hero Section
     render_html(f"""
