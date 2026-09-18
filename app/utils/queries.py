@@ -920,3 +920,144 @@ def get_platform_live_kpis() -> Dict[str, Any]:
             "raw_stats": {}
         }
 
+
+# -------------------------------------------------------------
+# Global & Historical Alliance Intelligence Queries
+# -------------------------------------------------------------
+
+@st.cache_data(ttl=3600, show_spinner=False)
+def get_alliance_performance_metrics(year: int) -> pd.DataFrame:
+    """
+    Computes system operational metrics across all global and historical alliances
+    (Star Alliance, SkyTeam, oneworld, Wings Alliance / NW-KL, Qualiflyer, and Independent)
+    for a given calendar year using reporting.mart_airport_network_summary.
+    Note: Reflects US-origin and US-touching international operations reported to US BTS.
+    """
+    from app.utils.alliances import get_carrier_alliance
+    
+    start_date = f"{year}-01-01"
+    end_date = f"{year}-12-31"
+    
+    sql = f"""
+    SELECT
+        unique_carrier,
+        carrier_name,
+        SUM(departures_performed) as departures,
+        SUM(total_seats) as total_seats,
+        SUM(operational_passengers) as passengers,
+        SUM(distance_miles * operational_passengers) as rpm,
+        SUM(distance_miles * total_seats) as asm,
+        SUM(estimated_od_passengers * avg_od_fare) as estimated_revenue
+    FROM `db1b-1.reporting.mart_airport_network_summary`
+    WHERE flight_date >= '{start_date}' AND flight_date <= '{end_date}'
+    GROUP BY 1, 2
+    """
+    df_raw = run_query(sql)
+    if df_raw.empty:
+        return pd.DataFrame()
+
+    records = []
+    for _, row in df_raw.iterrows():
+        c_code = str(row["unique_carrier"]).strip().upper()
+        a_info = get_carrier_alliance(c_code, year)
+        
+        a_name = a_info["alliance_name"] if a_info else "Independent / Unaligned"
+        
+        # Special recognition: NW and KL joint venture (Wings Alliance)
+        if a_name == "Wings Alliance":
+            a_label = "Wings Alliance (NW / KL)"
+        else:
+            a_label = a_name
+
+        records.append({
+            "carrier_code": c_code,
+            "carrier_name": row["carrier_name"],
+            "alliance_name": a_label,
+            "departures": row["departures"],
+            "total_seats": row["total_seats"],
+            "passengers": row["passengers"],
+            "rpm": row["rpm"],
+            "asm": row["asm"],
+            "estimated_revenue": row["estimated_revenue"] or 0.0
+        })
+
+    df_enriched = pd.DataFrame(records)
+    if df_enriched.empty:
+        return pd.DataFrame()
+
+    # Aggregate by alliance
+    agg = df_enriched.groupby("alliance_name").agg(
+        departures=("departures", "sum"),
+        total_seats=("total_seats", "sum"),
+        passengers=("passengers", "sum"),
+        rpm=("rpm", "sum"),
+        asm=("asm", "sum"),
+        estimated_revenue=("estimated_revenue", "sum"),
+        carriers=("carrier_code", lambda x: list(sorted(set(x))))
+    ).reset_index()
+
+    agg["load_factor_pct"] = (agg["passengers"] / agg["total_seats"] * 100).round(1)
+    agg["system_load_factor_pct"] = (agg["rpm"] / agg["asm"] * 100).round(1)
+    
+    total_pax = agg["passengers"].sum()
+    agg["passenger_share_pct"] = (agg["passengers"] / total_pax * 100).round(1) if total_pax > 0 else 0.0
+    
+    total_seats = agg["total_seats"].sum()
+    agg["seat_share_pct"] = (agg["total_seats"] / total_seats * 100).round(1) if total_seats > 0 else 0.0
+
+    return agg.sort_values(by="passengers", ascending=False)
+
+
+@st.cache_data(ttl=3600, show_spinner=False)
+def get_alliance_fleet_deployment(year: int) -> pd.DataFrame:
+    """
+    Analyzes widebody vs. narrowbody vs. regional fleet deployment mix
+    by alliance for a given calendar year using reporting.mart_fleet_route_dynamics.
+    """
+    from app.utils.alliances import get_carrier_alliance
+    
+    start_date = f"{year}-01-01"
+    end_date = f"{year}-12-31"
+    
+    sql = f"""
+    SELECT
+        unique_carrier,
+        aircraft_family,
+        SUM(departures_performed) as departures,
+        SUM(total_seats) as total_seats,
+        SUM(passengers_carried) as passengers
+    FROM `db1b-1.reporting.mart_fleet_route_dynamics`
+    WHERE flight_date >= '{start_date}' AND flight_date <= '{end_date}'
+    GROUP BY 1, 2
+    """
+    df_raw = run_query(sql)
+    if df_raw.empty:
+        return pd.DataFrame()
+
+    rows = []
+    for _, r in df_raw.iterrows():
+        c = str(r["unique_carrier"]).strip().upper()
+        a_info = get_carrier_alliance(c, year)
+        a_name = a_info["alliance_name"] if a_info else "Independent / Unaligned"
+        if a_name == "Wings Alliance":
+            a_name = "Wings Alliance (NW / KL)"
+
+        rows.append({
+            "alliance_name": a_name,
+            "aircraft_family": r["aircraft_family"],
+            "departures": r["departures"],
+            "total_seats": r["total_seats"],
+            "passengers": r["passengers"]
+        })
+
+    df = pd.DataFrame(rows)
+    if df.empty:
+        return pd.DataFrame()
+
+    return df.groupby(["alliance_name", "aircraft_family"]).agg(
+        departures=("departures", "sum"),
+        total_seats=("total_seats", "sum"),
+        passengers=("passengers", "sum")
+    ).reset_index()
+
+

@@ -51,7 +51,7 @@ def get_all_alliances_for_year(year: int) -> List[Dict[str, Any]]:
         diss = a_info["dissolved_date"] or "2099-12-31"
         if found <= target_date <= diss:
             members = get_alliance_carriers(a_name, year)
-            logo = get_vector_logo_data_uri(a_name) if a_name in ("Star Alliance", "SkyTeam", "oneworld") else a_info["logo_url"]
+            logo = get_vector_logo_data_uri(a_name) if a_name in ("Star Alliance", "SkyTeam", "oneworld", "Wings Alliance") else a_info["logo_url"]
             res.append({
                 "alliance_name": a_name,
                 "alliance_id": a_info["alliance_id"],

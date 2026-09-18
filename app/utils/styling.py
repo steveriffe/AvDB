@@ -228,23 +228,21 @@ def apply_apple_style():
 
 
 def render_portal_nav_link():
-    """Renders a Steve Riffe Portfolio breadcrumb and navigation link in the Streamlit sidebar."""
+    """Renders a sleek, neutral AvDB platform identity badge in the Streamlit sidebar without external backlinks."""
     with st.sidebar:
         st.markdown(
             """
-            <div style="padding: 10px 12px; margin-bottom: 12px; background: rgba(17, 29, 51, 0.8); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 10px; display: flex; align-items: center; justify-content: space-between;">
-                <div style="display: flex; align-items: center; gap: 8px;">
-                    <div style="width: 26px; height: 26px; border-radius: 6px; background: linear-gradient(135deg, #2563EB, #0F172A); border: 1px solid rgba(56, 189, 248, 0.4); display: flex; align-items: center; justify-content: center; font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 800; color: #FFFFFF;">
-                        SR
+            <div style="padding: 10px 14px; margin-bottom: 14px; background: rgba(17, 29, 51, 0.85); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 12px; display: flex; align-items: center; justify-content: space-between;">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <div style="width: 28px; height: 28px; border-radius: 8px; background: linear-gradient(135deg, #2563EB, #0F172A); border: 1px solid rgba(56, 189, 248, 0.4); display: flex; align-items: center; justify-content: center; font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 800; color: #FFFFFF;">
+                        ✈️
                     </div>
                     <div>
-                        <div style="font-size: 11px; font-weight: 700; color: #FFFFFF; line-height: 1.2;">Steve Riffe</div>
-                        <div style="font-size: 9.5px; font-family: 'JetBrains Mono', monospace; color: #94A3B8;">Portfolio Portal</div>
+                        <div style="font-size: 12px; font-weight: 700; color: #FFFFFF; line-height: 1.2;">AvDB Platform</div>
+                        <div style="font-size: 10px; font-family: 'JetBrains Mono', monospace; color: #38BDF8;">Aviation Intelligence</div>
                     </div>
                 </div>
-                <a href="https://riffe.co.uk" target="_blank" rel="noopener noreferrer" style="font-size: 11px; font-weight: 600; color: #FF6B00; text-decoration: none;">
-                    Portal ↗
-                </a>
+                <span style="font-family: 'JetBrains Mono', monospace; font-size: 10px; color: #10B981; background: rgba(16, 185, 129, 0.12); border: 1px solid rgba(16, 185, 129, 0.3); padding: 2px 7px; border-radius: 6px;">v2.5</span>
             </div>
             """,
             unsafe_allow_html=True

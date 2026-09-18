@@ -209,3 +209,26 @@ flowchart LR
 - [x] **11.6 Automated BTS Data Update Pipeline**:
   - [x] Scripted `scripts/check_bts_updates.py` to compare warehouse horizons against BTS TranStats release schedules.
   - [x] Built weekly scheduled GitHub Actions workflow (`.github/workflows/check_data_updates.yml`).
+
+---
+
+### Phase 12: Global Alliances Lens, Persistent Travel Vault, Privacy Policy & FFP Research
+- [x] **12.1 Dedicated Alliances Dashboard Tab (`app/pages/5_🌐_Alliances.py`)**:
+  - [x] Multi-alliance comparative analytics for Star Alliance, SkyTeam, oneworld, Wings Alliance (NW / KL), and Qualiflyer.
+  - [x] Revenue, departures, passenger market shares, system load factor %, and widebody vs. narrowbody fleet mix.
+  - [x] Explicit US-originating and gateway data boundary alert clarifying BTS T-100 / DB1B reporting coverage.
+- [x] **12.2 BigQuery Persistent Travel Vault & Fail-Safe Controls**:
+  - [x] Created `db1b-1.user_travel.user_flight_logs` with partitioning and clustering.
+  - [x] Implemented 1,000-flight safety limit per user account.
+  - [x] Added fail-safe two-factor intent check requiring typing exact uppercase `DELETE` before permanently purging records.
+  - [x] Added telemetry for total user flights and registered travelers in the cloud vault.
+- [x] **12.3 Complete External Backlink Removal**:
+  - [x] Removed all portfolio backlink banners from AvDB landing page, sidebars, and styling components for a clean, standalone platform experience.
+- [x] **12.4 User Privacy Policy & Data Disclosures (`app/pages/6_🔒_Privacy_Policy.py`)**:
+  - [x] Full transparency on Google OAuth identity, BigQuery cloud vault storage, zero ad trackers, and self-service purge rights.
+- [x] **12.5 Site Preview & Explainer Update**:
+  - [x] Updated portfolio explainer (`public/avdb.html`) and showcase card (`public/index.html`) to 93.9M+ records.
+- [x] **12.6 Extant Historical Route Data & FFP Partner Research**:
+  - [x] Audited CAB Form 41 (1970–1989), TranStats T-9, and OAG timetables in `docs/ffp_partnerships_research.md`.
+  - [x] Formulated architectural plan and schema design for a future Frequent Flyer Program (FFP) Historical Partners page.
+

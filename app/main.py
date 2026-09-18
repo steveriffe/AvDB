@@ -68,7 +68,7 @@ def main():
     st.markdown("---")
 
     st.markdown("### 🧭 Analytical Lenses")
-    lcol1, lcol2, lcol3, lcol4 = st.columns(4)
+    lcol1, lcol2, lcol3, lcol4, lcol5 = st.columns(5)
 
     with lcol1:
         render_feature_card(
@@ -96,8 +96,16 @@ def main():
 
     with lcol4:
         render_feature_card(
+            "🌐 Alliances Lens",
+            "Compare Star Alliance, SkyTeam, oneworld, and NW/KL Wings Alliance loads, revenue, and fleet mix.",
+            "/Alliances",
+            "Open Alliances →"
+        )
+
+    with lcol5:
+        render_feature_card(
             "📱 Personal Traveler",
-            "Upload Flighty travel logs, analyze granular subfleet variants (737-900ER vs MAX), and plot personal route maps.",
+            "Upload Flighty logs, persist in BigQuery cloud vault, analyze subfleets, and plot personal route maps.",
             "/Flighty_Traveler",
             "Open Personal Traveler →"
         )
@@ -105,3 +113,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+

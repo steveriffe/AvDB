@@ -241,6 +241,17 @@ CARRIER_VECTOR_SVGS: Dict[str, str] = {
   <circle cx="36" cy="35" r="16" fill="#0099FF"/>
   <text x="36" y="41" font-family="'Plus Jakarta Sans', sans-serif" font-size="12" font-weight="800" fill="#FFFFFF" text-anchor="middle">1</text>
   <text x="108" y="43" font-family="'Plus Jakarta Sans', sans-serif" font-size="18" font-weight="700" fill="#FFFFFF">oneworld</text>
+</svg>""",
+
+    "Wings Alliance": """<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 70" width="160" height="70">
+  <rect width="160" height="70" rx="12" fill="#0A2540" stroke="rgba(255,255,255,0.2)"/>
+  <!-- NW red compass / KL crown cyan motif -->
+  <circle cx="28" cy="35" r="14" fill="#D62828"/>
+  <path d="M28 26 L31 35 L28 44 L25 35 Z" fill="#FFFFFF"/>
+  <circle cx="48" cy="35" r="14" fill="#00A1DE"/>
+  <path d="M42 38 L48 28 L54 38 Z" fill="#FFFFFF"/>
+  <text x="108" y="38" font-family="'Plus Jakarta Sans', sans-serif" font-size="13" font-weight="800" fill="#FFFFFF" letter-spacing="0.5">NW / KL</text>
+  <text x="108" y="52" font-family="'JetBrains Mono', monospace" font-size="9" font-weight="700" fill="#38BDF8" letter-spacing="1">ALLIANCE</text>
 </svg>"""
 }
 
@@ -263,3 +274,4 @@ def get_vector_logo_data_uri(carrier_code: str) -> str:
     # Generate tailored monogram
     monogram_svg = generate_carrier_badge_svg(c)
     return _to_data_uri(monogram_svg)
+

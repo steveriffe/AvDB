@@ -37,6 +37,11 @@ from app.utils.flighty import (
     parse_flighty_csv,
     generate_sample_flighty_data,
     build_flighty_travel_deck,
+    save_user_flights_to_bigquery,
+    load_user_flights_from_bigquery,
+    delete_user_flights_from_bigquery,
+    get_user_travel_telemetry,
+    USER_FLIGHT_LIMIT,
     AIRPORT_COORDINATES
 )
 
@@ -44,40 +49,72 @@ st.title("📱 Flighty Personal Traveler")
 st.markdown(
     "<p style='color: #8E8E93; font-size: 1.05rem; margin-top: -12px; margin-bottom: 24px;'>"
     "Upload your personal <b>Flighty CSV export</b> to explore your travel history on AvDB's vintage "
-    "1990s in-flight route cartography, with granular <b>aircraft subfleet grouping</b> and fleet breakdowns."
+    "1990s in-flight route cartography, with persistent <b>BigQuery cloud vault storage</b> (up to 1,000 flights) and aircraft subfleet analytics."
     "</p>",
     unsafe_allow_html=True
 )
 
 # ----------------------------------------------------------------------
-# Data Ingestion & State Management
+# Data Ingestion & State Management (BigQuery Vault Integration)
 # ----------------------------------------------------------------------
+user_profile = st.session_state.get("user") or {}
+current_user_email = user_profile.get("email", "")
+
 if "flighty_df" not in st.session_state:
     st.session_state["flighty_df"] = None
 if "flighty_source_name" not in st.session_state:
     st.session_state["flighty_source_name"] = None
+if "vault_loaded" not in st.session_state:
+    st.session_state["vault_loaded"] = False
+
+# Automatically load persisted flight log from BigQuery on first load
+if not st.session_state["vault_loaded"] and current_user_email:
+    persisted_df = load_user_flights_from_bigquery(current_user_email)
+    if persisted_df is not None and not persisted_df.empty:
+        st.session_state["flighty_df"] = persisted_df
+        st.session_state["flighty_source_name"] = f"BigQuery Vault ({current_user_email})"
+    st.session_state["vault_loaded"] = True
 
 with st.sidebar:
     st.markdown("### 🗂️ Travel Data Source")
-    uploaded_file = st.file_uploader("Upload Flighty CSV", type=["csv"], help="Export your flights from the Flighty app as CSV and drop here.")
+    uploaded_file = st.file_uploader(
+        "Upload Flighty CSV", 
+        type=["csv"], 
+        help=f"Export your flights from the Flighty app as CSV. Max limit: {USER_FLIGHT_LIMIT:,} flight segments."
+    )
 
     if uploaded_file is not None:
         try:
-            st.session_state["flighty_df"] = parse_flighty_csv(uploaded_file.getvalue())
+            parsed_df = parse_flighty_csv(uploaded_file.getvalue())
+            if len(parsed_df) > USER_FLIGHT_LIMIT:
+                st.error(f"⚠️ Log contains {len(parsed_df):,} flights, which exceeds the {USER_FLIGHT_LIMIT:,} safety limit. Only the first {USER_FLIGHT_LIMIT:,} will be loaded.")
+                parsed_df = parsed_df.iloc[:USER_FLIGHT_LIMIT]
+            st.session_state["flighty_df"] = parsed_df
             st.session_state["flighty_source_name"] = uploaded_file.name
-            st.success(f"Loaded {len(st.session_state['flighty_df'])} flights from `{uploaded_file.name}`")
+            st.success(f"Loaded {len(parsed_df)} flights from `{uploaded_file.name}`")
         except Exception as e:
             st.error(f"Error parsing CSV: {e}")
 
+    # Persistence Action: Commit to BigQuery Vault
+    if st.session_state["flighty_df"] is not None and current_user_email:
+        if st.button("💾 Save to Cloud Vault (BigQuery)", use_container_width=True, help="Persists your flight log securely in BigQuery under your authenticated account"):
+            with st.spinner("Committing flight log to Google BigQuery..."):
+                ok, msg = save_user_flights_to_bigquery(current_user_email, st.session_state["flighty_df"])
+                if ok:
+                    st.success(msg)
+                    st.session_state["flighty_source_name"] = f"BigQuery Vault ({current_user_email})"
+                else:
+                    st.error(msg)
+
     col_s1, col_s2 = st.columns(2)
     with col_s1:
-        if st.button("Load Sample Log", help="Load realistic 30-flight sample log featuring 737-900ER, MAX 9, 787-9, A321neo"):
+        if st.button("Load Sample", help="Load realistic 30-flight sample log featuring 737-900ER, MAX 9, 787-9, A321neo"):
             st.session_state["flighty_df"] = generate_sample_flighty_data()
             st.session_state["flighty_source_name"] = "Sample Travel Log (Frequent Traveler)"
             st.rerun()
     with col_s2:
         if st.session_state["flighty_df"] is not None:
-            if st.button("Clear Log"):
+            if st.button("Clear View"):
                 st.session_state["flighty_df"] = None
                 st.session_state["flighty_source_name"] = None
                 st.rerun()
@@ -91,7 +128,7 @@ with st.sidebar:
 
 # If no data is loaded yet, show welcoming hero banner
 if st.session_state["flighty_df"] is None:
-    st.info("👋 No flight log loaded yet. Click **'Load Sample Log'** in the sidebar to test with a realistic 30-flight travel log, or upload your own Flighty CSV export above!")
+    st.info("👋 No flight log loaded yet. Click **'Load Sample'** in the sidebar to test with a realistic 30-flight travel log, or upload your own Flighty CSV export above!")
     st.stop()
 
 df_flights: pd.DataFrame = st.session_state["flighty_df"]
@@ -366,5 +403,54 @@ with st.expander("📋 View Complete Personal Flight Log", expanded=False):
         width="stretch",
         hide_index=True
     )
+
+# ----------------------------------------------------------------------
+# Account Privacy & Fail-Safe Data Deletion Section
+# ----------------------------------------------------------------------
+st.markdown("<div style='margin-top: 36px;'></div>", unsafe_allow_html=True)
+with st.expander("🔒 Account Data Governance & Fail-Safe Deletion", expanded=False):
+    st.markdown("### 🗄️ Cloud Vault Telemetry & Deletion Controls")
+    
+    # Telemetry
+    telemetry = get_user_travel_telemetry()
+    tcol1, tcol2, tcol3 = st.columns(3)
+    with tcol1:
+        st.metric("Total User Flights in Vault", f"{telemetry['total_user_flights']:,}")
+    with tcol2:
+        st.metric("Total Registered Travelers", f"{telemetry['total_traveler_users']:,}")
+    with tcol3:
+        user_flight_count = len(df_flights) if "BigQuery Vault" in st.session_state.get("flighty_source_name", "") else 0
+        st.metric("Your Stored Records", f"{user_flight_count:,} / {USER_FLIGHT_LIMIT:,}")
+
+    st.markdown("---")
+    st.markdown("#### ⚠️ Danger Zone: Permanent Data Deletion")
+    st.markdown(
+        "<p style='color: #94A3B8; font-size: 0.9rem;'>"
+        "To prevent accidental loss, deleting your stored personal travel records from BigQuery requires explicit confirmation. "
+        "Type <b>DELETE</b> in the verification box below to enable the permanent purge button."
+        "</p>",
+        unsafe_allow_html=True
+    )
+
+    del_col1, del_col2 = st.columns([2, 1])
+    with del_col1:
+        delete_confirmation = st.text_input(
+            "Confirmation Input",
+            placeholder="Type DELETE to confirm",
+            label_visibility="collapsed"
+        )
+    with del_col2:
+        can_delete = delete_confirmation.strip() == "DELETE" and bool(current_user_email)
+        if st.button("🚨 Purge All My Flight Records", type="primary", disabled=not can_delete, use_container_width=True):
+            with st.spinner("Purging flight records from BigQuery..."):
+                ok, msg = delete_user_flights_from_bigquery(current_user_email)
+                if ok:
+                    st.success(msg)
+                    st.session_state["flighty_df"] = None
+                    st.session_state["flighty_source_name"] = None
+                    st.rerun()
+                else:
+                    st.error(msg)
+
 
 

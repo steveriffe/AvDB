@@ -186,21 +186,19 @@ def render_landing_page():
         </style>
     """)
 
-    # Top Portal Breadcrumb Bar
+    # Top AvDB Platform Bar
     render_html("""
         <div class="landing-portal-bar">
-            <a href="https://riffe.co.uk" target="_blank" rel="noopener noreferrer" class="portal-brand">
-                <div class="portal-avatar">SR</div>
+            <div class="portal-brand">
+                <div class="portal-avatar">✈️</div>
                 <div>
-                    <div class="portal-text-name">Steve Riffe</div>
-                    <div class="portal-text-sub">Data Urbanism · Enterprise Solutions</div>
+                    <div class="portal-text-name">AvDB Aviation Intelligence</div>
+                    <div class="portal-text-sub">US BTS T-100 & DB1B/OD40 Cloud Analytics</div>
                 </div>
-            </a>
+            </div>
             <div style="display: flex; align-items: center; gap: 12px;">
                 <span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #10B981; background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); padding: 3px 8px; border-radius: 6px;">● Production Ready</span>
-                <a href="https://riffe.co.uk" target="_blank" rel="noopener noreferrer" style="font-size: 12px; font-weight: 700; color: #FF6B00; text-decoration: none; font-family: 'Plus Jakarta Sans', sans-serif;">
-                    ← Portfolio Portal
-                </a>
+                <span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #38BDF8; background: rgba(56, 189, 248, 0.1); border: 1px solid rgba(56, 189, 248, 0.25); padding: 3px 8px; border-radius: 6px;">Google Cloud Run</span>
             </div>
         </div>
     """)
@@ -291,6 +289,22 @@ def render_landing_page():
                 </div>
             </div>
         """)
+
+    # Privacy & Data Governance Footer Strip
+    render_html("""
+        <div style="margin-top: 48px; padding-top: 24px; border-top: 1px solid rgba(255, 255, 255, 0.08); display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 16px;">
+            <div style="display: flex; align-items: center; gap: 16px; font-size: 0.85rem; color: #94A3B8;">
+                <span>🔒 <b>Privacy Assured</b>: Authenticated Google identity used strictly for access control</span>
+                <span>•</span>
+                <span>Travel logs committed to private BigQuery vault (capped at 1,000 flights)</span>
+                <span>•</span>
+                <span>Self-service fail-safe purge anytime</span>
+            </div>
+            <div style="font-family: 'JetBrains Mono', monospace; font-size: 0.78rem; color: #64748B;">
+                BTS Data Attribution: US DOT TranStats (T-100 & DB1B/OD40)
+            </div>
+        </div>
+    """)
 
 
 def render_unauthorized_page(user_info: dict):

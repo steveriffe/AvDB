@@ -741,3 +741,194 @@ def build_flighty_travel_deck(
         tooltip=tooltip,
         api_keys=api_keys
     )
+
+
+# ----------------------------------------------------------------------
+# BigQuery User Travel Vault & Persistence Layer
+# ----------------------------------------------------------------------
+USER_FLIGHT_LIMIT = 1000  # Guardrail limit per user account
+
+
+def save_user_flights_to_bigquery(user_email: str, df: pd.DataFrame) -> Tuple[bool, str]:
+    """
+    Saves a user's flight log into BigQuery (db1b-1.user_travel.user_flight_logs).
+    Enforces the 1,000 flight safety limit and performs clean upsert/replacement.
+    """
+    if not user_email or not user_email.strip():
+        return False, "User email is required to persist flight records."
+    if df is None or df.empty:
+        return False, "Flight log is empty."
+
+    email = user_email.strip().lower()
+
+    if len(df) > USER_FLIGHT_LIMIT:
+        return False, f"Flight log exceeds maximum safety limit of {USER_FLIGHT_LIMIT:,} flights (attempted to upload {len(df):,}). Please filter or trim your log."
+
+    from app.utils.bq_client import get_bigquery_client
+    from google.cloud import bigquery
+    import datetime
+
+    client = get_bigquery_client()
+    table_id = f"{client.project}.user_travel.user_flight_logs"
+
+    now_ts = datetime.datetime.now(datetime.timezone.utc)
+    rows_to_insert = []
+
+    for idx, r in df.iterrows():
+        f_date = str(r.get("flight_date", "")).strip()
+        if f_date and f_date != "NaT" and len(f_date) >= 10:
+            parsed_date = f_date[:10]
+        else:
+            parsed_date = now_ts.strftime("%Y-%m-%d")
+
+        f_id = f"{email}_{parsed_date}_{r.get('origin', '')}_{r.get('dest', '')}_{idx}"
+
+        rows_to_insert.append({
+            "user_email": email,
+            "flight_id": f_id,
+            "flight_date": parsed_date,
+            "origin": str(r.get("origin", "")).strip()[:10],
+            "dest": str(r.get("dest", "")).strip()[:10],
+            "carrier": str(r.get("carrier", "")).strip()[:100],
+            "carrier_code": str(r.get("carrier_code", "")).strip()[:10],
+            "flight_number": str(r.get("flight_number", "")).strip()[:20],
+            "aircraft_model": str(r.get("aircraft_model", "")).strip()[:100],
+            "aircraft_subfleet": str(r.get("aircraft_subfleet", "")).strip()[:100],
+            "aircraft_family": str(r.get("aircraft_family", "")).strip()[:100],
+            "aircraft_category": str(r.get("aircraft_category", "")).strip()[:100],
+            "tail_number": str(r.get("tail_number", "")).strip()[:20],
+            "seat": str(r.get("seat", "")).strip()[:20],
+            "seat_type": str(r.get("seat_type", "")).strip()[:50],
+            "cabin_class": str(r.get("cabin_class", "")).strip()[:50],
+            "distance_miles": float(r.get("distance_miles", 0.0) or 0.0),
+            "flight_duration_minutes": int(r.get("duration_minutes", 0) or 0),
+            "co2_kg": float(r.get("co2_kg", 0.0) or 0.0),
+            "created_at": now_ts.isoformat()
+        })
+
+    try:
+        # Delete existing flights for this user before inserting new batch
+        del_query = f"DELETE FROM `{table_id}` WHERE user_email = @email"
+        job_config = bigquery.QueryJobConfig(
+            query_parameters=[bigquery.ScalarQueryParameter("email", "STRING", email)]
+        )
+        del_job = client.query(del_query, job_config=job_config)
+        del_job.result()
+
+        # Insert new rows
+        errors = client.insert_rows_json(table_id, rows_to_insert)
+        if errors:
+            return False, f"Failed to persist {len(errors)} records into BigQuery: {errors[0]}"
+
+        return True, f"Successfully committed {len(rows_to_insert):,} flight segments to your private BigQuery vault!"
+    except Exception as e:
+        return False, f"Database error persisting flights: {e}"
+
+
+def load_user_flights_from_bigquery(user_email: str) -> Optional[pd.DataFrame]:
+    """
+    Retrieves the persisted flight history for an authenticated user from BigQuery.
+    """
+    if not user_email or not user_email.strip():
+        return None
+
+    email = user_email.strip().lower()
+    from app.utils.bq_client import get_bigquery_client
+    from google.cloud import bigquery
+
+    client = get_bigquery_client()
+    table_id = f"{client.project}.user_travel.user_flight_logs"
+
+    query = f"""
+    SELECT
+        flight_date,
+        origin,
+        dest,
+        carrier,
+        carrier_code,
+        flight_number,
+        aircraft_model,
+        aircraft_subfleet,
+        aircraft_family,
+        aircraft_category,
+        tail_number,
+        seat,
+        seat_type,
+        cabin_class,
+        distance_miles,
+        flight_duration_minutes as duration_minutes,
+        co2_kg
+    FROM `{table_id}`
+    WHERE user_email = @email
+    ORDER BY flight_date DESC
+    LIMIT {USER_FLIGHT_LIMIT}
+    """
+
+    try:
+        job_config = bigquery.QueryJobConfig(
+            query_parameters=[bigquery.ScalarQueryParameter("email", "STRING", email)]
+        )
+        df = client.query(query, job_config=job_config).to_dataframe()
+        if df.empty:
+            return None
+
+        # Add synthesized route and year columns for visualizers
+        df["flight_date"] = pd.to_datetime(df["flight_date"])
+        df["year"] = df["flight_date"].dt.year
+        df["route"] = df["origin"] + " ➔ " + df["dest"]
+        return df
+    except Exception:
+        return None
+
+
+def delete_user_flights_from_bigquery(user_email: str) -> Tuple[bool, str]:
+    """
+    Permanently deletes all stored flight records for a user from BigQuery.
+    """
+    if not user_email or not user_email.strip():
+        return False, "User email required."
+
+    email = user_email.strip().lower()
+    from app.utils.bq_client import get_bigquery_client
+    from google.cloud import bigquery
+
+    client = get_bigquery_client()
+    table_id = f"{client.project}.user_travel.user_flight_logs"
+
+    try:
+        query = f"DELETE FROM `{table_id}` WHERE user_email = @email"
+        job_config = bigquery.QueryJobConfig(
+            query_parameters=[bigquery.ScalarQueryParameter("email", "STRING", email)]
+        )
+        job = client.query(query, job_config=job_config)
+        job.result()
+        return True, "Your personal flight log has been permanently deleted from BigQuery."
+    except Exception as e:
+        return False, f"Failed to delete records: {e}"
+
+
+def get_user_travel_telemetry() -> Dict[str, Any]:
+    """
+    Returns platform-wide raw travel statistics from BigQuery metadata / aggregation.
+    """
+    from app.utils.bq_client import get_bigquery_client
+    client = get_bigquery_client()
+    table_id = f"{client.project}.user_travel.user_flight_logs"
+
+    try:
+        query = f"""
+        SELECT
+            COUNT(1) as total_user_flights,
+            COUNT(DISTINCT user_email) as total_traveler_users
+        FROM `{table_id}`
+        """
+        df = client.query(query).to_dataframe()
+        if not df.empty:
+            return {
+                "total_user_flights": int(df.iloc[0]["total_user_flights"]),
+                "total_traveler_users": int(df.iloc[0]["total_traveler_users"])
+            }
+    except Exception:
+        pass
+    return {"total_user_flights": 0, "total_traveler_users": 0}
+

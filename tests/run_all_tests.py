@@ -140,6 +140,8 @@ def test_all_module_imports():
         "app/pages/2_🏢_Airlines.py",
         "app/pages/3_💺_Fleet_Routes.py",
         "app/pages/4_📱_Flighty_Traveler.py",
+        "app/pages/5_🌐_Alliances.py",
+        "app/pages/6_🔒_Privacy_Policy.py",
     ]
     for pf in page_files:
         py_compile.compile(str(REPO_ROOT / pf), doraise=True)
