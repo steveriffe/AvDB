@@ -49,9 +49,22 @@ def test_alliance_transitions():
     us_2014 = get_carrier_alliance("US", 2014)
     assert us_2014 is not None and us_2014["alliance_name"] == "oneworld"
 
-    # Logos
+    # Logos & Brand Identification
     as_logo = get_carrier_logo_url("AS")
-    assert as_logo is not None and (as_logo.startswith("data:image/svg+xml") or "Alaska" in as_logo)
+    assert as_logo is not None and (as_logo.startswith("data:image/png") or as_logo.startswith("data:image/svg"))
+    dl_logo = get_carrier_logo_url("DL")
+    assert dl_logo is not None and dl_logo.startswith("data:image/png")
+    aa_logo = get_carrier_logo_url("AA")
+    assert aa_logo is not None and aa_logo.startswith("data:image/png")
+    ua_logo = get_carrier_logo_url("UA")
+    assert ua_logo is not None and ua_logo.startswith("data:image/png")
+
+    from app.utils.alliances import get_carrier_name
+    assert get_carrier_name("AS") == "Alaska Airlines"
+    assert get_carrier_name("AA") == "American Airlines"
+    assert get_carrier_name("DL") == "Delta Air Lines"
+    assert get_carrier_name("WN") == "Southwest Airlines"
+    assert get_carrier_name("OO") == "SkyWest Airlines"
 
     # Timeline
     sk_timeline = get_carrier_alliance_timeline("SK")

@@ -1,26 +1,27 @@
 # Current Project Status: AvDB
 
 **Last Updated**: 2026-09-18
-**Current Phase**: Phase 18 Delivered (Bug Fixes: Landing Navigation, Authentic Wikimedia Aircraft Fleet Photos, Operator Breakdown, Descending Bar Sorting, Flighty/Alliance Queries, and Privacy Telemetry)
+**Current Phase**: Phase 19 Delivered (Alliances Regional Attribution, Member Carrier Ranking, Fleet Associated Airlines, and Local High-Resolution Carrier Logo Asset Catalog)
 ---
 
 ## 🎯 Active Focus
-Delivered a custom 1990s aviation-inspired Mapbox style created programmatically via the Mapbox Styles API:
-1. **Custom Style "Jetway Amber" (`mapbox://styles/steveriffe/cmu6drl9x001301rh8c4y170c`)**:
-   - Created live via Mapbox Styles API POST endpoint using the admin access token.
-   - Inspired by the era of 1990s aviation:
-     * **Land**: `hsl(35, 8%, 14%)` — warm graphite, evocative of airport terminal linoleum and 1990s carpet tones.
-     * **Water**: `hsl(196, 30%, 9%)` — deep CRT cathode ray blue-green.
-     * **Aeroway / Runways**: `hsl(42, 55%, 32%)` — amber highlight, evoking SOLARI split-flap departure boards and amber runway lighting.
-     * **Boundaries**: `hsl(210, 30%, 40%)` — faded chartroom blue, like printed aeronautical sectional charts.
-     * **Labels**: Warm cream and glowing amber on dark, styled like CRT monitors and paper boarding pass stock.
-     * **Atmosphere / Fog**: `hsl(38, 15%, 8%)` warm amber horizon haze.
-2. **Platform-Wide Default**:
-   - Wired as the universal default across `MAP_THEMES["retro"]`, `app/utils/visualizers.py`, `app/utils/flighty.py`, `1_✈️_Airports.py`, `2_🏢_Airlines.py`, and the pre-sign-in landing preview sandbox.
-   - Added `MAPBOX_STYLE_URL_RETRO` to `.env` and Cloud Run deployment configuration.
-3. **Deployment**:
-   - 100% test pass rate across all suites (`tests/run_all_tests.py`).
-   - Live on Cloud Run revision `avdb-00018-fsf` at `https://avdb.riffe.co.uk`.
+Delivered major data integrity and UI enhancements for alliances, fleet equipment, and airline branding:
+1. **Local High-Resolution Carrier Logo Asset Catalog (`app/assets/logos/`)**:
+   - Downloaded and cataloged 61 transparent airline emblems (PNG/SVG) locally in the repository (< 200 KB total).
+   - Zero external CDN dependencies, eliminating 404/429 latency and image breakage.
+   - Built `get_carrier_logo_url(code)` with base64 Data URI caching (`@lru_cache`).
+   - Built `get_carrier_name(code)` with comprehensive friendly airline names, preventing truncated labels ("Alaska Airlines", not "Alas").
+2. **Alliances Regional Attribution & Realistic Market Shares**:
+   - Integrated route-level regional carrier attribution (`db1b-1.reporting.ref_regional_route_attribution`) into alliance performance queries (`get_alliance_performance_metrics`, `get_alliances_time_series`, `get_alliance_fleet_deployment`).
+   - Attributed ~130M regional passenger trips from feeder operators (SkyWest, Republic, Horizon, Endeavor, Envoy, PSA, Piedmont, etc.) to marketing airlines (AA, DL, UA, AS).
+   - Real-world 2024 shares: oneworld (26.1%), SkyTeam (19.6%), Star Alliance (18.2%), Independent (36.1% led by Southwest at 177.6M pax).
+   - Filtered out DOT air-taxi / commuter survey codes (`02Q`, `07Q`, etc.) with `passengers >= 10,000`.
+   - Ranked member carriers by annual passenger volume descending instead of alphabetical order.
+3. **Fleet Associated Airlines / Primary Operators**:
+   - Updated regional aircraft specs (`ref_aircraft_specs.py`) to list recognized marketing mainlines and major regional operators (`AA`, `DL`, `UA`, `AS`, `OO`, `YX`, `QX`, `9E`, `OH`, `PT`, `C5`).
+   - Restyled the Primary Operators strip on the Fleet page with authentic 20x20px emblems, carrier codes, and full airline names in glassmorphic pills.
+4. **Alliances UI Modernization**:
+   - Replaced squished 10-column cards with responsive flexbox pills displaying the authentic airline emblem, carrier code, friendly name, and annual US passenger volume.
 ---
 
 ## 📊 Live BigQuery Analytical Marts (`db1b-1.reporting` & `db1b-1.user_travel`)

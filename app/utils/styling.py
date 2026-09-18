@@ -284,7 +284,7 @@ def render_kpi_card(label: str = None, value: str = "", delta: str = None, subti
             f'<div class="metric-label">{card_label}</div>'
             f'<div class="metric-value">{value}</div>'
             f'</div>'
-            f'<img src="{logo_url}" style="height: 28px; max-width: 65px; object-fit: contain; margin-top: 2px;" alt=""/>'
+            f'<img src="{logo_url}" style="height: 28px; max-width: 65px; object-fit: contain; margin-top: 2px; border-radius: 4px; flex-shrink: 0;" alt=""/>'
             f'</div>'
             f'{delta_html}'
             f'{sub_html}'

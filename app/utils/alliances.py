@@ -63,17 +63,129 @@ def get_all_alliances_for_year(year: int) -> List[Dict[str, Any]]:
     return res
 
 
+import os
+import base64
+from functools import lru_cache
 from app.data.ref_logos_svg import get_vector_logo_data_uri
 
+LOGOS_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), "assets", "logos")
 
+CARRIER_NAMES: Dict[str, str] = {
+    # US Mainline & Major LCC
+    "AA": "American Airlines",
+    "DL": "Delta Air Lines",
+    "UA": "United Airlines",
+    "WN": "Southwest Airlines",
+    "AS": "Alaska Airlines",
+    "B6": "JetBlue Airways",
+    "NK": "Spirit Airlines",
+    "F9": "Frontier Airlines",
+    "G4": "Allegiant Air",
+    "HA": "Hawaiian Airlines",
+    "SY": "Sun Country Airlines",
+    "MX": "Breeze Airways",
+    "XP": "Avelo Airlines",
+    # Regionals & Contract Carriers
+    "OO": "SkyWest Airlines",
+    "YX": "Republic Airways",
+    "QX": "Horizon Air",
+    "9E": "Endeavor Air",
+    "MQ": "Envoy Air",
+    "OH": "PSA Airlines",
+    "PT": "Piedmont Airlines",
+    "C5": "CommuteAir",
+    "G7": "GoJet Airlines",
+    "YV": "Mesa Airlines",
+    "ZW": "Air Wisconsin",
+    "CP": "Compass Airlines",
+    "EV": "ExpressJet Airlines",
+    # Historical Predecessors
+    "CO": "Continental Airlines",
+    "NW": "Northwest Airlines",
+    "US": "US Airways",
+    "TW": "Trans World Airlines (TWA)",
+    "PA": "Pan American World Airways",
+    "EA": "Eastern Air Lines",
+    "FL": "AirTran Airways",
+    "VX": "Virgin America",
+    "TZ": "ATA Airlines",
+    "HP": "America West Airlines",
+    "QQ": "Reno Air",
+    # International Alliances & Partners
+    "BA": "British Airways",
+    "AF": "Air France",
+    "KL": "KLM Royal Dutch Airlines",
+    "LH": "Lufthansa",
+    "AC": "Air Canada",
+    "QR": "Qatar Airways",
+    "CX": "Cathay Pacific",
+    "QF": "Qantas",
+    "JL": "Japan Airlines",
+    "IB": "Iberia",
+    "AY": "Finnair",
+    "AM": "Aeroméxico",
+    "KE": "Korean Air",
+    "VS": "Virgin Atlantic",
+    "TK": "Turkish Airlines",
+    "CM": "Copa Airlines",
+    "AV": "Avianca",
+    "NH": "All Nippon Airways (ANA)",
+    "LX": "Swiss International Air Lines",
+    "SK": "Scandinavian Airlines (SAS)",
+    "TP": "TAP Air Portugal",
+    "AZ": "ITA Airways / Alitalia",
+    "WS": "WestJet",
+    "Y4": "Volaris",
+    "EK": "Emirates",
+    "SQ": "Singapore Airlines",
+    "FJ": "Fiji Airways",
+    # Cargo
+    "FX": "FedEx Express",
+    "5X": "UPS Airlines",
+}
+
+
+def get_carrier_name(carrier_code: str) -> str:
+    """Returns friendly airline name for carrier code, with fallback to code."""
+    if not carrier_code:
+        return ""
+    c = carrier_code.strip().upper()
+    return CARRIER_NAMES.get(c, c)
+
+
+@lru_cache(maxsize=256)
 def get_carrier_logo_url(carrier_code: str) -> Optional[str]:
     """
-    Returns verified SVG/PNG brand logo URL or vector Data URI for a carrier code.
-    Guarantees 100% reliable rendering without external 404 or 429 errors.
+    Returns verified brand logo Data URI for carrier code.
+    First checks local high-resolution asset catalog in app/assets/logos/{code}.png (or .svg),
+    guaranteeing 100% reliable, zero-latency, zero-404 rendering without external dependencies.
+    Gracefully falls back to stylized vector monogram for unlisted carriers.
     """
     if not carrier_code or carrier_code.strip() in ("—", "-", "N/A", "None"):
         return None
     c = carrier_code.strip().upper()
+    
+    # 1. Local PNG emblem
+    png_path = os.path.join(LOGOS_DIR, f"{c}.png")
+    if os.path.isfile(png_path):
+        try:
+            with open(png_path, "rb") as f:
+                encoded = base64.b64encode(f.read()).decode("utf-8")
+            return f"data:image/png;base64,{encoded}"
+        except Exception:
+            pass
+
+    # 2. Local SVG emblem
+    svg_path = os.path.join(LOGOS_DIR, f"{c}.svg")
+    if os.path.isfile(svg_path):
+        try:
+            with open(svg_path, "rb") as f:
+                encoded = base64.b64encode(f.read()).decode("utf-8")
+            return f"data:image/svg+xml;base64,{encoded}"
+        except Exception:
+            pass
+
+    # 3. Dedicated vector SVG or monogram
     return get_vector_logo_data_uri(c)
 
 

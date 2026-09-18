@@ -183,7 +183,7 @@ CARRIER_NAME_LOOKUP_SQL = """
         WHEN carrier_code = 'TW' THEN 'Trans World Airlines'
         WHEN carrier_code = 'FL' THEN 'AirTran Airways'
         WHEN carrier_code = 'VX' THEN 'Virgin America'
-        WHEN carrier_code = 'YX' THEN 'Midwest Airlines'
+        WHEN carrier_code = 'YX' THEN 'Republic Airways'
         WHEN carrier_code = 'HA' THEN 'Hawaiian Airlines'
         WHEN carrier_code = 'PA' THEN 'Pan American World Airways'
         ELSE COALESCE(carrier_name, carrier_code)
@@ -1147,7 +1147,7 @@ def get_alliance_performance_metrics(year: int) -> pd.DataFrame:
     """
     Computes system operational metrics across all global and historical alliances
     (Star Alliance, SkyTeam, oneworld, Wings Alliance / NW-KL, Qualiflyer, and Independent)
-    for a given calendar year using reporting.mart_airport_network_summary.
+    for a given calendar year using reporting.mart_airport_network_summary with regional carrier attribution.
     Note: Reflects US-origin and US-touching international operations reported to US BTS.
     """
     from app.utils.alliances import get_carrier_alliance
@@ -1156,18 +1156,65 @@ def get_alliance_performance_metrics(year: int) -> pd.DataFrame:
     end_date = f"{year}-12-31"
     
     sql = f"""
-    SELECT
+    WITH base AS (
+      SELECT
+        origin,
+        dest,
         unique_carrier,
         carrier_name,
-        SUM(departures_performed) as departures,
-        SUM(total_seats) as total_seats,
-        SUM(operational_passengers) as passengers,
-        SUM(distance_miles * operational_passengers) as rpm,
-        SUM(distance_miles * total_seats) as asm,
-        SUM(estimated_od_passengers * avg_od_fare) as estimated_revenue
-    FROM `db1b-1.reporting.mart_airport_network_summary`
-    WHERE flight_date >= '{start_date}' AND flight_date <= '{end_date}'
-    GROUP BY 1, 2
+        departures_performed,
+        total_seats,
+        operational_passengers,
+        distance_miles,
+        estimated_od_passengers,
+        avg_od_fare
+      FROM `db1b-1.reporting.mart_airport_network_summary`
+      WHERE flight_date >= '{start_date}' AND flight_date <= '{end_date}'
+    ),
+    attributed AS (
+      SELECT
+        COALESCE(_reg.mkt_carrier,
+          CASE 
+            WHEN base.unique_carrier = 'QX' THEN 'AS'
+            WHEN base.unique_carrier = '9E' THEN 'DL'
+            WHEN base.unique_carrier IN ('MQ', 'OH', 'PT') THEN 'AA'
+            WHEN base.unique_carrier IN ('C5', 'G7') THEN 'UA'
+            WHEN base.unique_carrier IN ('CP', 'CP (2)') THEN 'DL'
+            WHEN base.unique_carrier = 'XJ' THEN 'NW'
+            WHEN base.unique_carrier = 'OO' AND (base.dest IN ('ATL', 'MSP', 'DTW', 'SLC') OR base.origin IN ('ATL', 'MSP', 'DTW', 'SLC')) THEN 'DL'
+            WHEN base.unique_carrier = 'OO' AND (base.dest IN ('ORD', 'DEN', 'IAH', 'EWR', 'IAD', 'SFO') OR base.origin IN ('ORD', 'DEN', 'IAH', 'EWR', 'IAD', 'SFO')) THEN 'UA'
+            WHEN base.unique_carrier = 'OO' AND (base.dest IN ('DFW', 'CLT', 'MIA', 'PHX', 'PHL') OR base.origin IN ('DFW', 'CLT', 'MIA', 'PHX', 'PHL')) THEN 'AA'
+            WHEN base.unique_carrier = 'OO' AND (base.dest IN ('SEA', 'PDX', 'SAN', 'BUR', 'OAK', 'SJC', 'SMF', 'ANC', 'LAX') OR base.origin IN ('SEA', 'PDX', 'SAN', 'BUR', 'OAK', 'SJC', 'SMF', 'ANC', 'LAX')) THEN 'AS'
+            WHEN base.unique_carrier = 'YX' AND (base.dest IN ('ORD', 'EWR', 'IAH', 'IAD') OR base.origin IN ('ORD', 'EWR', 'IAH', 'IAD')) THEN 'UA'
+            WHEN base.unique_carrier = 'YX' AND (base.dest IN ('LGA', 'JFK', 'BOS', 'ATL') OR base.origin IN ('LGA', 'JFK', 'BOS', 'ATL')) THEN 'DL'
+            WHEN base.unique_carrier = 'YX' THEN 'AA'
+            ELSE base.unique_carrier
+          END
+        ) AS carrier_code,
+        ROUND(base.departures_performed * COALESCE(_reg.attribution_share, 1.0)) AS departures_attr,
+        ROUND(base.total_seats * COALESCE(_reg.attribution_share, 1.0)) AS total_seats_attr,
+        ROUND(base.operational_passengers * COALESCE(_reg.attribution_share, 1.0)) AS passengers_attr,
+        (base.distance_miles * base.operational_passengers * COALESCE(_reg.attribution_share, 1.0)) AS rpm_attr,
+        (base.distance_miles * base.total_seats * COALESCE(_reg.attribution_share, 1.0)) AS asm_attr,
+        (base.estimated_od_passengers * base.avg_od_fare * COALESCE(_reg.attribution_share, 1.0)) AS estimated_revenue_attr
+      FROM base
+      LEFT JOIN `db1b-1.reporting.ref_regional_route_attribution` _reg
+        ON base.unique_carrier = _reg.op_carrier
+       AND base.origin = _reg.origin
+       AND base.dest = _reg.dest
+    )
+    SELECT
+      carrier_code,
+      SUM(departures_attr) as departures,
+      SUM(total_seats_attr) as total_seats,
+      SUM(passengers_attr) as passengers,
+      SUM(rpm_attr) as rpm,
+      SUM(asm_attr) as asm,
+      SUM(estimated_revenue_attr) as estimated_revenue
+    FROM attributed
+    GROUP BY 1
+    HAVING SUM(passengers_attr) >= 10000
+    ORDER BY passengers DESC
     """
     df_raw = run_query(sql)
     if df_raw.empty:
@@ -1175,7 +1222,7 @@ def get_alliance_performance_metrics(year: int) -> pd.DataFrame:
 
     records = []
     for _, row in df_raw.iterrows():
-        c_code = str(row["unique_carrier"]).strip().upper()
+        c_code = str(row["carrier_code"]).strip().upper()
         a_info = get_carrier_alliance(c_code, year)
         
         a_name = a_info["alliance_name"] if a_info else "Independent / Unaligned"
@@ -1188,7 +1235,6 @@ def get_alliance_performance_metrics(year: int) -> pd.DataFrame:
 
         records.append({
             "carrier_code": c_code,
-            "carrier_name": row["carrier_name"],
             "alliance_name": a_label,
             "departures": row["departures"],
             "total_seats": row["total_seats"],
@@ -1202,17 +1248,33 @@ def get_alliance_performance_metrics(year: int) -> pd.DataFrame:
     if df_enriched.empty:
         return pd.DataFrame()
 
-    # Aggregate by alliance
-    agg = df_enriched.groupby("alliance_name").agg(
-        departures=("departures", "sum"),
-        total_seats=("total_seats", "sum"),
-        passengers=("passengers", "sum"),
-        rpm=("rpm", "sum"),
-        asm=("asm", "sum"),
-        estimated_revenue=("estimated_revenue", "sum"),
-        carriers=("carrier_code", lambda x: list(sorted(set(x))))
-    ).reset_index()
+    # Aggregate by alliance, preserving carrier ranking by passenger volume descending
+    def _extract_ranked_carriers(group):
+        sorted_g = group.sort_values("passengers", ascending=False)
+        return list(sorted_g["carrier_code"])
 
+    def _extract_carrier_details(group):
+        sorted_g = group.sort_values("passengers", ascending=False)
+        return [
+            {"code": r["carrier_code"], "passengers": r["passengers"]}
+            for _, r in sorted_g.iterrows()
+        ]
+
+    agg_rows = []
+    for a_name, g in df_enriched.groupby("alliance_name"):
+        agg_rows.append({
+            "alliance_name": a_name,
+            "departures": g["departures"].sum(),
+            "total_seats": g["total_seats"].sum(),
+            "passengers": g["passengers"].sum(),
+            "rpm": g["rpm"].sum(),
+            "asm": g["asm"].sum(),
+            "estimated_revenue": g["estimated_revenue"].sum(),
+            "carriers": _extract_ranked_carriers(g),
+            "carrier_details": _extract_carrier_details(g)
+        })
+
+    agg = pd.DataFrame(agg_rows)
     agg["load_factor_pct"] = (agg["passengers"] / agg["total_seats"] * 100).round(1)
     agg["system_load_factor_pct"] = (agg["rpm"] / agg["asm"] * 100).round(1)
     
@@ -1229,7 +1291,8 @@ def get_alliance_performance_metrics(year: int) -> pd.DataFrame:
 def get_alliance_fleet_deployment(year: int) -> pd.DataFrame:
     """
     Analyzes widebody vs. narrowbody vs. regional fleet deployment mix
-    by alliance for a given calendar year using reporting.mart_fleet_route_dynamics.
+    by alliance for a given calendar year using reporting.mart_fleet_route_dynamics
+    with regional carrier attribution.
     """
     from app.utils.alliances import get_carrier_alliance
     
@@ -1237,14 +1300,55 @@ def get_alliance_fleet_deployment(year: int) -> pd.DataFrame:
     end_date = f"{year}-12-31"
     
     sql = f"""
-    SELECT
+    WITH base AS (
+      SELECT
+        origin,
+        dest,
         unique_carrier,
         aircraft_family,
-        SUM(departures_performed) as departures,
-        SUM(total_seats) as total_seats,
-        SUM(operational_passengers) as passengers
-    FROM `db1b-1.reporting.mart_fleet_route_dynamics`
-    WHERE flight_date >= '{start_date}' AND flight_date <= '{end_date}'
+        departures_performed,
+        total_seats,
+        operational_passengers
+      FROM `db1b-1.reporting.mart_fleet_route_dynamics`
+      WHERE flight_date >= '{start_date}' AND flight_date <= '{end_date}'
+    ),
+    attributed AS (
+      SELECT
+        COALESCE(_reg.mkt_carrier,
+          CASE 
+            WHEN base.unique_carrier = 'QX' THEN 'AS'
+            WHEN base.unique_carrier = '9E' THEN 'DL'
+            WHEN base.unique_carrier IN ('MQ', 'OH', 'PT') THEN 'AA'
+            WHEN base.unique_carrier IN ('C5', 'G7') THEN 'UA'
+            WHEN base.unique_carrier IN ('CP', 'CP (2)') THEN 'DL'
+            WHEN base.unique_carrier = 'XJ' THEN 'NW'
+            WHEN base.unique_carrier = 'OO' AND (base.dest IN ('ATL', 'MSP', 'DTW', 'SLC') OR base.origin IN ('ATL', 'MSP', 'DTW', 'SLC')) THEN 'DL'
+            WHEN base.unique_carrier = 'OO' AND (base.dest IN ('ORD', 'DEN', 'IAH', 'EWR', 'IAD', 'SFO') OR base.origin IN ('ORD', 'DEN', 'IAH', 'EWR', 'IAD', 'SFO')) THEN 'UA'
+            WHEN base.unique_carrier = 'OO' AND (base.dest IN ('DFW', 'CLT', 'MIA', 'PHX', 'PHL') OR base.origin IN ('DFW', 'CLT', 'MIA', 'PHX', 'PHL')) THEN 'AA'
+            WHEN base.unique_carrier = 'OO' AND (base.dest IN ('SEA', 'PDX', 'SAN', 'BUR', 'OAK', 'SJC', 'SMF', 'ANC', 'LAX') OR base.origin IN ('SEA', 'PDX', 'SAN', 'BUR', 'OAK', 'SJC', 'SMF', 'ANC', 'LAX')) THEN 'AS'
+            WHEN base.unique_carrier = 'YX' AND (base.dest IN ('ORD', 'EWR', 'IAH', 'IAD') OR base.origin IN ('ORD', 'EWR', 'IAH', 'IAD')) THEN 'UA'
+            WHEN base.unique_carrier = 'YX' AND (base.dest IN ('LGA', 'JFK', 'BOS', 'ATL') OR base.origin IN ('LGA', 'JFK', 'BOS', 'ATL')) THEN 'DL'
+            WHEN base.unique_carrier = 'YX' THEN 'AA'
+            ELSE base.unique_carrier
+          END
+        ) AS carrier_code,
+        base.aircraft_family,
+        ROUND(base.departures_performed * COALESCE(_reg.attribution_share, 1.0)) AS departures,
+        ROUND(base.total_seats * COALESCE(_reg.attribution_share, 1.0)) AS total_seats,
+        ROUND(base.operational_passengers * COALESCE(_reg.attribution_share, 1.0)) AS passengers
+      FROM base
+      LEFT JOIN `db1b-1.reporting.ref_regional_route_attribution` _reg
+        ON base.unique_carrier = _reg.op_carrier
+       AND base.origin = _reg.origin
+       AND base.dest = _reg.dest
+    )
+    SELECT
+      carrier_code,
+      aircraft_family,
+      SUM(departures) as departures,
+      SUM(total_seats) as total_seats,
+      SUM(passengers) as passengers
+    FROM attributed
     GROUP BY 1, 2
     """
     df_raw = run_query(sql)
@@ -1253,7 +1357,7 @@ def get_alliance_fleet_deployment(year: int) -> pd.DataFrame:
 
     rows = []
     for _, r in df_raw.iterrows():
-        c = str(r["unique_carrier"]).strip().upper()
+        c = str(r["carrier_code"]).strip().upper()
         a_info = get_carrier_alliance(c, year)
         a_name = a_info["alliance_name"] if a_info else "Independent / Unaligned"
         if a_name == "Wings Alliance":
@@ -1457,20 +1561,64 @@ def get_fleet_time_series(aircraft_family: Optional[str] = None) -> pd.DataFrame
 def get_alliances_time_series() -> pd.DataFrame:
     """
     Retrieves multi-year alliance market share trends (1990–2026) across
-    Star Alliance, SkyTeam, oneworld, Wings Alliance (NW/KL), Qualiflyer, and Independent.
+    Star Alliance, SkyTeam, oneworld, Wings Alliance (NW/KL), Qualiflyer, and Independent
+    with full regional carrier attribution.
     """
     from app.utils.alliances import get_carrier_alliance
     
     sql = """
+    WITH base AS (
+      SELECT
+        EXTRACT(YEAR FROM flight_date) as year,
+        origin,
+        dest,
+        unique_carrier,
+        SUM(departures_performed) as departures_performed,
+        SUM(total_seats) as total_seats,
+        SUM(operational_passengers) as operational_passengers
+      FROM `db1b-1.reporting.mart_airport_network_summary`
+      GROUP BY 1, 2, 3, 4
+    ),
+    attributed AS (
+      SELECT
+        base.year,
+        COALESCE(_reg.mkt_carrier,
+          CASE 
+            WHEN base.unique_carrier = 'QX' THEN 'AS'
+            WHEN base.unique_carrier = '9E' THEN 'DL'
+            WHEN base.unique_carrier IN ('MQ', 'OH', 'PT') THEN 'AA'
+            WHEN base.unique_carrier IN ('C5', 'G7') THEN 'UA'
+            WHEN base.unique_carrier IN ('CP', 'CP (2)') THEN 'DL'
+            WHEN base.unique_carrier = 'XJ' THEN 'NW'
+            WHEN base.unique_carrier = 'OO' AND (base.dest IN ('ATL', 'MSP', 'DTW', 'SLC') OR base.origin IN ('ATL', 'MSP', 'DTW', 'SLC')) THEN 'DL'
+            WHEN base.unique_carrier = 'OO' AND (base.dest IN ('ORD', 'DEN', 'IAH', 'EWR', 'IAD', 'SFO') OR base.origin IN ('ORD', 'DEN', 'IAH', 'EWR', 'IAD', 'SFO')) THEN 'UA'
+            WHEN base.unique_carrier = 'OO' AND (base.dest IN ('DFW', 'CLT', 'MIA', 'PHX', 'PHL') OR base.origin IN ('DFW', 'CLT', 'MIA', 'PHX', 'PHL')) THEN 'AA'
+            WHEN base.unique_carrier = 'OO' AND (base.dest IN ('SEA', 'PDX', 'SAN', 'BUR', 'OAK', 'SJC', 'SMF', 'ANC', 'LAX') OR base.origin IN ('SEA', 'PDX', 'SAN', 'BUR', 'OAK', 'SJC', 'SMF', 'ANC', 'LAX')) THEN 'AS'
+            WHEN base.unique_carrier = 'YX' AND (base.dest IN ('ORD', 'EWR', 'IAH', 'IAD') OR base.origin IN ('ORD', 'EWR', 'IAH', 'IAD')) THEN 'UA'
+            WHEN base.unique_carrier = 'YX' AND (base.dest IN ('LGA', 'JFK', 'BOS', 'ATL') OR base.origin IN ('LGA', 'JFK', 'BOS', 'ATL')) THEN 'DL'
+            WHEN base.unique_carrier = 'YX' THEN 'AA'
+            ELSE base.unique_carrier
+          END
+        ) AS carrier_code,
+        ROUND(base.departures_performed * COALESCE(_reg.attribution_share, 1.0)) AS departures_attr,
+        ROUND(base.total_seats * COALESCE(_reg.attribution_share, 1.0)) AS total_seats_attr,
+        ROUND(base.operational_passengers * COALESCE(_reg.attribution_share, 1.0)) AS passengers_attr
+      FROM base
+      LEFT JOIN `db1b-1.reporting.ref_regional_route_attribution` _reg
+        ON base.unique_carrier = _reg.op_carrier
+       AND base.origin = _reg.origin
+       AND base.dest = _reg.dest
+    )
     SELECT
-      EXTRACT(YEAR FROM flight_date) as year,
-      unique_carrier,
-      SUM(departures_performed) as departures,
-      SUM(total_seats) as total_seats,
-      SUM(operational_passengers) as passengers
-    FROM `db1b-1.reporting.mart_airport_network_summary`
+      year,
+      carrier_code,
+      SUM(departures_attr) as departures,
+      SUM(total_seats_attr) as total_seats,
+      SUM(passengers_attr) as passengers
+    FROM attributed
     GROUP BY 1, 2
-    ORDER BY year ASC
+    HAVING SUM(passengers_attr) >= 10000
+    ORDER BY year ASC, passengers DESC
     """
     df_raw = run_query(sql)
     if df_raw.empty:
@@ -1479,7 +1627,7 @@ def get_alliances_time_series() -> pd.DataFrame:
     records = []
     for _, r in df_raw.iterrows():
         yr = int(r["year"])
-        c = str(r["unique_carrier"]).strip().upper()
+        c = str(r["carrier_code"]).strip().upper()
         a_info = get_carrier_alliance(c, yr)
         a_name = a_info["alliance_name"] if a_info else "Independent / Unaligned"
         if a_name == "Wings Alliance":

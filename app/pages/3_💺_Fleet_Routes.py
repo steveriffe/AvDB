@@ -34,7 +34,7 @@ from app.utils.queries import (
     get_fleet_time_series,
 )
 from app.utils.visualizers import FAMILY_COLORS, build_fleet_gauge_trend_chart
-from app.utils.alliances import get_carrier_logo_url
+from app.utils.alliances import get_carrier_logo_url, get_carrier_name
 from app.data.ref_aircraft_specs import get_aircraft_spec
 
 
@@ -260,17 +260,20 @@ if spec:
         if ops:
             logo_htmls = []
             for op in ops:
-                l_url = get_carrier_logo_url(op)
+                l_url = get_carrier_logo_url(op) or ""
+                op_name = get_carrier_name(op)
+                logo_tag = f"<img src='{l_url}' style='height: 20px; width: 20px; object-fit: contain; border-radius: 4px; flex-shrink: 0;' alt='{op}' />" if l_url else ""
                 logo_htmls.append(
                     f"""
-                    <div style="display: inline-flex; align-items: center; background: rgba(17, 29, 51, 0.7); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 8px; padding: 4px 10px; margin: 3px 4px 0 0;">
-                        <img src="{l_url}" style="height: 18px; width: 36px; object-fit: contain; margin-right: 6px;" />
-                        <span style="color: #FFFFFF; font-weight: 700; font-size: 12px; font-family: 'JetBrains Mono', monospace;">{op}</span>
+                    <div style="display: inline-flex; align-items: center; gap: 7px; background: rgba(11, 25, 44, 0.75); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 8px; padding: 5px 11px; margin: 3px 6px 3px 0;" title="{op_name} ({op})">
+                        {logo_tag}
+                        <span style="color: #FFFFFF; font-weight: 700; font-size: 11px; font-family: 'JetBrains Mono', monospace;">{op}</span>
+                        <span style="color: #94A3B8; font-size: 11px; font-family: 'Plus Jakarta Sans', sans-serif;">{op_name}</span>
                     </div>
                     """
                 )
             st.markdown(
-                f"<div style='margin-top: 10px;'><span style='font-size: 11px; color: #94A3B8; font-family: \"JetBrains Mono\", monospace;'>PRIMARY OPERATORS:</span><br/>{''.join(logo_htmls)}</div>",
+                f"<div style='margin-top: 12px;'><span style='font-size: 11px; font-weight: 700; color: #94A3B8; font-family: \"JetBrains Mono\", monospace;'>PRIMARY OPERATORS:</span><br/><div style='display: flex; flex-wrap: wrap; margin-top: 4px;'>{''.join(logo_htmls)}</div></div>",
                 unsafe_allow_html=True
             )
 else:

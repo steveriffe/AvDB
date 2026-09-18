@@ -130,7 +130,7 @@ with col_f3:
     else:
         alliance_badge = "<span style='background: rgba(255, 255, 255, 0.08); color: #8E8E93; padding: 2px 8px; border-radius: 6px; font-size: 11px; margin-left: 8px;'>Independent / Unaligned</span>"
     
-    logo_html = f"<img src='{carrier_logo}' style='height: 22px; max-width: 80px; object-fit: contain; vertical-align: middle; margin-right: 8px; filter: brightness(1.1);'/>" if carrier_logo else ""
+    logo_html = f"<img src='{carrier_logo}' style='height: 24px; width: 24px; object-fit: contain; vertical-align: middle; margin-right: 8px; border-radius: 4px;'/>" if carrier_logo else ""
     
     st.markdown(
         f"<div style='display: flex; align-items: center; margin-top: 4px;'>"
@@ -159,7 +159,7 @@ if timeline or pred_merger or absorbed_mergers:
             st.markdown(f"#### 🤝 Corporate Acquisition & Integration")
             s_code = pred_merger['successor_code']
             s_logo = get_carrier_logo_url(s_code) or ""
-            s_logo_html = f"<img src='{s_logo}' style='height: 18px; vertical-align: middle; margin-right: 6px;'/>" if s_logo else ""
+            s_logo_html = f"<img src='{s_logo}' style='height: 20px; width: 20px; object-fit: contain; vertical-align: middle; margin-right: 6px; border-radius: 3px;'/>" if s_logo else ""
             st.markdown(
                 f"- **Acquiring Carrier**: {s_logo_html}**{pred_merger['successor_name']} ({s_code})**\n"
                 f"- **Announcement Date**: `{pred_merger['announced_date']}` | **Closing Date**: `{pred_merger['closing_date']}`\n"
@@ -176,7 +176,7 @@ if timeline or pred_merger or absorbed_mergers:
             for am in absorbed_mergers:
                 p_code = am['predecessor_code']
                 p_logo = get_carrier_logo_url(p_code) or ""
-                p_logo_html = f"<img src='{p_logo}' style='height: 18px; vertical-align: middle; margin-right: 6px;'/>" if p_logo else ""
+                p_logo_html = f"<img src='{p_logo}' style='height: 20px; width: 20px; object-fit: contain; vertical-align: middle; margin-right: 6px; border-radius: 3px;'/>" if p_logo else ""
                 st.markdown(
                     f"##### {p_logo_html} {am['predecessor_name']} ({p_code}) — Merged in {am.get('cutover_year', '')}\n"
                     f"- **Closing / Single Certificate**: `{am['closing_date']}` (SOC: `{am['soc_date']}`, Final Flight: `{am['final_flight_date']}`)\n"
