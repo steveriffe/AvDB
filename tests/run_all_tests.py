@@ -120,7 +120,6 @@ def test_all_module_imports():
         "app.data.ref_aircraft_specs",
         "app.data.ref_alliances",
         "app.data.ref_mergers",
-        "app.data.ref_demo_images",
         "app.data.ref_demo_peeks",
         "app.data.dave_roadwarrior_dataset",
         "app.components.landing",
@@ -223,11 +222,11 @@ def test_regional_carrier_attribution():
 
 
 def test_dave_pierce_dataset():
-    """Verify Dave Pierce Oil & Gas Road Warrior dataset, demo images, and curated peeks."""
+    """Verify Dave Pierce Oil & Gas Road Warrior dataset, monochromatic basemap, and curated peeks."""
     from app.data.dave_roadwarrior_dataset import get_dave_pierce_flighty_df
-    from app.data.ref_demo_images import DEMO_HUBS_IMAGES, DEMO_AIRCRAFT_IMAGES
     from app.data.ref_demo_peeks import DEMO_PEEKS
     from app.utils.flighty import build_flighty_travel_deck
+    from app.components.landing import _build_anc_demo_deck
 
     df = get_dave_pierce_flighty_df()
 
@@ -254,23 +253,18 @@ def test_dave_pierce_dataset():
     assert "UNITED AIRLINES" in carriers, "Expected United Airlines"
     assert "AIR CANADA" in carriers, "Expected Air Canada"
 
-    # 6. PyDeck Great-Circle route deck generates correctly
-    deck = build_flighty_travel_deck(df, home_airport="IAH", map_theme="personal", colorway="ember")
+    # 6. Monochromatic PyDeck route decks generate correctly
+    deck = build_flighty_travel_deck(df, home_airport="IAH", map_theme="mono", colorway="cobalt")
     assert len(deck.layers) >= 2, "Expected PyDeck deck with Great-Circle layers"
+
+    deck_anc = _build_anc_demo_deck()
+    assert len(deck_anc.layers) >= 2, "Expected ANC demo deck with monochromatic route layers"
 
     # 7. Curated peeks exist
     assert "anc_2025" in DEMO_PEEKS, "Expected anc_2025 peek"
     assert "as_2025" in DEMO_PEEKS, "Expected as_2025 peek"
 
-    # 8. Curated images exist with attribution
-    for code in ["ANC", "IAH", "HKG", "YHZ", "HNL", "DPS"]:
-        assert code in DEMO_HUBS_IMAGES, f"Expected image for {code}"
-        assert DEMO_HUBS_IMAGES[code]["image_url"].startswith("http")
-        assert len(DEMO_HUBS_IMAGES[code]["credit"]) > 0
-
-    assert len(DEMO_AIRCRAFT_IMAGES) >= 4, "Expected at least 4 aircraft workhorses"
-
-    print(f"✅ Dave Pierce Oil & Gas Road Warrior dataset verified ({len(df)} flights, 2000–2025, ANC/IAH/HKG/YHZ/HNL/DPS)!")
+    print(f"✅ Dave Pierce dataset & monochromatic sandbox previews verified ({len(df)} flights, 2000–2025, ANC/IAH/HKG/YHZ/HNL/DPS)!")
 
 
 if __name__ == "__main__":

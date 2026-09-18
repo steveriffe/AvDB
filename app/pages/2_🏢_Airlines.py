@@ -269,9 +269,9 @@ if not df_carrier_routes.empty:
         air_theme_label = st.selectbox(
             "Cartography Theme",
             options=[
+                "🏁 Mapbox: Mono (Monochromatic)",
                 "🎨 Mapbox: Personal (Custom)",
                 "💖 Mapbox: Love (Custom)",
-                "🏁 Mapbox: Mono (Custom)",
                 "🌌 Midnight Navy (Dark)",
                 "📜 Classic In-Flight Paper (Light)",
                 "🌑 Minimal Slate (Dark)"
@@ -280,12 +280,12 @@ if not df_carrier_routes.empty:
             key="air_map_theme",
             label_visibility="collapsed"
         )
-        if "Personal" in air_theme_label:
+        if "Mono" in air_theme_label:
+            air_theme = "mono"
+        elif "Personal" in air_theme_label:
             air_theme = "personal"
         elif "Love" in air_theme_label:
             air_theme = "love"
-        elif "Mono" in air_theme_label:
-            air_theme = "mono"
         elif "Midnight" in air_theme_label:
             air_theme = "midnight"
         elif "Paper" in air_theme_label:

@@ -1,28 +1,28 @@
 # Current Project Status: AvDB
 
 **Last Updated**: 2026-09-17
-**Current Phase**: Phase 15 Delivered (Image-Rich Pre-Sign-In Demo Site, Dave Pierce Oil & Gas Road Warrior Dataset 2000–2025, and Zero-BigQuery Wallet Protection)
+**Current Phase**: Phase 16 Delivered (Monochromatic Basemap Default Across Platform, Authentic Product Preview Sandbox, and Dave Pierce Easter Egg)
 ---
 
 ## 🎯 Active Focus
-Delivered a high-fidelity, image-rich interactive demo experience accessible before signing in, with **zero BigQuery scan cost**:
-1. **Dave Pierce Oil & Gas Road Warrior Dataset (`app/data/dave_roadwarrior_dataset.py`)**:
-   - Deterministic 275-flight travel chronicle spanning 26 years (2000–2025) for Dave Pierce, Senior Petroleum Reservoir Engineer & Offshore Operations Director.
-   - Centered on 4 core energy nodes: Anchorage (`ANC`), Houston (`IAH`), Hong Kong (`HKG`), and Halifax (`YHZ`), plus reluctant family holidays to Honolulu (`HNL`) and Bali (`DPS`) where Dave shunned the beach to review offshore well logs.
-   - Realistically split across Continental/United (`CO`/`UA` ~44.4%), Air Canada (`AC` ~25.8%), Alaska Airlines (`AS` ~21.1%), and Singapore/Garuda (~8.7%).
-   - Chronologically accurate fleet matching across 4 distinct eras (737-400, 777-200ER CO 99 polar route, 787-9 Dreamliner, A220-300, 737 MAX 9).
-2. **Curated Pre-Computed Platform Peeks (`app/data/ref_demo_peeks.py`)**:
-   - Zero-BigQuery snapshots of **Anchorage (`ANC`) 2025** (2.58M pax, 42 direct routes, Alaska Airlines 58.4% share, top 5 routes) and **Alaska Airlines (`AS`) 2025** (46.2M system pax, 172.4 avg gauge, top 5 hubs).
-   - Protects BigQuery quotas and budget from unauthenticated web traffic while providing authentic analytical depth.
-3. **High-Resolution Photography & Licensing Attribution (`app/data/ref_demo_images.py`)**:
-   - High-res photography of all core hubs (ANC, IAH, HKG, YHZ, HNL, DPS) and primary aircraft (777-200ER, 737-900ER, A220-300, 787-9) with verified photographer credits and open licensing.
-4. **Interactive Pre-Sign-In UI Component (`app/components/landing.py`)**:
-   - 3-tab navigation: Road Warrior Demo, Curated Platform Peeks, and Platform Overview & Sign-In.
-   - Geodesic 3D Great-Circle route cartography (PyDeck), Plotly longitudinal analytics (YoY trends, alliance loyalty, seating preference, carrier mix), and a searchable, filterable 275-flight table with CSV export.
-5. **Authenticated Flighty Traveler Integration (`app/pages/4_📱_Flighty_Traveler.py`)**:
-   - One-click sidebar preset button: `"Load Dave Pierce Log (2000–2025)"` for instant personal analytics exploration.
-6. **Validation & Testing**:
-   - 100% pass across all regression tests, auth checks, query syntax verification, and API endpoints via `tests/run_all_tests.py`, including new automated tests in `test_dave_pierce_dataset()`.
+Delivered a realistic, representative, and resource-conscious preview of the AvDB platform:
+1. **Monochromatic Basemap as Universal Default**:
+   - Updated `app/utils/visualizers.py`, `app/utils/flighty.py`, `app/pages/1_✈️_Airports.py`, and `app/pages/2_🏢_Airlines.py` to make the monochromatic Mapbox basemap (`settings.mapbox_style_mono`) the universal first-choice default across all PyDeck route maps and flight maps.
+2. **Authentic Product Preview Sandbox (`app/components/landing.py`)**:
+   - Completely eliminated splashy external stock photos of tourist destinations and random aircraft, removing `app/data/ref_demo_images.py`.
+   - Rebuilt pre-sign-in landing experience into an interactive 5-tab authentic product preview showcasing the actual tools:
+     * **✈️ Airport Explorer Preview**: Interactive monochromatic PyDeck route map of Anchorage (`ANC`) 2025 routes, KPI cards (2.58M pax, +3.4% YoY, 28k dep), and top direct route table.
+     * **🏢 Airline Network Preview**: Alaska Airlines (`AS`) 2025 network KPIs (46.2M pax, 382k dep, 172.4 gauge), top hub concentration table (SEA, PDX, ANC, SFO, LAX), and fleet mix table.
+     * **💺 Fleet Dynamics Preview**: 36-year interactive Plotly aircraft gauge evolution curve (1990–2026: B737, A320, Regional Jets, Widebodies) illustrating down-gauging to 50-seat RJs and modern up-gauging.
+     * **🌐 Alliances Preview**: 36-year global alliance consolidation stacked area chart (Star Alliance, SkyTeam, oneworld, NW/KL Wings 1989–2004).
+     * **📱 Personal Traveler Preview**: Real explanation of the Flighty CSV integration, subfleet enrichment, and BigQuery vault.
+3. **Dave Pierce as a Tasteful Easter Egg**:
+   - Kept Dave Pierce's 275-flight Oil & Gas travel chronicle (2000–2025 across ANC, IAH, HKG, YHZ, HNL, DPS) tucked discreetly inside an interactive expander (`🥚 Easter Egg: Dave Pierce's Road Warrior Log (2000–2025)`) within the Personal Traveler preview tab.
+   - Preserved one-click preset loader inside authenticated Flighty Traveler.
+4. **Zero-BigQuery Wallet & Quota Protection**:
+   - Guaranteed 0 byte BigQuery scans for all unauthenticated visitors and bots hitting the public root URL.
+5. **Validation & Testing**:
+   - 100% pass across all regression tests, auth checks, query syntax verification, and API endpoints via `tests/run_all_tests.py`.
 
 ---
 
