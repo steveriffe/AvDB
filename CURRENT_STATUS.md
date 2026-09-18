@@ -52,12 +52,12 @@ Delivered empirical route-level regional carrier attribution and multi-carrier c
 - [x] **Global Airline Alliances Lens (`app/pages/5_🌐_Alliances.py`) with NW/KL Wings Alliance**.
 - [x] **BigQuery User Travel Vault (`db1b-1.user_travel.user_flight_logs`) with 1,000-Flight Cap & Typed `DELETE` Purge**.
 - [x] **User Privacy Policy Page (`app/pages/6_🔒_Privacy_Policy.py`)**.
-- [x] **Removed All Portfolio Backlinks Across Platform**.
+- [x] **Deployed to Google Cloud Run (`avdb-00014-b4v`) at `https://avdb.riffe.co.uk`**.
 - [x] **Unified Test Suite Passed 100% (`tests/run_all_tests.py`)**.
 
 ---
 
 ## ⏳ Next Immediate Steps & Audit Roadmap
-1. **Deploy to Google Cloud Run**: Execute `./scripts/deploy.sh` to release the new empirical regional carrier attribution, longitudinal time-series analytics, Alliances tab, persistent user vault, and privacy policy to `https://avdb.riffe.co.uk`.
-2. **Phase 1 DB1B Historical Ingestion (2000–2025 Q2)**: Build and run automated PREZIP downloader for quarterly `DB1BMarket` files into `db1b-1.DB1B_RAW.historical_db1b_market`.
-3. **Phase 2 Historical Fare Ingestion (1990–1999)**: Ingest early DB1B (1993–1999) and DB1A (1990–1992) from NBER / TranStats archives as planned in `playbook.md`.
+1. **Phase 1 DB1B Historical Ingestion (2000–2025 Q2)**: Build and run automated PREZIP downloader for quarterly `DB1BMarket` files into `db1b-1.DB1B_RAW.historical_db1b_market`.
+2. **Phase 2 Historical Fare Ingestion (1990–1999)**: Ingest early DB1B (1993–1999) and DB1A (1990–1992) from NBER / TranStats archives as planned in `playbook.md`.
+3. **Frequent Flyer Partnerships (FFP)**: Formulate data model and catalog for historical airline reciprocal loyalty agreements.
