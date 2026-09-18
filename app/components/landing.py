@@ -4,7 +4,6 @@ Provides a representative, interactive snapshot of the AvDB platform before sign
 - Interactive lens previews (Airports, Airlines, Fleet & Routes, Alliances, Personal Traveler)
 - Authentic monochromatic route cartography & Plotly analytical charts
 - Tightly scoped pre-computed data to guarantee ZERO BigQuery cost explosion from bots
-- Dave Pierce's 25-year travel chronicle included as a tasteful, minor easter egg
 """
 import streamlit as st
 import pandas as pd
@@ -17,8 +16,7 @@ from app.utils.auth import get_google_auth_url, get_redirect_uri, logout
 from app.utils.styling import render_html, render_kpi_card
 from app.utils.queries import get_platform_live_kpis
 from app.data.ref_demo_peeks import DEMO_PEEKS
-from app.data.dave_roadwarrior_dataset import get_dave_pierce_flighty_df
-from app.utils.flighty import build_flighty_travel_deck
+from app.utils.flighty import build_flighty_travel_deck, generate_sample_flighty_data
 from app.utils.visualizers import (
     MAP_THEMES,
     ROUTE_COLORWAYS,
@@ -174,7 +172,6 @@ def render_landing_page():
     1. Hero title & Live BigQuery Scale Strip
     2. Interactive Scoped Product Sandbox (Zero BigQuery Scans)
     3. Analytical Lenses Overview & Google Sign-In
-    4. Dave Pierce Easter Egg
     """
     redirect_uri = get_redirect_uri()
     auth_url = get_google_auth_url(redirect_uri)
@@ -490,7 +487,7 @@ def render_landing_page():
             > and oneworld (1999) by nearly a decade.
         """)
 
-    # --- TAB 5: Personal Traveler Preview (With Dave Pierce Easter Egg) ---
+    # --- TAB 5: Personal Traveler Preview ---
     with tab_traveler:
         st.markdown("#### 📱 Flighty Personal Traveler & BigQuery Cloud Vault")
         st.markdown(
@@ -508,65 +505,10 @@ def render_landing_page():
 
         st.markdown("<div style='margin-top: 20px;'></div>", unsafe_allow_html=True)
 
-        # ---------------------------------------------------------------------
-        # Dave Pierce Easter Egg (Discreet & Tightly Scoped)
-        # ---------------------------------------------------------------------
-        with st.expander("🥚 Easter Egg: Dave Pierce's Road Warrior Log (2000–2025)", expanded=False):
-            st.markdown(
-                "**Dave Pierce** was a Senior Petroleum Reservoir Engineer & Offshore Operations Director. "
-                "His 275-flight travel chronicle spans 26 years across **Anchorage (ANC)**, **Houston (IAH)**, **Hong Kong (HKG)**, and **Halifax (YHZ)**, "
-                "split realistically between Continental/United (44%), Air Canada (26%), and Alaska Airlines (21%). "
-                "*(Includes a few reluctant holiday trips to Honolulu and Bali where Dave famously avoided the sand to read reservoir surveys in air-conditioned comfort!)*"
-            )
-
-            df_dave = get_dave_pierce_flighty_df()
-
-            ecol1, ecol2, ecol3, ecol4 = st.columns(4)
-            with ecol1:
-                render_kpi_card("Dave's Flights", f"{len(df_dave)}", subtitle="2000–2025 Segments")
-            with ecol2:
-                render_kpi_card("Air Miles", f"{int(df_dave['distance_miles'].sum()):,} mi", subtitle="~27x around Earth")
-            with ecol3:
-                render_kpi_card("Premium Cabin", "74.2% First/Polaris", subtitle="Long-haul lie-flat")
-            with ecol4:
-                render_kpi_card("Top Carrier", "United / Continental", subtitle="122 flight segments")
-
-            st.markdown("<div style='margin-top: 14px;'></div>", unsafe_allow_html=True)
-
-            deck_dave = build_flighty_travel_deck(df_dave, home_airport="IAH", map_theme="retro", colorway="cobalt")
-            st.pydeck_chart(deck_dave, height=380, width="stretch")
-
-            # Searchable Table
-            st.markdown("##### 📋 Inspect Dave's Flight Log")
-            search_query = st.text_input("Search Dave's log", placeholder="e.g. Prudhoe Bay, Deep Panuke, Shekou, Waikiki, Bali, 777-200ER...", key="dave_search_box")
-            df_sub = df_dave.copy()
-            if search_query:
-                q = search_query.lower()
-                df_sub = df_sub[
-                    df_sub["route"].str.lower().str.contains(q, na=False) |
-                    df_sub["carrier"].str.lower().str.contains(q, na=False) |
-                    df_sub["aircraft_subfleet"].str.lower().str.contains(q, na=False) |
-                    df_sub["Reason"].astype(str).str.lower().str.contains(q, na=False)
-                ]
-
-            display_cols = ["date", "flight_number", "route", "carrier", "aircraft_subfleet", "seat", "cabin_class", "distance_miles", "Reason"]
-            renamed_cols = {
-                "date": "Date",
-                "flight_number": "Flight",
-                "route": "Route",
-                "carrier": "Airline",
-                "aircraft_subfleet": "Aircraft",
-                "seat": "Seat",
-                "cabin_class": "Class",
-                "distance_miles": "Miles",
-                "Reason": "Project Note"
-            }
-            st.dataframe(
-                df_sub[display_cols].rename(columns=renamed_cols).head(50),
-                height=260,
-                width="stretch",
-                hide_index=True
-            )
+        # Interactive Sample Route Cartography Preview
+        df_sample = generate_sample_flighty_data()
+        deck_sample = build_flighty_travel_deck(df_sample, home_airport="SEA", map_theme="retro", colorway="cobalt")
+        st.pydeck_chart(deck_sample, height=380, width="stretch")
 
     # Privacy & Data Governance Footer Strip
     render_html("""

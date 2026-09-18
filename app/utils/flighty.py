@@ -598,14 +598,6 @@ def generate_sample_flighty_data() -> pd.DataFrame:
     return parse_flighty_csv(df_raw)
 
 
-def get_dave_pierce_dataset() -> pd.DataFrame:
-    """
-    Returns Dave Pierce's 275-flight Oil & Gas Road Warrior dataset (2000–2025),
-    fully enriched with geographic coordinates, aircraft subfleets, alliances, and CO2.
-    """
-    from app.data.dave_roadwarrior_dataset import get_dave_pierce_flighty_df
-    return get_dave_pierce_flighty_df()
-
 
 def build_flighty_travel_deck(
     df_flights: pd.DataFrame,

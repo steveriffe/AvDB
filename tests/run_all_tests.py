@@ -121,7 +121,6 @@ def test_all_module_imports():
         "app.data.ref_alliances",
         "app.data.ref_mergers",
         "app.data.ref_demo_peeks",
-        "app.data.dave_roadwarrior_dataset",
         "app.components.landing",
         "api.config",
         "api.schemas",
@@ -221,50 +220,27 @@ def test_regional_carrier_attribution():
     print("✅ Regional carrier attribution tests passed (EUG properly attributed to AS/DL)!")
 
 
-def test_dave_pierce_dataset():
-    """Verify Dave Pierce Oil & Gas Road Warrior dataset, monochromatic basemap, and curated peeks."""
-    from app.data.dave_roadwarrior_dataset import get_dave_pierce_flighty_df
+def test_demo_peeks_and_sample_deck():
+    """Verify curated peeks, sample flighty travel deck, and monochromatic basemap."""
     from app.data.ref_demo_peeks import DEMO_PEEKS
-    from app.utils.flighty import build_flighty_travel_deck
+    from app.utils.flighty import generate_sample_flighty_data, build_flighty_travel_deck
     from app.components.landing import _build_anc_demo_deck
 
-    df = get_dave_pierce_flighty_df()
+    df = generate_sample_flighty_data()
+    assert len(df) > 0, "Expected sample flighty travel data"
 
-    # 1. Flight count between 250 and 300
-    assert 250 <= len(df) <= 300, f"Expected 250-300 flights, got {len(df)}"
-
-    # 2. Years span 2000 to 2025
-    assert df["year"].min() == 2000, f"Expected start year 2000, got {df['year'].min()}"
-    assert df["year"].max() == 2025, f"Expected end year 2025, got {df['year'].max()}"
-
-    # 3. Core hubs present
-    airports = set(df["origin"]).union(set(df["dest"]))
-    for hub in ["ANC", "IAH", "HKG", "YHZ"]:
-        assert hub in airports, f"Expected hub {hub} in Dave Pierce dataset"
-
-    # 4. Pleasure flights present (HNL and DPS)
-    assert "HNL" in airports, "Expected Honolulu (HNL) in Dave Pierce dataset"
-    assert "DPS" in airports, "Expected Bali / Denpasar (DPS) in Dave Pierce dataset"
-
-    # 5. Core airlines split
-    carriers = set(df["carrier"].unique())
-    assert "ALASKA AIRLINES" in carriers, "Expected Alaska Airlines"
-    assert "CONTINENTAL AIRLINES" in carriers, "Expected Continental Airlines"
-    assert "UNITED AIRLINES" in carriers, "Expected United Airlines"
-    assert "AIR CANADA" in carriers, "Expected Air Canada"
-
-    # 6. Monochromatic PyDeck route decks generate correctly
-    deck = build_flighty_travel_deck(df, home_airport="IAH", map_theme="retro", colorway="cobalt")
+    # Monochromatic PyDeck route decks generate correctly
+    deck = build_flighty_travel_deck(df, home_airport="SEA", map_theme="retro", colorway="cobalt")
     assert len(deck.layers) >= 2, "Expected PyDeck deck with Great-Circle layers"
 
     deck_anc = _build_anc_demo_deck()
     assert len(deck_anc.layers) >= 2, "Expected ANC demo deck with monochromatic route layers"
 
-    # 7. Curated peeks exist
+    # Curated peeks exist
     assert "anc_2025" in DEMO_PEEKS, "Expected anc_2025 peek"
     assert "as_2025" in DEMO_PEEKS, "Expected as_2025 peek"
 
-    print(f"✅ Dave Pierce dataset & monochromatic sandbox previews verified ({len(df)} flights, 2000–2025, ANC/IAH/HKG/YHZ/HNL/DPS)!")
+    print("✅ Curated peeks and sample flighty travel decks verified!")
 
 
 if __name__ == "__main__":
@@ -279,7 +255,7 @@ if __name__ == "__main__":
     test_all_module_imports()
     test_time_series_queries()
     test_regional_carrier_attribution()
-    test_dave_pierce_dataset()
+    test_demo_peeks_and_sample_deck()
     run_existing_tests()
     print("\n==========================================")
     print("🎉 ALL AVDB TEST SUITES & REGRESSIONS PASSED!")

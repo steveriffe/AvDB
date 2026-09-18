@@ -41,7 +41,6 @@ from app.utils.flighty import (
     load_user_flights_from_bigquery,
     delete_user_flights_from_bigquery,
     get_user_travel_telemetry,
-    get_dave_pierce_dataset,
     USER_FLIGHT_LIMIT,
     AIRPORT_COORDINATES
 )
@@ -106,11 +105,6 @@ with st.sidebar:
                     st.session_state["flighty_source_name"] = f"BigQuery Vault ({current_user_email})"
                 else:
                     st.error(msg)
-
-    if st.button("🛢️ Load Dave Pierce Log (2000–2025)", use_container_width=True, help="Load Dave Pierce's realistic 275-flight Oil & Gas Road Warrior dataset centered on ANC, IAH, HKG, and YHZ"):
-        st.session_state["flighty_df"] = get_dave_pierce_dataset()
-        st.session_state["flighty_source_name"] = "Dave Pierce (Oil & Gas Road Warrior 2000–2025)"
-        st.rerun()
 
     col_s1, col_s2 = st.columns(2)
     with col_s1:

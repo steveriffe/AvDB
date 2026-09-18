@@ -41,11 +41,9 @@ Delivered major data integrity and UI enhancements for alliances, fleet equipmen
 
 ## ✅ Recently Completed
 - [x] **Image-Rich Pre-Sign-In Demo Experience (`app/components/landing.py`) with Zero-BigQuery Wallet Protection**.
-- [x] **Dave Pierce 275-Flight Oil & Gas Travel Chronicle (2000–2025) across ANC, IAH, HKG, YHZ, HNL, DPS**.
 - [x] **Curated Static Peeks for Anchorage 2025 and Alaska Airlines 2025 (`app/data/ref_demo_peeks.py`)**.
 - [x] **Verified High-Resolution Photography Catalog with Photographer Credits (`app/data/ref_demo_images.py`)**.
 - [x] **Interactive 3D Great-Circle Route Cartography (PyDeck) on Pre-Sign-In Landing**.
-- [x] **One-Click Dave Pierce Preset in Flighty Traveler (`app/pages/4_📱_Flighty_Traveler.py`)**.
 - [x] **Empirical Route-Level Regional Carrier Attribution Engine (`db1b-1.reporting.ref_regional_route_attribution`)**.
 - [x] **Longitudinal Time-Series Query Engine (1990–2026) across Airports, Airlines, Fleet, and Alliances**.
 - [x] **Global Airline Alliances Lens (`app/pages/5_🌐_Alliances.py`) with NW/KL Wings Alliance**.

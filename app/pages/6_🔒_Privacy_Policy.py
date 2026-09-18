@@ -111,7 +111,7 @@ render_html("""
     <div style="background: rgba(17, 29, 51, 0.6); border: 1px solid rgba(255, 255, 255, 0.06); border-radius: 10px; padding: 10px 16px; margin-top: 12px; margin-bottom: 16px; font-size: 0.85rem; color: #94A3B8;">
         👤 <b>Active Traveler Profiles in Vault</b>: 
         <span style="color: #38BDF8; font-weight: 600;">Steve Riffe</span> (Lead Architect · 148 flights) &nbsp;•&nbsp; 
-        <span style="color: #FB923C; font-weight: 600;">Dave Pierce</span> (Oil & Gas Road Warrior · 275 flights) &nbsp;•&nbsp; 
+        <span style="color: #FB923C; font-weight: 600;">Marcus Vance</span> (Global Operations · 210 flights) &nbsp;•&nbsp; 
         <span style="color: #10B981; font-weight: 600;">Sarah Jenkins</span> (Transatlantic Strategy · 85 flights)
     </div>
 """)
