@@ -1,29 +1,26 @@
 # Current Project Status: AvDB
 
 **Last Updated**: 2026-09-17
-**Current Phase**: Phase 16 Delivered (Monochromatic Basemap Default Across Platform, Authentic Product Preview Sandbox, and Dave Pierce Easter Egg)
+**Current Phase**: Phase 17 Delivered (Custom 1990s Aviation Mapbox Style "Jetway Amber", Universal Basemap Default, and Cloud Run Deployment)
 ---
 
 ## 🎯 Active Focus
-Delivered a realistic, representative, and resource-conscious preview of the AvDB platform:
-1. **Monochromatic Basemap as Universal Default**:
-   - Updated `app/utils/visualizers.py`, `app/utils/flighty.py`, `app/pages/1_✈️_Airports.py`, and `app/pages/2_🏢_Airlines.py` to make the monochromatic Mapbox basemap (`settings.mapbox_style_mono`) the universal first-choice default across all PyDeck route maps and flight maps.
-2. **Authentic Product Preview Sandbox (`app/components/landing.py`)**:
-   - Completely eliminated splashy external stock photos of tourist destinations and random aircraft, removing `app/data/ref_demo_images.py`.
-   - Rebuilt pre-sign-in landing experience into an interactive 5-tab authentic product preview showcasing the actual tools:
-     * **✈️ Airport Explorer Preview**: Interactive monochromatic PyDeck route map of Anchorage (`ANC`) 2025 routes, KPI cards (2.58M pax, +3.4% YoY, 28k dep), and top direct route table.
-     * **🏢 Airline Network Preview**: Alaska Airlines (`AS`) 2025 network KPIs (46.2M pax, 382k dep, 172.4 gauge), top hub concentration table (SEA, PDX, ANC, SFO, LAX), and fleet mix table.
-     * **💺 Fleet Dynamics Preview**: 36-year interactive Plotly aircraft gauge evolution curve (1990–2026: B737, A320, Regional Jets, Widebodies) illustrating down-gauging to 50-seat RJs and modern up-gauging.
-     * **🌐 Alliances Preview**: 36-year global alliance consolidation stacked area chart (Star Alliance, SkyTeam, oneworld, NW/KL Wings 1989–2004).
-     * **📱 Personal Traveler Preview**: Real explanation of the Flighty CSV integration, subfleet enrichment, and BigQuery vault.
-3. **Dave Pierce as a Tasteful Easter Egg**:
-   - Kept Dave Pierce's 275-flight Oil & Gas travel chronicle (2000–2025 across ANC, IAH, HKG, YHZ, HNL, DPS) tucked discreetly inside an interactive expander (`🥚 Easter Egg: Dave Pierce's Road Warrior Log (2000–2025)`) within the Personal Traveler preview tab.
-   - Preserved one-click preset loader inside authenticated Flighty Traveler.
-4. **Zero-BigQuery Wallet & Quota Protection**:
-   - Guaranteed 0 byte BigQuery scans for all unauthenticated visitors and bots hitting the public root URL.
-5. **Validation & Testing**:
-   - 100% pass across all regression tests, auth checks, query syntax verification, and API endpoints via `tests/run_all_tests.py`.
-
+Delivered a custom 1990s aviation-inspired Mapbox style created programmatically via the Mapbox Styles API:
+1. **Custom Style "Jetway Amber" (`mapbox://styles/steveriffe/cmu6drl9x001301rh8c4y170c`)**:
+   - Created live via Mapbox Styles API POST endpoint using the admin access token.
+   - Inspired by the era of 1990s aviation:
+     * **Land**: `hsl(35, 8%, 14%)` — warm graphite, evocative of airport terminal linoleum and 1990s carpet tones.
+     * **Water**: `hsl(196, 30%, 9%)` — deep CRT cathode ray blue-green.
+     * **Aeroway / Runways**: `hsl(42, 55%, 32%)` — amber highlight, evoking SOLARI split-flap departure boards and amber runway lighting.
+     * **Boundaries**: `hsl(210, 30%, 40%)` — faded chartroom blue, like printed aeronautical sectional charts.
+     * **Labels**: Warm cream and glowing amber on dark, styled like CRT monitors and paper boarding pass stock.
+     * **Atmosphere / Fog**: `hsl(38, 15%, 8%)` warm amber horizon haze.
+2. **Platform-Wide Default**:
+   - Wired as the universal default across `MAP_THEMES["retro"]`, `app/utils/visualizers.py`, `app/utils/flighty.py`, `1_✈️_Airports.py`, `2_🏢_Airlines.py`, and the pre-sign-in landing preview sandbox.
+   - Added `MAPBOX_STYLE_URL_RETRO` to `.env` and Cloud Run deployment configuration.
+3. **Deployment**:
+   - 100% test pass rate across all suites (`tests/run_all_tests.py`).
+   - Live on Cloud Run revision `avdb-00018-fsf` at `https://avdb.riffe.co.uk`.
 ---
 
 ## 📊 Live BigQuery Analytical Marts (`db1b-1.reporting` & `db1b-1.user_travel`)
