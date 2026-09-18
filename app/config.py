@@ -30,6 +30,7 @@ class Settings(BaseSettings):
     mapbox_style_personal: str = os.getenv("MAPBOX_STYLE_URL_PERSONAL", "")
     mapbox_style_love: str = os.getenv("MAPBOX_STYLE_URL_LOVE", "")
     mapbox_style_mono: str = os.getenv("MAPBOX_STYLE_URL_MONO", "")
+    mapbox_style_retro: str = os.getenv("MAPBOX_STYLE_URL_RETRO", "mapbox://styles/steveriffe/cmu6drl9x001301rh8c4y170c")
 
     @property
     def allowed_emails(self) -> list[str]:

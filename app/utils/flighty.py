@@ -610,7 +610,7 @@ def get_dave_pierce_dataset() -> pd.DataFrame:
 def build_flighty_travel_deck(
     df_flights: pd.DataFrame,
     home_airport: str = "SEA",
-    map_theme: str = "love",
+    map_theme: str = "retro",
     colorway: str = "cobalt"
 ) -> Any:
     """
@@ -739,7 +739,7 @@ def build_flighty_travel_deck(
         "style": {"color": "white"}
     }
 
-    style_url = MAP_THEMES.get(map_theme, MAP_THEMES["love"])
+    style_url = MAP_THEMES.get(map_theme, MAP_THEMES["retro"])
     from app.config import settings
     api_keys = {"mapbox": settings.mapbox_token} if settings.mapbox_token else None
 

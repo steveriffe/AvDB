@@ -41,6 +41,7 @@ FAMILY_COLORS = {
 
 # Map Themes & Cartography Styles
 MAP_THEMES = {
+    "retro": settings.mapbox_style_retro or "mapbox://styles/steveriffe/cmu6drl9x001301rh8c4y170c",
     "love": settings.mapbox_style_love or "mapbox://styles/steveriffe/clo1pnnf2005301q29moshbss",
     "mono": settings.mapbox_style_mono or "mapbox://styles/steveriffe/clkd2zev8001401px6p3m3s8u",
     "personal": settings.mapbox_style_personal or "mapbox://styles/steveriffe/ck6vgf67d0ize1isbb0zwh9vi",
@@ -383,7 +384,7 @@ def build_route_map_deck(
     )
 
     token = mapbox_api_key or settings.mapbox_token or os.getenv("MAPBOX_ACCESS_TOKEN_PUBLIC", "") or os.getenv("MAPBOX_API_KEY", "")
-    map_style = mapbox_style or MAP_THEMES.get(theme, MAP_THEMES["love"] if token else MAP_THEMES["midnight"])
+    map_style = mapbox_style or MAP_THEMES.get(theme, MAP_THEMES["retro"] if token else MAP_THEMES["midnight"])
 
     return pdk.Deck(
         layers=layers,
@@ -593,7 +594,7 @@ def build_airline_network_deck(
     )
 
     token = mapbox_api_key or settings.mapbox_token or os.getenv("MAPBOX_ACCESS_TOKEN_PUBLIC", "") or os.getenv("MAPBOX_API_KEY", "")
-    map_style = mapbox_style or MAP_THEMES.get(theme, MAP_THEMES["love"] if token else MAP_THEMES["midnight"])
+    map_style = mapbox_style or MAP_THEMES.get(theme, MAP_THEMES["retro"] if token else MAP_THEMES["midnight"])
 
     return pdk.Deck(
         layers=layers,
