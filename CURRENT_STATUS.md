@@ -23,6 +23,7 @@ Delivered comprehensive longitudinal trending over time across the AvDB dashboar
    - **Alliances Tab**: Includes an "Alliance Market Share Evolution (1990–2026)" expander showing 36 years of global consolidation touching US gateways.
 4. **Validation & Testing**:
    - 100% pass across all regression tests, auth checks, query syntax verification, and API endpoints via `tests/run_all_tests.py`.
+   - Verified BigQuery schema alignment across all time-series queries: fixed `PARTITION BY` non-grouped column references in `get_airport_time_series`, corrected `available_seat_miles`/`revenue_passenger_miles` in `get_airline_time_series`, and `operational_passengers` in `get_fleet_time_series`.
 
 ---
 
