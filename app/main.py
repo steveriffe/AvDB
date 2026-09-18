@@ -74,40 +74,45 @@ def main():
         render_feature_card(
             "✈️ Airport Explorer",
             "Explore direct destinations, carrier seat share, O&D fare yields, and interactive great-circle route maps.",
-            "/Airports",
-            "Open Airport Explorer →"
+            page_path="pages/1_✈️_Airports.py",
+            link_text="Open Airport Explorer →",
+            icon="✈️"
         )
 
     with lcol2:
         render_feature_card(
             "🏢 Airline Explorer",
             "Inspect route networks, hub concentration, passenger market share, and revenue passenger mile (RPM) yields.",
-            "/Airlines",
-            "Open Airline Explorer →"
+            page_path="pages/2_🏢_Airlines.py",
+            link_text="Open Airline Explorer →",
+            icon="🏢"
         )
 
     with lcol3:
         render_feature_card(
             "💺 Fleet & Routes",
             "Analyze aircraft type allocation, up-gauging / down-gauging trends, and stage-length economics.",
-            "/Fleet_Routes",
-            "Open Fleet Analytics →"
+            page_path="pages/3_💺_Fleet_Routes.py",
+            link_text="Open Fleet Analytics →",
+            icon="💺"
         )
 
     with lcol4:
         render_feature_card(
             "🌐 Alliances Lens",
             "Compare Star Alliance, SkyTeam, oneworld, and NW/KL Wings Alliance loads, revenue, and fleet mix.",
-            "/Alliances",
-            "Open Alliances →"
+            page_path="pages/5_🌐_Alliances.py",
+            link_text="Open Alliances →",
+            icon="🌐"
         )
 
     with lcol5:
         render_feature_card(
             "📱 Personal Traveler",
             "Upload Flighty logs, persist in BigQuery cloud vault, analyze subfleets, and plot personal route maps.",
-            "/Flighty_Traveler",
-            "Open Personal Traveler →"
+            page_path="pages/4_📱_Flighty_Traveler.py",
+            link_text="Open Personal Traveler →",
+            icon="📱"
         )
 
 

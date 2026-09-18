@@ -217,6 +217,28 @@ def apply_apple_style():
                 border-color: #38BDF8 !important;
             }
 
+            /* Streamlit Page Link Nav Button */
+            [data-testid="stPageLink-NavLink"] {
+                background: rgba(17, 29, 51, 0.9) !important;
+                border: 1px solid rgba(255, 107, 0, 0.4) !important;
+                border-radius: 10px !important;
+                color: #FF6B00 !important;
+                font-weight: 700 !important;
+                transition: all 0.2s ease !important;
+                padding: 6px 12px !important;
+            }
+            [data-testid="stPageLink-NavLink"]:hover {
+                background: rgba(255, 107, 0, 0.15) !important;
+                border-color: #FF6B00 !important;
+                transform: translateY(-1px) !important;
+                box-shadow: 0 4px 14px rgba(255, 107, 0, 0.3) !important;
+            }
+            [data-testid="stPageLink-NavLink"] p {
+                color: #FF6B00 !important;
+                font-weight: 700 !important;
+                font-size: 0.88rem !important;
+            }
+
             /* Remove standard Streamlit padding clutter */
             .block-container {
                 padding-top: 1.8rem;
@@ -279,15 +301,19 @@ def render_kpi_card(label: str = None, value: str = "", delta: str = None, subti
     render_html(html)
 
 
-def render_feature_card(title: str, description: str, link_url: str, link_text: str = "Open →"):
-    """Renders a portfolio glassmorphic feature card with interactive navigation link."""
+def render_feature_card(title: str, description: str, page_path: str = None, link_text: str = "Open →", link_url: str = None, icon: str = None):
+    """Renders a portfolio glassmorphic feature card with interactive in-session navigation."""
     html = f"""
-        <div class="metric-container" style="min-height: 190px;">
-            <div style="font-family: 'Plus Jakarta Sans', sans-serif; font-size: 1.25rem; font-weight: 700; color: #FFFFFF; margin-bottom: 8px;">{title}</div>
-            <div style="color: #CBD5E1; font-size: 0.88rem; line-height: 1.5; margin-bottom: 14px;">
+        <div class="metric-container" style="min-height: 145px; margin-bottom: 8px;">
+            <div style="font-family: 'Plus Jakarta Sans', sans-serif; font-size: 1.15rem; font-weight: 700; color: #FFFFFF; margin-bottom: 8px;">{title}</div>
+            <div style="color: #CBD5E1; font-size: 0.85rem; line-height: 1.5;">
                 {description}
             </div>
-            <a href="{link_url}" target="_self" style="color: #FF6B00; font-weight: 700; text-decoration: none; font-size: 0.92rem; font-family: 'Plus Jakarta Sans', sans-serif;">{link_text}</a>
         </div>
     """
     render_html(html)
+    if page_path:
+        st.page_link(page_path, label=link_text, icon=icon, use_container_width=True)
+    elif link_url:
+        st.markdown(f'<a href="{link_url}" target="_self" style="color: #FF6B00; font-weight: 700; text-decoration: none; font-size: 0.92rem; font-family: \'Plus Jakarta Sans\', sans-serif;">{link_text}</a>', unsafe_allow_html=True)
+

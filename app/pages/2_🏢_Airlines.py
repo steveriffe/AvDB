@@ -362,7 +362,7 @@ with c1:
             height=320,
             margin=dict(l=10, r=10, t=10, b=10),
             xaxis=dict(showgrid=True, gridcolor="rgba(255,255,255,0.06)", tickfont=dict(color="#8E8E93")),
-            yaxis=dict(showgrid=False, tickfont=dict(color="#F5F5F7", size=10.5))
+            yaxis=dict(showgrid=False, autorange="reversed", tickfont=dict(color="#F5F5F7", size=10.5))
         )
         st.plotly_chart(fig_hubs, width="stretch", config={"displayModeBar": False})
     else:

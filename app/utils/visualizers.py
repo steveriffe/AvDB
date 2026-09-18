@@ -857,19 +857,25 @@ def build_carrier_premium_bar_chart(df_comp: pd.DataFrame) -> go.Figure:
     if df_comp.empty:
         return go.Figure()
 
+    df_clean = df_comp.copy()
+    df_clean["carrier_label"] = df_clean["unique_carrier"] + " — " + df_clean["carrier_name"].fillna(df_clean["unique_carrier"])
+    df_clean["fmt_premium"] = df_clean["fare_premium_vs_min"].apply(lambda p: f"+${p:.0f}" if pd.notna(p) and p > 0 else ("Base Fare" if p == 0 else "—"))
+    df_clean["fmt_yield"] = df_clean["yield_per_mile"].apply(lambda y: f"${y:.4f}/mi" if pd.notna(y) else "—")
+    df_clean["fmt_share"] = df_clean["passenger_share_pct"].apply(lambda s: f"{s:.1f}%" if pd.notna(s) else "—")
+
     fig = go.Figure()
     fig.add_trace(go.Bar(
-        y=df_comp["unique_carrier"] + " — " + df_comp["carrier_name"],
-        x=df_comp["avg_fare"],
+        y=df_clean["carrier_label"],
+        x=df_clean["avg_fare"],
         orientation="h",
         marker=dict(color="#0A84FF", opacity=0.9),
-        customdata=df_comp[["passenger_share_pct", "yield_per_mile", "fare_premium_vs_min"]],
+        customdata=df_clean[["fmt_share", "fmt_yield", "fmt_premium"]],
         hovertemplate=(
             "<b>%{y}</b><br>"
             "Avg O&D Fare: <b>$%{x:.0f}</b><br>"
-            "Passenger Share: <b>%{customdata[0]:.1f}%</b><br>"
-            "Yield: <b>$%{customdata[1]:.4f}/mi</b><br>"
-            "Premium vs Min Carrier: <b>+$%{customdata[2]:.0f}</b>"
+            "Passenger Share: <b>%{customdata[0]}</b><br>"
+            "Yield: <b>%{customdata[1]}</b><br>"
+            "Premium vs Min Carrier: <b>%{customdata[2]}</b>"
             "<extra></extra>"
         )
     ))
@@ -881,7 +887,7 @@ def build_carrier_premium_bar_chart(df_comp: pd.DataFrame) -> go.Figure:
         plot_bgcolor="rgba(0,0,0,0)",
         height=240,
         xaxis=dict(showgrid=True, gridcolor="rgba(255,255,255,0.06)", tickfont=dict(color="#8E8E93")),
-        yaxis=dict(showgrid=False, tickfont=dict(color="#F5F5F7"))
+        yaxis=dict(showgrid=False, autorange="reversed", tickfont=dict(color="#F5F5F7"))
     )
     return fig
 

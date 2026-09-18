@@ -41,6 +41,7 @@ from app.utils.flighty import (
     load_user_flights_from_bigquery,
     delete_user_flights_from_bigquery,
     get_user_travel_telemetry,
+    get_dave_pierce_dataset,
     USER_FLIGHT_LIMIT,
     AIRPORT_COORDINATES
 )

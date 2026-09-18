@@ -150,7 +150,7 @@ with c1:
             height=340,
             margin=dict(l=10, r=10, t=10, b=10),
             xaxis=dict(showgrid=True, gridcolor="rgba(255,255,255,0.06)", tickfont=dict(color="#8E8E93")),
-            yaxis=dict(showgrid=False, tickfont=dict(color="#F5F5F7", size=10.5))
+            yaxis=dict(showgrid=False, autorange="reversed", tickfont=dict(color="#F5F5F7", size=10.5))
         )
         st.plotly_chart(fig_fleet, width="stretch", config={"displayModeBar": False})
     else:
@@ -159,26 +159,33 @@ with c1:
 with c2:
     st.markdown("### 📊 Stage Length vs Passenger Yield ($/mi)")
     if not df_fleet.empty:
-        fig_scatter = px.scatter(
-            df_fleet,
-            x="avg_stage_length",
-            y="yield_per_mile",
-            size="total_seats",
-            color="aircraft_family",
-            hover_name="aircraft_description",
-            hover_data={"avg_segment_fare": ":$.0f", "avg_gauge_seats": ":.0f"},
-            labels={"avg_stage_length": "Avg Stage Length (Miles)", "yield_per_mile": "Yield ($/Mile)"}
-        )
-        fig_scatter.update_layout(
-            paper_bgcolor="rgba(0,0,0,0)",
-            plot_bgcolor="rgba(0,0,0,0)",
-            height=340,
-            margin=dict(l=10, r=10, t=10, b=10),
-            xaxis=dict(showgrid=True, gridcolor="rgba(255,255,255,0.06)", tickfont=dict(color="#8E8E93")),
-            yaxis=dict(showgrid=True, gridcolor="rgba(255,255,255,0.06)", tickfont=dict(color="#8E8E93")),
-            legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1, font=dict(color="#F5F5F7", size=9.5))
-        )
-        st.plotly_chart(fig_scatter, width="stretch", config={"displayModeBar": False})
+        scatter_data = df_fleet.dropna(subset=["avg_stage_length", "yield_per_mile", "total_seats"])
+        scatter_data = scatter_data[(scatter_data["avg_stage_length"] > 0) & (scatter_data["yield_per_mile"] > 0) & (scatter_data["total_seats"] > 0)]
+        if not scatter_data.empty:
+            fig_scatter = px.scatter(
+                scatter_data,
+                x="avg_stage_length",
+                y="yield_per_mile",
+                size="total_seats",
+                color="aircraft_family",
+                hover_name="aircraft_description",
+                hover_data={"avg_segment_fare": ":$.0f", "avg_gauge_seats": ":.0f"},
+                labels={"avg_stage_length": "Avg Stage Length (Miles)", "yield_per_mile": "Yield ($/Mile)"}
+            )
+            fig_scatter.update_layout(
+                paper_bgcolor="rgba(0,0,0,0)",
+                plot_bgcolor="rgba(0,0,0,0)",
+                height=340,
+                margin=dict(l=10, r=10, t=10, b=10),
+                xaxis=dict(showgrid=True, gridcolor="rgba(255,255,255,0.06)", tickfont=dict(color="#8E8E93")),
+                yaxis=dict(showgrid=True, gridcolor="rgba(255,255,255,0.06)", tickfont=dict(color="#8E8E93")),
+                legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1, font=dict(color="#F5F5F7", size=9.5))
+            )
+            st.plotly_chart(fig_scatter, width="stretch", config={"displayModeBar": False})
+        else:
+            st.info("Stage length and passenger yield data not available for this selection.")
+    else:
+        st.info("No fleet deployment data available.")
 
 # -------------------------------------------------------------
 # 4. Aircraft Technical Specifications & Operator Branding
@@ -283,12 +290,46 @@ if not df_ops.empty:
             c_code = row["unique_carrier"]
             c_logo = get_carrier_logo_url(c_code)
             seats_k = f"{row['total_seats']/1e6:.1f}M" if row['total_seats'] >= 1e6 else f"{row['total_seats']/1e3:.0f}K"
+            carrier_raw = row.get("carrier_name")
+            carrier_str = str(carrier_raw) if pd.notna(carrier_raw) and carrier_raw else c_code
+            carrier_disp = carrier_str.split(" ")[0]
+            lf_str = f"LF: {row['load_factor_pct']:.1f}%" if pd.notna(row.get("load_factor_pct")) else "LF: N/A"
+            fare_str = f"Fare: ${row['avg_segment_fare']:.0f}" if pd.notna(row.get("avg_segment_fare")) else "Fare: N/A"
             render_kpi_card(
-                label=f"{c_code} — {row['carrier_name'].split(' ')[0]}",
+                label=f"{c_code} — {carrier_disp}",
                 value=f"{seats_k} seats",
-                subtitle=f"LF: {row['load_factor_pct']:.1f}% | Fare: ${row['avg_segment_fare']:.0f}",
+                subtitle=f"{lf_str} | {fare_str}",
                 logo_url=c_logo
             )
+            
+    # Leading Airline Operators Horizontal Bar Chart (Sorted Descending)
+    st.markdown("<div style='margin-top: 14px;'></div>", unsafe_allow_html=True)
+    fig_ops = go.Figure()
+    op_labels = df_ops["unique_carrier"] + " — " + df_ops["carrier_name"].fillna(df_ops["unique_carrier"])
+    fig_ops.add_trace(go.Bar(
+        y=op_labels,
+        x=df_ops["total_seats"],
+        orientation="h",
+        marker=dict(color="#FF6B00", opacity=0.85),
+        customdata=df_ops[["departures_performed", "load_factor_pct", "avg_segment_fare"]],
+        hovertemplate=(
+            "<b>%{y}</b><br>"
+            "Total Seats: <b>%{x:,.0f}</b><br>"
+            "Departures: <b>%{customdata[0]:,.0f}</b><br>"
+            "Load Factor: <b>%{customdata[1]}%</b><br>"
+            "Avg Fare: <b>$%{customdata[2]}</b>"
+            "<extra></extra>"
+        )
+    ))
+    fig_ops.update_layout(
+        paper_bgcolor="rgba(0,0,0,0)",
+        plot_bgcolor="rgba(0,0,0,0)",
+        height=320,
+        margin=dict(l=10, r=10, t=10, b=10),
+        xaxis=dict(showgrid=True, gridcolor="rgba(255,255,255,0.06)", tickfont=dict(color="#8E8E93")),
+        yaxis=dict(showgrid=False, autorange="reversed", tickfont=dict(color="#F5F5F7", size=11))
+    )
+    st.plotly_chart(fig_ops, width="stretch", config={"displayModeBar": False})
 
 # -------------------------------------------------------------
 # 6. Detailed Data Table

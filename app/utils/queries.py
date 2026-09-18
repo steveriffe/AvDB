@@ -1242,7 +1242,7 @@ def get_alliance_fleet_deployment(year: int) -> pd.DataFrame:
         aircraft_family,
         SUM(departures_performed) as departures,
         SUM(total_seats) as total_seats,
-        SUM(passengers_carried) as passengers
+        SUM(operational_passengers) as passengers
     FROM `db1b-1.reporting.mart_fleet_route_dynamics`
     WHERE flight_date >= '{start_date}' AND flight_date <= '{end_date}'
     GROUP BY 1, 2
