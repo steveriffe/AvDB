@@ -106,9 +106,14 @@ with st.sidebar:
                 else:
                     st.error(msg)
 
+    if st.button("🛢️ Load Dave Pierce Log (2000–2025)", use_container_width=True, help="Load Dave Pierce's realistic 275-flight Oil & Gas Road Warrior dataset centered on ANC, IAH, HKG, and YHZ"):
+        st.session_state["flighty_df"] = get_dave_pierce_dataset()
+        st.session_state["flighty_source_name"] = "Dave Pierce (Oil & Gas Road Warrior 2000–2025)"
+        st.rerun()
+
     col_s1, col_s2 = st.columns(2)
     with col_s1:
-        if st.button("Load Sample", help="Load realistic 30-flight sample log featuring 737-900ER, MAX 9, 787-9, A321neo"):
+        if st.button("Load Sample", help="Load 30-flight modern sample log"):
             st.session_state["flighty_df"] = generate_sample_flighty_data()
             st.session_state["flighty_source_name"] = "Sample Travel Log (Frequent Traveler)"
             st.rerun()
