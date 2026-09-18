@@ -1087,15 +1087,22 @@ def get_airport_time_series(airport_code: str, passenger_only: bool = True) -> p
       WHERE origin = '{code}' {pax_filter}
       GROUP BY 1
     ),
-    carrier_annual AS (
+    carrier_raw AS (
       SELECT
         EXTRACT(YEAR FROM flight_date) as year,
         unique_carrier,
-        SUM(operational_passengers) as carrier_pax,
-        ROW_NUMBER() OVER(PARTITION BY EXTRACT(YEAR FROM flight_date) ORDER BY SUM(operational_passengers) DESC) as rn
+        SUM(operational_passengers) as carrier_pax
       FROM `db1b-1.reporting.mart_airport_network_summary`
       WHERE origin = '{code}' {pax_filter}
       GROUP BY 1, 2
+    ),
+    carrier_annual AS (
+      SELECT
+        year,
+        unique_carrier,
+        carrier_pax,
+        ROW_NUMBER() OVER(PARTITION BY year ORDER BY carrier_pax DESC) as rn
+      FROM carrier_raw
     )
     SELECT
       a.year,
@@ -1129,9 +1136,9 @@ def get_airline_time_series(carrier_code: str) -> pd.DataFrame:
       SUM(departures_performed) as total_departures,
       SUM(total_seats) as total_seats,
       SUM(operational_passengers) as total_passengers,
-      SUM(distance_miles * total_seats) as total_asm,
-      SUM(distance_miles * operational_passengers) as total_rpm,
-      ROUND(SUM(distance_miles * operational_passengers) / NULLIF(SUM(distance_miles * total_seats), 0) * 100, 1) as system_load_factor_pct,
+      SUM(available_seat_miles) as total_asm,
+      SUM(revenue_passenger_miles) as total_rpm,
+      ROUND(SUM(revenue_passenger_miles) / NULLIF(SUM(available_seat_miles), 0) * 100, 1) as system_load_factor_pct,
       ROUND(SUM(operational_passengers) / NULLIF(SUM(total_seats), 0) * 100, 1) as load_factor_pct,
       COUNT(DISTINCT dest) as active_routes
     FROM `db1b-1.reporting.mart_airline_network_performance`
@@ -1161,7 +1168,7 @@ def get_fleet_time_series(aircraft_family: Optional[str] = None) -> pd.DataFrame
       aircraft_family,
       SUM(departures_performed) as departures,
       SUM(total_seats) as total_seats,
-      SUM(passengers_carried) as passengers,
+      SUM(operational_passengers) as passengers,
       ROUND(SUM(total_seats) / NULLIF(SUM(departures_performed), 0), 1) as avg_gauge
     FROM `db1b-1.reporting.mart_fleet_route_dynamics`
     {fam_filter}

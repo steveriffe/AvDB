@@ -149,6 +149,34 @@ def test_all_module_imports():
     print("✅ All core modules imported and all Streamlit pages compiled cleanly!")
 
 
+def test_time_series_queries():
+    """Verify time series queries execute against BigQuery without syntax or partitioning errors."""
+    from app.utils.queries import (
+        get_airport_time_series,
+        get_airline_time_series,
+        get_fleet_time_series,
+        get_alliances_time_series
+    )
+    
+    df_apt = get_airport_time_series("SEA", passenger_only=True)
+    assert not df_apt.empty, "Expected non-empty time series for SEA"
+    assert "year" in df_apt.columns and "top_carrier" in df_apt.columns
+
+    df_air = get_airline_time_series("UA")
+    assert not df_air.empty, "Expected non-empty time series for UA"
+    assert "total_asm" in df_air.columns and "total_rpm" in df_air.columns
+
+    df_fleet = get_fleet_time_series()
+    assert not df_fleet.empty, "Expected non-empty fleet time series"
+    assert "avg_gauge" in df_fleet.columns
+
+    df_alliances = get_alliances_time_series()
+    assert not df_alliances.empty, "Expected non-empty alliances time series"
+    assert "pax_share_pct" in df_alliances.columns
+
+    print("✅ All four time series queries verified without SQL/partitioning error!")
+
+
 if __name__ == "__main__":
     print("==========================================")
     print("🚀 Running AvDB Complete Verification Suite")
@@ -159,6 +187,7 @@ if __name__ == "__main__":
     test_ignore_rules()
     test_carrier_breakdown_query()
     test_all_module_imports()
+    test_time_series_queries()
     run_existing_tests()
     print("\n==========================================")
     print("🎉 ALL AVDB TEST SUITES & REGRESSIONS PASSED!")
