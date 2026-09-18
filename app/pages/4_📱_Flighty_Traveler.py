@@ -9,7 +9,7 @@ if str(REPO_ROOT) not in sys.path:
 import streamlit as st
 import pandas as pd
 from app.config import settings
-from app.utils.styling import apply_apple_style, render_kpi_card
+from app.utils.styling import apply_apple_style, render_kpi_card, render_portal_nav_link
 from app.utils.auth import require_auth
 
 st.set_page_config(
@@ -20,6 +20,7 @@ st.set_page_config(
 )
 
 apply_apple_style()
+render_portal_nav_link()
 require_auth()
 
 import plotly.express as px

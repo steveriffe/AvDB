@@ -51,7 +51,7 @@ def test_alliance_transitions():
 
     # Logos
     as_logo = get_carrier_logo_url("AS")
-    assert as_logo is not None and "Alaska_Airlines" in as_logo
+    assert as_logo is not None and (as_logo.startswith("data:image/svg+xml") or "Alaska" in as_logo)
 
     # Timeline
     sk_timeline = get_carrier_alliance_timeline("SK")

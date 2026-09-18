@@ -1,172 +1,255 @@
 """
-Apple-Modern HTML Landing Homepage & Access Control UI Component for AvDB
+Steve Riffe Unified Portfolio Design System: HTML Landing Homepage & Access Control UI Component for AvDB
 """
 import streamlit as st
 from app.config import settings
 from app.utils.auth import get_google_auth_url, get_redirect_uri, logout
 from app.utils.styling import render_html
+from app.utils.queries import get_platform_live_kpis
 
 
 def render_landing_page():
     """
-    Renders the public landing homepage with feature highlights, platform scale,
-    and a prominent Google Sign-In call to action.
+    Renders the public landing homepage with feature highlights, live warehouse scale,
+    portfolio-aligned styling, and a prominent Google Sign-In call to action.
     """
     redirect_uri = get_redirect_uri()
     auth_url = get_google_auth_url(redirect_uri)
+    kpis = get_platform_live_kpis()
 
     render_html("""
         <style>
+        .landing-portal-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 18px;
+            margin-bottom: 24px;
+            background: rgba(17, 29, 51, 0.85);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 14px;
+            backdrop-filter: blur(14px);
+        }
+        .portal-brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+        }
+        .portal-avatar {
+            width: 34px;
+            height: 34px;
+            border-radius: 8px;
+            background: linear-gradient(135deg, #2563EB, #0F172A);
+            border: 1px solid rgba(56, 189, 248, 0.4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 800;
+            color: #FFFFFF;
+            font-size: 13px;
+        }
+        .portal-text-name {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-weight: 700;
+            color: #FFFFFF;
+            font-size: 14px;
+            line-height: 1.2;
+        }
+        .portal-text-sub {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11px;
+            color: #94A3B8;
+        }
         .landing-hero {
-            background: linear-gradient(135deg, rgba(28, 28, 30, 0.8) 0%, rgba(10, 10, 12, 0.95) 100%);
+            background: linear-gradient(135deg, rgba(17, 29, 51, 0.95) 0%, rgba(6, 9, 17, 0.98) 100%);
             border: 1px solid rgba(255, 255, 255, 0.1);
             border-radius: 20px;
             padding: 48px 36px;
             text-align: center;
-            margin-bottom: 32px;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
-            backdrop-filter: blur(10px);
+            margin-bottom: 28px;
+            box-shadow: 0 20px 48px -12px rgba(0, 0, 0, 0.6), 0 0 32px -4px rgba(56, 189, 248, 0.1);
+            backdrop-filter: blur(16px);
         }
         .hero-badge {
-            display: inline-block;
-            background: rgba(10, 132, 255, 0.15);
-            color: #0A84FF;
-            border: 1px solid rgba(10, 132, 255, 0.3);
-            font-size: 0.85rem;
-            font-weight: 600;
-            padding: 6px 16px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(56, 189, 248, 0.12);
+            color: #38BDF8;
+            border: 1px solid rgba(56, 189, 248, 0.3);
+            font-size: 0.78rem;
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 700;
+            padding: 5px 14px;
             border-radius: 20px;
-            margin-bottom: 20px;
+            margin-bottom: 18px;
             letter-spacing: 0.5px;
             text-transform: uppercase;
         }
         .hero-title {
-            font-size: 2.8rem;
-            font-weight: 700;
-            color: #F5F5F7;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 2.9rem;
+            font-weight: 800;
+            color: #FFFFFF;
             margin-bottom: 16px;
-            letter-spacing: -0.5px;
+            letter-spacing: -0.03em;
             line-height: 1.15;
         }
         .hero-subtitle {
-            font-size: 1.2rem;
-            color: #8E8E93;
-            max-width: 680px;
+            font-size: 1.15rem;
+            color: #CBD5E1;
+            max-width: 700px;
             margin: 0 auto 32px auto;
             line-height: 1.6;
             font-weight: 400;
         }
-        .cta-button {
+        .cta-button-orange {
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            background: #0A84FF;
+            background: #FF6B00;
             color: #FFFFFF !important;
-            font-weight: 600;
-            font-size: 1.1rem;
-            padding: 14px 32px;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-weight: 700;
+            font-size: 1.05rem;
+            padding: 14px 34px;
             border-radius: 12px;
             text-decoration: none !important;
-            box-shadow: 0 4px 14px rgba(10, 132, 255, 0.4);
-            transition: all 0.2s ease-in-out;
+            box-shadow: 0 4px 18px rgba(255, 107, 0, 0.4);
+            transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
         }
-        .cta-button:hover {
-            background: #0071E3;
+        .cta-button-orange:hover {
+            background: #EA580C;
             transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(10, 132, 255, 0.6);
+            box-shadow: 0 8px 24px rgba(255, 107, 0, 0.6);
         }
         .feature-card {
-            background: rgba(28, 28, 30, 0.6);
+            background: rgba(17, 29, 51, 0.85);
             border: 1px solid rgba(255, 255, 255, 0.08);
             border-radius: 16px;
             padding: 24px;
             height: 100%;
-            transition: transform 0.2s ease;
+            transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+            backdrop-filter: blur(14px);
         }
         .feature-card:hover {
-            border-color: rgba(10, 132, 255, 0.3);
-            transform: translateY(-4px);
+            border-color: rgba(56, 189, 248, 0.35);
+            transform: translateY(-3px);
+            box-shadow: 0 16px 32px -8px rgba(0, 0, 0, 0.5), 0 0 20px -4px rgba(56, 189, 248, 0.2);
         }
         .feature-icon {
             font-size: 2.2rem;
             margin-bottom: 12px;
         }
         .feature-title {
+            font-family: 'Plus Jakarta Sans', sans-serif;
             font-size: 1.25rem;
-            font-weight: 600;
-            color: #F5F5F7;
+            font-weight: 700;
+            color: #FFFFFF;
             margin-bottom: 8px;
         }
         .feature-desc {
-            font-size: 0.95rem;
-            color: #8E8E93;
+            font-size: 0.92rem;
+            color: #CBD5E1;
             line-height: 1.5;
         }
         .metric-badge-box {
             text-align: center;
-            background: rgba(255, 255, 255, 0.03);
-            border: 1px solid rgba(255, 255, 255, 0.06);
-            border-radius: 12px;
-            padding: 16px;
+            background: rgba(17, 29, 51, 0.85);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 14px;
+            padding: 18px 12px;
+            backdrop-filter: blur(12px);
+            transition: all 0.2s ease;
+        }
+        .metric-badge-box:hover {
+            border-color: rgba(56, 189, 248, 0.3);
+            transform: translateY(-2px);
         }
         .metric-val {
-            font-size: 1.8rem;
-            font-weight: 700;
-            color: #0A84FF;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1.85rem;
+            font-weight: 800;
+            color: #FFFFFF;
         }
         .metric-lbl {
-            font-size: 0.85rem;
-            color: #8E8E93;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 0.76rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: #94A3B8;
             margin-top: 4px;
         }
         </style>
     """)
 
-    # Hero Section
-    render_html(f"""
-        <div class="landing-hero">
-            <div class="hero-badge">Enterprise Aviation Intelligence</div>
-            <div class="hero-title">AvDB Analytics Platform</div>
-            <div class="hero-subtitle">
-                Interactive U.S. BTS T-100 operations & DB1B ticket yield analytics powered by Google BigQuery, great-circle route mapping, and automated fleet economics.
-            </div>
-            <a href="{auth_url}" target="_self" class="cta-button">
-                <span style="margin-right: 10px;">🔐</span> Sign in with Google
+    # Top Portal Breadcrumb Bar
+    render_html("""
+        <div class="landing-portal-bar">
+            <a href="https://riffe.co.uk" target="_blank" rel="noopener noreferrer" class="portal-brand">
+                <div class="portal-avatar">SR</div>
+                <div>
+                    <div class="portal-text-name">Steve Riffe</div>
+                    <div class="portal-text-sub">Data Urbanism · Enterprise Solutions</div>
+                </div>
             </a>
-            <div style="margin-top: 14px; color: #6E6E73; font-size: 0.85rem;">
-                Protected access • Google OAuth 2.0 • Hosted on Google Cloud Run
+            <div style="display: flex; align-items: center; gap: 12px;">
+                <span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #10B981; background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); padding: 3px 8px; border-radius: 6px;">● Production Ready</span>
+                <a href="https://riffe.co.uk" target="_blank" rel="noopener noreferrer" style="font-size: 12px; font-weight: 700; color: #FF6B00; text-decoration: none; font-family: 'Plus Jakarta Sans', sans-serif;">
+                    ← Portfolio Portal
+                </a>
             </div>
         </div>
     """)
 
-    # Key Data Scale Strip
+    # Hero Section
+    render_html(f"""
+        <div class="landing-hero">
+            <div class="hero-badge">BigQuery Aviation Intelligence · {kpis['total_records_formatted']} System Records</div>
+            <div class="hero-title">AvDB Aviation Platform <span style="color: #FF6B00;">.</span></div>
+            <div class="hero-subtitle">
+                Interactive U.S. BTS T-100 operations and DB1B ticket yield analytics modeled in Google BigQuery, featuring geodesic great-circle cartography, multi-airport catchment systems, and complete fleet dynamics.
+            </div>
+            <a href="{auth_url}" target="_self" class="cta-button-orange">
+                <span style="margin-right: 10px;">🔐</span> Sign in with Google
+            </a>
+            <div style="margin-top: 16px; color: #94A3B8; font-size: 0.85rem; font-family: 'JetBrains Mono', monospace;">
+                Protected access • Google OAuth 2.0 • Google Cloud Run
+            </div>
+        </div>
+    """)
+
+    # Dynamic BigQuery Warehouse Scale Strip
     col1, col2, col3, col4 = st.columns(4)
     with col1:
-        render_html("""
+        render_html(f"""
             <div class="metric-badge-box">
-                <div class="metric-val">2.52M</div>
-                <div class="metric-lbl">T-100 Operations Rows</div>
+                <div class="metric-val" style="color: #FB923C;">{kpis['t100_rows_formatted']}</div>
+                <div class="metric-lbl">T-100 Operations Mart</div>
             </div>
         """)
     with col2:
-        render_html("""
+        render_html(f"""
             <div class="metric-badge-box">
-                <div class="metric-val">40.3M</div>
-                <div class="metric-lbl">DB1B Ticket Survey Rows</div>
+                <div class="metric-val" style="color: #38BDF8;">{kpis['od40_rows_formatted']}</div>
+                <div class="metric-lbl">DB1B OD40 Survey Mart</div>
             </div>
         """)
     with col3:
-        render_html("""
+        render_html(f"""
             <div class="metric-badge-box">
-                <div class="metric-val">50,409</div>
+                <div class="metric-val" style="color: #FFFFFF;">{kpis['ref_airports_formatted']}</div>
                 <div class="metric-lbl">Global Airport Coordinates</div>
             </div>
         """)
     with col4:
-        render_html("""
+        render_html(f"""
             <div class="metric-badge-box">
-                <div class="metric-val">&lt; 1.2s</div>
-                <div class="metric-lbl">BigQuery Query Latency</div>
+                <div class="metric-val" style="color: #10B981;">{kpis['fleet_rows_formatted']}</div>
+                <div class="metric-lbl">Fleet Dynamics Mart</div>
             </div>
         """)
 
@@ -180,9 +263,9 @@ def render_landing_page():
         render_html("""
             <div class="feature-card">
                 <div class="feature-icon">✈️</div>
-                <div class="feature-title">Airport Intelligence</div>
+                <div class="feature-title">Airports Lens</div>
                 <div class="feature-desc">
-                    Analyze direct O&D route networks, carrier seat mix, catchment overlap (e.g. HOU vs IAH), and unserved market proposals with PDEW fare yields.
+                    Comprehensive passenger traffic trends, catchment metro area analysis, route churn, and interactive Great-Circle destination mapping.
                 </div>
             </div>
         """)
@@ -191,9 +274,9 @@ def render_landing_page():
         render_html("""
             <div class="feature-card">
                 <div class="feature-icon">🏢</div>
-                <div class="feature-title">Airline Explorer</div>
+                <div class="feature-title">Airlines Lens</div>
                 <div class="feature-desc">
-                    Inspect carrier network density, hub concentration, passenger market share, and revenue passenger mile (RPM) yield curves.
+                    Carrier route networks, hub concentration metrics, average fares, Stage Length vs. Yield per RPM curves, and corporate merger timelines.
                 </div>
             </div>
         """)
@@ -202,9 +285,9 @@ def render_landing_page():
         render_html("""
             <div class="feature-card">
                 <div class="feature-icon">💺</div>
-                <div class="feature-title">Fleet & Gauge Dynamics</div>
+                <div class="feature-title">Fleet & Routes</div>
                 <div class="feature-desc">
-                    Track equipment allocation (Widebody, Narrowbody, RJ), gauge shifts (seats per departure), and stage-length economics.
+                    Aircraft gauge transitions, equipment utilization by route, regional vs. mainline shifts, and verified engineering specifications & photography.
                 </div>
             </div>
         """)
@@ -212,43 +295,19 @@ def render_landing_page():
 
 def render_unauthorized_page(user_info: dict):
     """
-    Renders clean access restriction page when user authenticates with Google
-    but their email is not on the ALLOWED_EMAILS list.
+    Renders an access denied message if the authenticated user is not in the allowlist.
     """
-    email = user_info.get("email", "Unknown Email")
-    name = user_info.get("name", "User")
-    picture = user_info.get("picture", "")
-
-    render_html("""
-        <style>
-        .restricted-card {
-            background: linear-gradient(135deg, rgba(38, 38, 40, 0.9) 0%, rgba(20, 20, 22, 0.95) 100%);
-            border: 1px solid rgba(255, 69, 58, 0.3);
-            border-radius: 20px;
-            padding: 40px;
-            max-width: 600px;
-            margin: 40px auto;
-            text-align: center;
-            box-shadow: 0 16px 36px rgba(0,0,0,0.6);
-        }
-        </style>
-    """)
+    email = user_info.get("email", "Unknown")
+    name = user_info.get("name", "Traveler")
 
     render_html(f"""
-        <div class="restricted-card">
-            <div style="font-size: 3rem; margin-bottom: 12px;">🔒</div>
-            <div style="font-size: 1.8rem; font-weight: 700; color: #FF453A; margin-bottom: 8px;">Access Pending Approval</div>
-            <p style="color: #8E8E93; font-size: 1rem; line-height: 1.6; margin-bottom: 24px;">
-                Hello <strong>{name}</strong> (<code>{email}</code>). Your account is authenticated via Google, but access to this private AvDB demo is restricted to authorized email addresses.
-            </p>
-            <div style="background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 12px; padding: 16px; font-size: 0.9rem; color: #AEAEB2; margin-bottom: 24px;">
-                To request access for your email address, please contact <strong>steve@riffe.co.uk</strong>.
+        <div style="background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 16px; padding: 36px; text-align: center; max-width: 600px; margin: 60px auto;">
+            <div style="font-size: 3rem; margin-bottom: 12px;">🚫</div>
+            <div style="font-size: 1.8rem; font-weight: 700; color: #F5F5F7; margin-bottom: 8px;">Access Restricted</div>
+            <div style="color: #CBD5E1; font-size: 1rem; line-height: 1.5; margin-bottom: 24px;">
+                Hello <b>{name}</b> ({email}), your Google account is authenticated, but not on the authorized allowlist for this environment.
             </div>
         </div>
     """)
-
-    c1, c2, c3 = st.columns([1, 2, 1])
-    with c2:
-        if st.button("Sign Out & Try Another Account", type="primary", width="stretch"):
-            logout()
-
+    if st.button("Sign Out / Switch Account", type="primary"):
+        logout()

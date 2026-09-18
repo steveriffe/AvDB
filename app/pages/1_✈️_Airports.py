@@ -10,7 +10,7 @@ import os
 import streamlit as st
 import pandas as pd
 from app.config import settings
-from app.utils.styling import apply_apple_style, render_kpi_card, render_html
+from app.utils.styling import apply_apple_style, render_kpi_card, render_html, render_portal_nav_link
 from app.utils.auth import require_auth
 
 st.set_page_config(
@@ -20,8 +20,9 @@ st.set_page_config(
     initial_sidebar_state="collapsed",
 )
 
-# Apply Apple-esque CSS styling
+# Apply Apple-esque CSS styling & Steve Riffe Portfolio link
 apply_apple_style()
+render_portal_nav_link()
 require_auth()
 
 from app.utils.queries import (

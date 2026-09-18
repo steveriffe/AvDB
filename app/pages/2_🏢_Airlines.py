@@ -10,7 +10,7 @@ import os
 import streamlit as st
 import pandas as pd
 from app.config import settings
-from app.utils.styling import apply_apple_style, render_kpi_card
+from app.utils.styling import apply_apple_style, render_kpi_card, render_portal_nav_link
 from app.utils.auth import require_auth
 
 st.set_page_config(
@@ -20,8 +20,9 @@ st.set_page_config(
     initial_sidebar_state="collapsed",
 )
 
-# Apply Apple-esque CSS styling
+# Apply Apple-esque CSS styling & Steve Riffe Portfolio link
 apply_apple_style()
+render_portal_nav_link()
 require_auth()
 
 import plotly.express as px
@@ -144,21 +145,28 @@ if timeline or pred_merger or absorbed_mergers:
         # Section 1: Mergers & Acquisitions
         if pred_merger:
             st.markdown(f"#### 🤝 Corporate Acquisition & Integration")
+            s_code = pred_merger['successor_code']
+            s_logo = get_carrier_logo_url(s_code) or ""
+            s_logo_html = f"<img src='{s_logo}' style='height: 18px; vertical-align: middle; margin-right: 6px;'/>" if s_logo else ""
             st.markdown(
-                f"- **Acquiring Carrier**: **{pred_merger['successor_name']} ({pred_merger['successor_code']})**\n"
+                f"- **Acquiring Carrier**: {s_logo_html}**{pred_merger['successor_name']} ({s_code})**\n"
                 f"- **Announcement Date**: `{pred_merger['announced_date']}` | **Closing Date**: `{pred_merger['closing_date']}`\n"
                 f"- **Single Operating Certificate (SOC)**: `{pred_merger['soc_date']}` | **Final Flight**: `{pred_merger['final_flight_date']}`\n"
                 f"- **Hubs Absorbed**: `{', '.join(pred_merger['hubs_absorbed'])}`\n"
                 f"- **Fleet Inherited**: {', '.join(pred_merger['fleet_types_inherited'])}\n"
                 f"- **Transaction Summary**: {pred_merger['summary']}\n"
-                f"- [Official Regulatory & Press Citation ↗]({pred_merger['source_url']})"
+                f"- [Official Regulatory & Press Citation ↗]({pred_merger['source_url']})",
+                unsafe_allow_html=True
             )
             st.markdown("---")
         elif absorbed_mergers:
             st.markdown(f"#### 🏛️ Historical Predecessor Airlines Absorbed")
             for am in absorbed_mergers:
+                p_code = am['predecessor_code']
+                p_logo = get_carrier_logo_url(p_code) or ""
+                p_logo_html = f"<img src='{p_logo}' style='height: 18px; vertical-align: middle; margin-right: 6px;'/>" if p_logo else ""
                 st.markdown(
-                    f"##### <img src='{am['predecessor_logo']}' style='height: 18px; vertical-align: middle; margin-right: 6px;'/> {am['predecessor_name']} ({am['predecessor_code']}) — Merged in {am.get('cutover_year', '')}\n"
+                    f"##### {p_logo_html} {am['predecessor_name']} ({p_code}) — Merged in {am.get('cutover_year', '')}\n"
                     f"- **Closing / Single Certificate**: `{am['closing_date']}` (SOC: `{am['soc_date']}`, Final Flight: `{am['final_flight_date']}`)\n"
                     f"- **Hubs Added**: `{', '.join(am['hubs_absorbed'])}`\n"
                     f"- **Fleet Added**: {', '.join(am['fleet_types_inherited'])}\n"

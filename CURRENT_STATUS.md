@@ -1,36 +1,31 @@
 # Current Project Status: AvDB
 
-**Last Updated**: 2026-09-07
-**Current Phase**: Phase 10.1–10.5 Delivered (Complete 1990–2026 Analytical Marts Backfill, Q4 2025 OD40 Parquet Load, Filter Alignment & Test Suite, Live on Cloud Run revision avdb-00010-qp5)
+**Last Updated**: 2026-09-17
+**Current Phase**: Phase 11 Delivered (Portfolio Design System, Resilient Vector SVG Logos, 40+ Aircraft Fleet DB with Verified Photo Attribution, Live Warehouse KPIs & Automated BTS Ingestion Checker)
 ---
 
 ## 🎯 Active Focus
-Delivered historical aviation backfill (1990–2026) and dashboard filter resolution:
-1. **Full Historical Mart Re-materialization (1990–2026)**:
-   - Discovered that the reporting marts were previously sliced with `WHERE year >= 2018`, causing zero records for historical carriers (e.g. Continental in 2005, Northwest in 2005, Alaska in 2010, US Airways in 2010, America West in 2000, TWA in 2000).
-   - Re-materialized all 3 primary analytical marts in BigQuery across 36 years (1990–2026) using 14.03M rows from `bts_t100_data.t100_segments`.
-   - `mart_airport_network_summary`: Expanded from 2.52M to **8,532,624 rows**.
-   - `mart_airline_network_performance`: Expanded from 2.52M to **8,532,624 rows**.
-   - `mart_fleet_route_dynamics`: Expanded from 4.04M to **13,604,268 rows**.
-2. **Q4 2025 OD40 Fare Ingestion**:
-   - Ingested remaining October, November, and December 2025 parquet files from `gs://db1b-1/` into `db1b-1.DB1B_RAW.OD40_DB1B_RAW`.
-   - Expanded table from 40.3M to **79,858,500 rows** across all 6 months of 2025 H2.
-3. **Double-Checked 10% vs 40% Sampling Logic**:
-   - Verified that `db1b-1.DB1B_RAW.v_market_demand_itinerary` properly weights legacy 10% DB1B surveys with `10.0` and modernized 40% OD40 monthly surveys with `2.5` (`1 / 0.40 = 2.5`), preventing sample distortion.
-   - Weighted fare averaging accurately computes passenger-weighted average ticket prices across all months.
-4. **Dashboard Filter & Year Alignment**:
-   - Expanded year selection dropdowns across Airports, Airlines, and Fleet Explorers to support analysis back to 1990 (`[2025, 2024, 2023, 2022, 2021, 2020, 2019, 2018, 2015, 2010, 2005, 2000, 1995, 1990]`).
-   - Hardened `get_airline_yield_curve` to gracefully display stage lengths and passenger volumes when historical ticket survey fare data is pending ingestion.
-5. **Comprehensive Filter Unit Testing (`tests/test_all_filters.py`)**:
-   - Built and executed automated unit test matrix asserting non-zero operations, direct routes, and hubs across historical carriers:
-     - Alaska Airlines (`AS`, 2010): 151,654 departures, 10 hubs, 229 routes.
-     - Continental Airlines (`CO`, 2005): 371,321 departures, 10 hubs, 400 routes.
-     - Northwest Airlines (`NW`, 2005): 524,707 departures, 10 hubs, 400 routes.
-     - US Airways (`US`, 2010): 450,833 departures, 10 hubs, 400 routes.
-     - America West (`HP`, 2000): 215,311 departures, 10 hubs, 216 routes.
-     - Trans World Airlines (`TW`, 2000): 277,599 departures, 10 hubs, 273 routes.
-     - AirTran Airways (`FL`, 2008): 259,869 departures, 10 hubs, 357 routes.
-   - All tests passed with 100% assertions satisfied.
+Delivered platform modernization, visual resilience, and pipeline automation:
+1. **Airline Vector SVG Logo System (`app/data/ref_logos_svg.py`)**:
+   - Replaced fragile external Wikimedia URLs with self-contained, inline Vector SVG data URIs for all major US legacy, low-cost, historical merged airlines, and international carriers.
+   - Built automatic carrier monogram generator (`generate_carrier_monogram_svg()`) providing instant fallbacks for uncataloged codes.
+2. **Fleet Database Expansion & Rigorous Photo Attribution (`app/data/ref_aircraft_specs.py`)**:
+   - Expanded technical specifications and photographic assets from 12 models to 40+ canonical commercial aircraft types spanning MD-80s, 717, 727, 737 Classics/NG/MAX, 757/767, 777, 787, 747, A220, A320ceo/neo, A330/A350/A380, CRJ series, ERJ/E-Jets, Dash 8, Saab 340, and Cessna 208.
+   - Verified high-res photography with explicit photographer credits (e.g. Anna Zvereva, Alan Wilson, Delta Flight Museum), Creative Commons / Public Domain license types, and outbound source links.
+   - Enhanced Fleet Explorer (`app/pages/3_💺_Fleet_Routes.py`) with a dedicated two-column technical showcase card.
+3. **User Access & Traffic Audit**:
+   - Extracted Cloud Run access logs from Google Cloud Logging. Confirmed only 1 human user (Seattle, WA) has accessed the application, with remaining requests from automated scrapers (Censys, Web2Objects) and Microsoft Skype/Teams link previewers.
+4. **Portfolio Design System Alignment (`app/utils/styling.py`)**:
+   - Aligned styling with `https://riffe.co.uk` using `Plus Jakarta Sans`, `Inter`, and `JetBrains Mono` typography.
+   - Injected `#0B192C` canvas with a 28px dot-matrix grid, `#111D33` glass surface cards, `#FF6B00` brand orange accents, `#38BDF8` electric sky highlights, and `#10B981` emerald status indicators.
+   - Added persistent portal navigation badge (`← Back to Portfolio Portal (riffe.co.uk)`) in the sidebar.
+5. **Live Warehouse KPIs (`app/utils/queries.py`)**:
+   - Replaced hardcoded landing stats with `get_platform_live_kpis()` querying zero-cost BigQuery `__TABLES__` metadata, displaying live warehouse counts (93.9M+ total records, 14.04M T-100 segments, 79.86M OD40 records, 13.60M fleet dynamics records).
+6. **Automated BTS Data Update Checker**:
+   - Created `scripts/check_bts_updates.py` to compare warehouse horizons against BTS TranStats release schedules and check GCS staging buckets (`gs://db1b-1/`).
+   - Configured scheduled weekly GitHub Actions workflow (`.github/workflows/check_data_updates.yml`) running every Monday at 08:00 UTC.
+7. **Comprehensive Test Suite & Verification**:
+   - Executed full suite via `tests/run_all_tests.py` with 100% passes across landing page auth, aircraft specs, alliances, mergers, Flighty parser, and API endpoints.
 
 ---
 
@@ -48,16 +43,17 @@ Delivered historical aviation backfill (1990–2026) and dashboard filter resolu
 ---
 
 ## ✅ Recently Completed
-- [x] **Complete Historical Analytical Marts Backfill (1990–2026)**.
-- [x] **Q4 2025 Parquet Ingestion (Oct–Dec 2025)**.
-- [x] **10% vs 40% Sampling Logic Verification**.
-- [x] **Dashboard Filter Alignment Across All Pages**.
-- [x] **Automated Filter & Query Unit Testing Matrix (`tests/test_all_filters.py`)**.
-- [x] **Unified Regression Test Suite Passed (`tests/run_all_tests.py`)**.
+- [x] **Vector SVG Logo Engine & Monogram Fallbacks (`app/data/ref_logos_svg.py`)**.
+- [x] **40+ Aircraft Technical Database Expansion & Photography Credits (`app/data/ref_aircraft_specs.py`)**.
+- [x] **Cloud Run User Traffic & Bot Access Audit**.
+- [x] **Portfolio Design System Harmonization (Fonts, Tokens, Grid, and Portal Link)**.
+- [x] **Dynamic BigQuery Storage Metadata Live KPIs (`get_platform_live_kpis`)**.
+- [x] **Automated Data Update Checker (`scripts/check_bts_updates.py` & `.github/workflows/check_data_updates.yml`)**.
+- [x] **Unified Test Suite Regression Pass (`tests/run_all_tests.py`)**.
 
 ---
 
 ## ⏳ Next Immediate Steps & Audit Roadmap
-1. **Deploy Updates to Cloud Run**: Trigger `./scripts/deploy.sh` to roll out updated filters and year selections to `https://avdb.riffe.co.uk`.
+1. **Deploy Updates to Cloud Run**: Execute `./scripts/deploy.sh` to release the modernized UI, vector logos, expanded fleet database, and live KPIs to `https://avdb.riffe.co.uk`.
 2. **Phase 1 DB1B Historical Ingestion (2000–2025 Q2)**: Build and run automated PREZIP downloader for quarterly `DB1BMarket` files into `db1b-1.DB1B_RAW.historical_db1b_market`.
 3. **Phase 2 Historical Fare Ingestion (1990–1999)**: Ingest early DB1B (1993–1999) and DB1A (1990–1992) from NBER / TranStats archives as planned in `playbook.md`.

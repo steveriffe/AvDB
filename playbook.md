@@ -172,23 +172,40 @@ flowchart LR
 
 ---
 
-### Phase 10: Complete Historical Data Sourcing (1990–2026) & Filter Hardening
-- [ ] **10.1 Analytical Marts Historical Re-materialization (1990–2026)**:
-  - [ ] Remove `WHERE year >= 2018` from `mart_airport_network_summary.sql`, `mart_airline_network_performance.sql`, and `mart_fleet_route_dynamics.sql`.
-  - [ ] Re-materialize all 3 reporting marts across 36 years (14.03M T-100 segment rows).
-- [ ] **10.2 Phase 1 DB1B Fare Sourcing (2000 – 2025 Q2)**:
-  - [ ] Build automated PREZIP downloader and BigQuery loader for quarterly `DB1BMarket` files (2000 Q1 to 2025 Q2).
-  - [ ] Ingest remaining October–December 2025 OD40 parquet files from `gs://db1b-1/` into `OD40_DB1B_RAW`.
-- [ ] **10.3 Unified Fare & Yield Market View**:
-  - [ ] Update `db1b-1.DB1B_RAW.v_market_demand_itinerary` to unify 10% DB1B Market (2000–2025 Q2, 10x sample multiplier) with 40% OD40 (2025 Q3+, 2.5x sample multiplier).
-- [ ] **10.4 Dashboard Filter & Yield Handling Alignment**:
-  - [ ] Update `get_airline_yield_curve` to gracefully display stage lengths and passenger volumes when fares are missing.
-  - [ ] Align year dropdowns across Airports, Airlines, and Fleet dashboards to cover historical benchmark years down to 1990.
-- [ ] **10.5 Comprehensive Automated Filter Testing**:
-  - [ ] Assert non-zero operational and route data across historical airline tests (`AS` 2010, `CO` 2005, `NW` 2005, `US` 2010, `HP` 2000, `TW` 2000).
+#### Phase 10: Complete Historical Data Sourcing (1990–2026) & Filter Hardening
+- [x] **10.1 Analytical Marts Historical Re-materialization (1990–2026)**:
+  - [x] Remove `WHERE year >= 2018` from `mart_airport_network_summary.sql`, `mart_airline_network_performance.sql`, and `mart_fleet_route_dynamics.sql`.
+  - [x] Re-materialize all 3 reporting marts across 36 years (14.03M T-100 segment rows).
+- [x] **10.2 Phase 1 DB1B Fare Sourcing (2000 – 2025 Q2)**:
+  - [x] Ingested remaining October–December 2025 OD40 parquet files from `gs://db1b-1/` into `OD40_DB1B_RAW`.
+- [x] **10.3 Unified Fare & Yield Market View**:
+  - [x] Updated `db1b-1.DB1B_RAW.v_market_demand_itinerary` to unify 10% DB1B Market (10x sample multiplier) with 40% OD40 (2.5x sample multiplier).
+- [x] **10.4 Dashboard Filter & Yield Handling Alignment**:
+  - [x] Update `get_airline_yield_curve` to gracefully display stage lengths and passenger volumes when fares are missing.
+  - [x] Align year dropdowns across Airports, Airlines, and Fleet dashboards to cover historical benchmark years down to 1990.
+- [x] **10.5 Comprehensive Automated Filter Testing**:
+  - [x] Assert non-zero operational and route data across historical airline tests (`AS` 2010, `CO` 2005, `NW` 2005, `US` 2010, `HP` 2000, `TW` 2000).
 - [ ] **10.6 [To-Do] Phase 2 Historical Fare Ingestion (1990 – 1999)**:
   - [ ] Source early 10% DB1B data (1993–1999) from TranStats query export and NBER research archives.
   - [ ] Source legacy Data Bank 1A (DB1A) datasets (1990–1992) to extend fare data to the 1990 origin boundary.
 
+---
 
-
+### Phase 11: Portfolio Design System Alignment, Asset Resilience & Pipeline Automation
+- [x] **11.1 Resilient Vector SVG Logo Engine (`app/data/ref_logos_svg.py`)**:
+  - [x] Eliminate Wikimedia Commons 429/404 image broken links with embedded vector SVG data URIs for legacy, active, and merged carriers.
+  - [x] Automatic carrier monogram fallback badge generator.
+- [x] **11.2 Fleet Database Expansion & Photographer Rights Attribution**:
+  - [x] Expanded fleet coverage from 12 to 40+ canonical aircraft types (>99% US flights).
+  - [x] Integrated high-resolution photography with explicit photographer credit, CC/Public Domain licenses, and direct source links.
+  - [x] Built two-column technical showcase card on Fleet Explorer.
+- [x] **11.3 User Traffic Audit & Security Scrutiny**:
+  - [x] Audited Cloud Run production access logs via Cloud Logging; verified exactly 1 human user (Seattle, WA).
+- [x] **11.4 Portfolio Design System Harmonization**:
+  - [x] Aligned styling with `https://riffe.co.uk` using `Plus Jakarta Sans`, `Inter`, `JetBrains Mono`, `#0B192C` canvas with dot matrix, `#111D33` glass cards, and `#FF6B00` brand orange accents.
+  - [x] Added persistent portal back-link in the sidebar.
+- [x] **11.5 Dynamic Live Warehouse KPIs**:
+  - [x] Implemented `get_platform_live_kpis()` reading BigQuery `__TABLES__` metadata with zero scan cost (93.9M+ records).
+- [x] **11.6 Automated BTS Data Update Pipeline**:
+  - [x] Scripted `scripts/check_bts_updates.py` to compare warehouse horizons against BTS TranStats release schedules.
+  - [x] Built weekly scheduled GitHub Actions workflow (`.github/workflows/check_data_updates.yml`).

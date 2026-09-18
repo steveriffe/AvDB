@@ -8,7 +8,8 @@ if str(REPO_ROOT) not in sys.path:
 
 import streamlit as st
 from app.config import settings
-from app.utils.styling import apply_apple_style, render_kpi_card, render_feature_card
+from app.utils.styling import apply_apple_style, render_kpi_card, render_feature_card, render_portal_nav_link
+from app.utils.queries import get_platform_live_kpis
 from app.utils.auth import init_auth, is_authenticated, render_user_sidebar
 from app.components.landing import render_landing_page, render_unauthorized_page
 
@@ -23,6 +24,9 @@ apply_apple_style()
 
 
 def main():
+    # Render Steve Riffe Portfolio breadcrumb
+    render_portal_nav_link()
+
     # 🔐 Authentication Guard
     if settings.google_client_id:
         user_info = init_auth()
@@ -44,19 +48,22 @@ def main():
     # Authenticated Main Dashboard View
     # -------------------------------------------------------------
     st.title(f"{settings.page_icon} {settings.app_title}")
-    st.markdown("<p style='color: #8E8E93; font-size: 1.15rem; margin-top: -10px; margin-bottom: 24px;'>Enterprise aviation intelligence platform powered by Google BigQuery, BTS T-100 operations, and DB1B ticket yields.</p>", unsafe_allow_html=True)
+    st.markdown("<p style='color: #94A3B8; font-size: 1.15rem; margin-top: -10px; margin-bottom: 24px;'>Enterprise aviation intelligence platform powered by Google BigQuery, BTS T-100 operations, and DB1B ticket yields.</p>", unsafe_allow_html=True)
+
+    # Fetch Live KPIs from BigQuery Metadata
+    kpis = get_platform_live_kpis()
 
     # Top Data Summary Cards
-    st.markdown("### 📊 Platform Metrics & BigQuery Marts")
+    st.markdown("### 📊 Platform Scale & Live Analytical Marts")
     col1, col2, col3, col4 = st.columns(4)
     with col1:
-        render_kpi_card("T-100 Operations Mart", "2.52M Rows", "1990 – Present")
+        render_kpi_card("T-100 Operations Mart", f"{kpis['t100_rows_formatted']} Rows", subtitle="1990 – 2026 Segments")
     with col2:
-        render_kpi_card("DB1B OD40 Survey", "40.3M Rows", "2025 Standard")
+        render_kpi_card("DB1B OD40 Survey", f"{kpis['od40_rows_formatted']} Rows", subtitle="Modernized 40% Sample")
     with col3:
-        render_kpi_card("Global Airport DB", "50,409 Points", "Coordinates & Catchments")
+        render_kpi_card("Global Airport DB", f"{kpis['ref_airports_formatted']} Points", subtitle="Coordinates & Catchments")
     with col4:
-        render_kpi_card("Fleet Analytics Mart", "4.04M Rows", "Widebody / Narrow / RJ")
+        render_kpi_card("Fleet Dynamics Mart", f"{kpis['fleet_rows_formatted']} Rows", subtitle="Widebody / Narrow / RJ / Prop")
 
     st.markdown("---")
 

@@ -10,7 +10,7 @@ import os
 import streamlit as st
 import pandas as pd
 from app.config import settings
-from app.utils.styling import apply_apple_style, render_kpi_card
+from app.utils.styling import apply_apple_style, render_kpi_card, render_portal_nav_link
 from app.utils.auth import require_auth
 
 st.set_page_config(
@@ -20,8 +20,9 @@ st.set_page_config(
     initial_sidebar_state="collapsed",
 )
 
-# Apply Apple-esque CSS styling
+# Apply Apple-esque CSS styling & Steve Riffe Portfolio link
 apply_apple_style()
+render_portal_nav_link()
 require_auth()
 
 import plotly.express as px
@@ -172,42 +173,81 @@ selected_model = st.selectbox("Inspect Aircraft Model Specifications", options=m
 spec = get_aircraft_spec(selected_model)
 
 if spec:
-    spec_col1, spec_col2 = st.columns([1.1, 1.0])
+    spec_col1, spec_col2 = st.columns([1.1, 1.2])
     with spec_col1:
+        photo_url = spec.get("photo_url", "")
+        photo_credit = spec.get("photo_credit", "Aviation Photography")
+        photo_license = spec.get("photo_license", "Editorial / Public Domain")
+        photo_source = spec.get("photo_source_url", "#")
+        photo_caption = spec.get("photo_caption", "")
+        
         st.markdown(
             f"""
-            <div style="background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 12px; padding: 18px; margin-bottom: 12px;">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                    <span style="color: #F5F5F7; font-size: 18px; font-weight: 700;">{selected_model}</span>
-                    <span style="background: rgba(10, 132, 255, 0.2); color: #0A84FF; padding: 4px 8px; border-radius: 6px; font-size: 12px; font-weight: 600;">{spec['category']}</span>
+            <div style="background: rgba(17, 29, 51, 0.85); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 14px; overflow: hidden; box-shadow: 0 12px 30px rgba(0,0,0,0.4);">
+                <div style="position: relative; overflow: hidden; max-height: 250px;">
+                    <img src="{photo_url}" style="width: 100%; height: 250px; object-fit: cover; filter: brightness(1.02);" alt="{selected_model}"/>
+                    <div style="position: absolute; bottom: 8px; left: 10px; background: rgba(11, 25, 44, 0.85); backdrop-filter: blur(8px); padding: 4px 10px; border-radius: 6px; font-size: 11px; font-family: 'JetBrains Mono', monospace; color: #CBD5E1; border: 1px solid rgba(255,255,255,0.1);">
+                        {photo_caption}
+                    </div>
                 </div>
-                <p style="color: #8E8E93; font-size: 13px; margin-bottom: 14px;">{spec['summary']}</p>
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; font-size: 13px;">
-                    <div><span style="color: #8E8E93;">Typical Gauge:</span> <b style="color: #F5F5F7;">{spec['seats_typical']}</b></div>
-                    <div><span style="color: #8E8E93;">Max Range:</span> <b style="color: #30D158;">{spec['range_miles']:,} statute miles</b></div>
-                    <div><span style="color: #8E8E93;">Wingspan / Length:</span> <b style="color: #F5F5F7;">{spec['wingspan_ft']} ft / {spec['length_ft']} ft</b></div>
-                    <div><span style="color: #8E8E93;">Cruise Speed:</span> <b style="color: #F5F5F7;">{spec['cruise_speed']}</b></div>
-                    <div style="grid-column: span 2;"><span style="color: #8E8E93;">Powerplant:</span> <b style="color: #FF9F0A;">{spec['engines']}</b></div>
+                <div style="padding: 10px 14px; background: rgba(6, 9, 17, 0.7); display: flex; justify-content: space-between; align-items: center; font-size: 11px; font-family: 'JetBrains Mono', monospace; border-top: 1px solid rgba(255,255,255,0.06);">
+                    <span style="color: #94A3B8;">📷 <b>Photo:</b> {photo_credit} ({photo_license})</span>
+                    <a href="{photo_source}" target="_blank" rel="noopener noreferrer" style="color: #38BDF8; text-decoration: none; font-weight: 600;">License & Source ↗</a>
                 </div>
             </div>
             """,
             unsafe_allow_html=True
         )
     with spec_col2:
-        st.markdown(f"**Primary US Operators ({selected_model})**")
-        ops = spec.get("key_operators", [])
-        logo_htmls = []
-        for op in ops:
-            l_url = get_carrier_logo_url(op)
-            logo_htmls.append(
-                f"""
-                <div style="display: inline-flex; align-items: center; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 8px; padding: 8px 12px; margin: 4px;">
-                    <img src="{l_url}" style="height: 22px; width: 42px; object-fit: contain; margin-right: 8px;" />
-                    <span style="color: #F5F5F7; font-weight: 600; font-size: 13px;">{op}</span>
+        status_color = "#10B981" if "Active" in spec.get("status", "") else "#FF9F0A"
+        mtow_str = f"{spec.get('mtow_lbs', 0):,} lbs" if spec.get('mtow_lbs') else "N/A"
+        height_str = f" / {spec.get('height_ft')} ft" if spec.get('height_ft') else ""
+        
+        st.markdown(
+            f"""
+            <div style="background: rgba(17, 29, 51, 0.85); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 14px; padding: 18px 20px; backdrop-filter: blur(14px);">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
+                    <div>
+                        <div style="color: #FFFFFF; font-size: 18px; font-weight: 800; font-family: 'Plus Jakarta Sans', sans-serif;">{selected_model}</div>
+                        <div style="color: #94A3B8; font-size: 12px; font-family: 'JetBrains Mono', monospace; margin-top: 2px;">{spec['family']} · First Flight: {spec.get('first_flight', 'N/A')}</div>
+                    </div>
+                    <div style="text-align: right;">
+                        <span style="background: rgba(56, 189, 248, 0.15); border: 1px solid rgba(56, 189, 248, 0.35); color: #38BDF8; padding: 3px 8px; border-radius: 6px; font-size: 11px; font-weight: 600; font-family: 'JetBrains Mono', monospace;">{spec['category']}</span><br/>
+                        <span style="display: inline-block; margin-top: 4px; color: {status_color}; font-size: 10.5px; font-weight: 600;">● {spec.get('status', 'Active')}</span>
+                    </div>
                 </div>
-                """
+                <p style="color: #CBD5E1; font-size: 12.5px; line-height: 1.5; margin-bottom: 14px;">{spec['summary']}</p>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; font-size: 12px; font-family: 'JetBrains Mono', monospace;">
+                    <div><span style="color: #94A3B8;">Gauge:</span> <b style="color: #FFFFFF;">{spec['seats_typical']}</b></div>
+                    <div><span style="color: #94A3B8;">Max Range:</span> <b style="color: #10B981;">{spec['range_miles']:,} sm</b></div>
+                    <div><span style="color: #94A3B8;">Span / Length:</span> <b style="color: #FFFFFF;">{spec['wingspan_ft']} ft / {spec['length_ft']} ft{height_str}</b></div>
+                    <div><span style="color: #94A3B8;">MTOW:</span> <b style="color: #FB923C;">{mtow_str}</b></div>
+                    <div><span style="color: #94A3B8;">Cruise Speed:</span> <b style="color: #FFFFFF;">{spec['cruise_speed']}</b></div>
+                    <div><span style="color: #94A3B8;">Powerplant:</span> <b style="color: #38BDF8;">{spec['engines']}</b></div>
+                </div>
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
+        
+        # Operators Strip
+        ops = spec.get("key_operators", [])
+        if ops:
+            logo_htmls = []
+            for op in ops:
+                l_url = get_carrier_logo_url(op)
+                logo_htmls.append(
+                    f"""
+                    <div style="display: inline-flex; align-items: center; background: rgba(17, 29, 51, 0.7); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 8px; padding: 4px 10px; margin: 3px 4px 0 0;">
+                        <img src="{l_url}" style="height: 18px; width: 36px; object-fit: contain; margin-right: 6px;" />
+                        <span style="color: #FFFFFF; font-weight: 700; font-size: 12px; font-family: 'JetBrains Mono', monospace;">{op}</span>
+                    </div>
+                    """
+                )
+            st.markdown(
+                f"<div style='margin-top: 10px;'><span style='font-size: 11px; color: #94A3B8; font-family: \"JetBrains Mono\", monospace;'>PRIMARY OPERATORS:</span><br/>{''.join(logo_htmls)}</div>",
+                unsafe_allow_html=True
             )
-        st.markdown("".join(logo_htmls), unsafe_allow_html=True)
 else:
     st.info(f"Engineering specification card not yet configured for {selected_model}.")
 

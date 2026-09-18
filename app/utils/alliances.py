@@ -51,10 +51,11 @@ def get_all_alliances_for_year(year: int) -> List[Dict[str, Any]]:
         diss = a_info["dissolved_date"] or "2099-12-31"
         if found <= target_date <= diss:
             members = get_alliance_carriers(a_name, year)
+            logo = get_vector_logo_data_uri(a_name) if a_name in ("Star Alliance", "SkyTeam", "oneworld") else a_info["logo_url"]
             res.append({
                 "alliance_name": a_name,
                 "alliance_id": a_info["alliance_id"],
-                "logo_url": a_info["logo_url"],
+                "logo_url": logo,
                 "member_count": len(members),
                 "members": members,
                 "website": a_info["website"]
@@ -62,12 +63,18 @@ def get_all_alliances_for_year(year: int) -> List[Dict[str, Any]]:
     return res
 
 
+from app.data.ref_logos_svg import get_vector_logo_data_uri
+
+
 def get_carrier_logo_url(carrier_code: str) -> Optional[str]:
     """
-    Returns verified SVG/PNG brand logo URL for a carrier code.
+    Returns verified SVG/PNG brand logo URL or vector Data URI for a carrier code.
+    Guarantees 100% reliable rendering without external 404 or 429 errors.
     """
+    if not carrier_code or carrier_code.strip() in ("—", "-", "N/A", "None"):
+        return None
     c = carrier_code.strip().upper()
-    return CARRIER_LOGOS.get(c, None)
+    return get_vector_logo_data_uri(c)
 
 
 def get_carrier_alliance_timeline(carrier_code: str) -> List[Dict[str, Any]]:
