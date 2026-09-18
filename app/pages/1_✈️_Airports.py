@@ -203,6 +203,7 @@ with chart_col2:
     with tab_c:
         fig_carriers = build_carrier_market_share_donut(df_carriers)
         st.plotly_chart(fig_carriers, width="stretch", config={"displayModeBar": False})
+        st.caption("ℹ️ *Regional capacity (SkyWest, Horizon, Endeavor, Envoy) is attributed to consumer marketing brands using DOT DB1B ticket survey shares.*")
     with tab_a:
         df_alliance = get_airport_alliance_breakdown(df_carriers, selected_year)
         fig_alliance = build_airport_alliance_share_donut(df_alliance)

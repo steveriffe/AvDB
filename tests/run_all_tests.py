@@ -177,6 +177,48 @@ def test_time_series_queries():
     print("✅ All four time series queries verified without SQL/partitioning error!")
 
 
+def test_regional_carrier_attribution():
+    """Verify regional carrier attribution properly maps contract & subsidiary flying to mainlines."""
+    from app.utils.queries import (
+        get_airport_kpis,
+        get_airport_carrier_breakdown,
+        get_airport_time_series,
+        get_route_carrier_competition,
+        get_airline_kpis
+    )
+    
+    # Test 1: Eugene (EUG) in 2019 - Alaska should be leading carrier
+    eug_2019_kpi = get_airport_kpis("EUG", 2019)
+    assert eug_2019_kpi["leading_carrier"] == "AS", f"Expected AS to be leading carrier at EUG in 2019, got {eug_2019_kpi['leading_carrier']}"
+
+    # Test 2: EUG Carrier Breakdown in 2019
+    df_eug_2019 = get_airport_carrier_breakdown("EUG", 2019)
+    assert not df_eug_2019.empty
+    assert df_eug_2019.iloc[0]["unique_carrier"] == "AS", f"Expected #1 carrier to be AS, got {df_eug_2019.iloc[0]['unique_carrier']}"
+    assert df_eug_2019.iloc[0]["operational_passengers"] > 200000
+
+    # Test 3: EUG Time Series - no raw regional codes in top_carrier
+    df_eug_ts = get_airport_time_series("EUG")
+    assert not df_eug_ts.empty
+    recent_tops = set(df_eug_ts[df_eug_ts["year"] >= 2010]["top_carrier"].dropna())
+    assert "OO" not in recent_tops, "SkyWest (OO) should not appear as top_carrier"
+    assert "QX" not in recent_tops, "Horizon (QX) should not appear as top_carrier"
+
+    # Test 4: EUG-SEA Route Competition attributes to AS and DL
+    df_comp = get_route_carrier_competition("EUG", "SEA", 2024)
+    assert not df_comp.empty
+    comp_carriers = set(df_comp["unique_carrier"].values)
+    assert "AS" in comp_carriers, "Expected AS in EUG-SEA competition"
+    assert "DL" in comp_carriers, "Expected DL in EUG-SEA competition"
+    assert "OO" not in comp_carriers, "Expected OO to be attributed on EUG-SEA"
+
+    # Test 5: Alaska Airlines full network includes regional capacity
+    as_full_kpi = get_airline_kpis("AS", 2024, include_regionals=True)
+    assert as_full_kpi["total_passengers"] > 40_000_000, f"Expected full AS network > 40M pax, got {as_full_kpi['total_passengers']}"
+
+    print("✅ Regional carrier attribution tests passed (EUG properly attributed to AS/DL)!")
+
+
 if __name__ == "__main__":
     print("==========================================")
     print("🚀 Running AvDB Complete Verification Suite")
@@ -188,6 +230,7 @@ if __name__ == "__main__":
     test_carrier_breakdown_query()
     test_all_module_imports()
     test_time_series_queries()
+    test_regional_carrier_attribution()
     run_existing_tests()
     print("\n==========================================")
     print("🎉 ALL AVDB TEST SUITES & REGRESSIONS PASSED!")

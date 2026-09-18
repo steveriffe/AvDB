@@ -85,7 +85,7 @@ carriers_dict = {
     "PA": "Pan American World Airways (PA - Acquired by DL 1991)",
 }
 
-col_f1, col_f2, col_f3 = st.columns([2.2, 1.2, 2.6])
+col_f1, col_f2, col_f_scope, col_f3 = st.columns([2.0, 1.1, 1.8, 2.4])
 
 with col_f1:
     selected_code = st.selectbox(
@@ -103,6 +103,16 @@ with col_f2:
         index=0,
         label_visibility="collapsed"
     )
+
+with col_f_scope:
+    scope_option = st.selectbox(
+        "Network Scope",
+        options=["Full Network (inc. Regionals)", "Mainline Metal Only"],
+        index=0,
+        label_visibility="collapsed",
+        help="Full Network attributes contract and subsidiary flying (SkyWest, Horizon, Endeavor, Envoy) to the marketing carrier brand."
+    )
+    include_reg = (scope_option == "Full Network (inc. Regionals)")
 
 # Alliance & Branding Lookup
 carrier_logo = get_carrier_logo_url(selected_code)
@@ -193,8 +203,8 @@ if timeline or pred_merger or absorbed_mergers:
 # -------------------------------------------------------------
 # 2. Top KPI Cards with YoY Context
 # -------------------------------------------------------------
-kpis = get_airline_kpis(selected_code, selected_year)
-df_airline_ts = get_airline_time_series(selected_code)
+kpis = get_airline_kpis(selected_code, selected_year, include_regionals=include_reg)
+df_airline_ts = get_airline_time_series(selected_code, include_regionals=include_reg)
 
 yoy_deps_delta = None
 if not df_airline_ts.empty and selected_year in df_airline_ts["year"].values:
@@ -249,7 +259,7 @@ if not df_airline_ts.empty:
 # -------------------------------------------------------------
 # 3. Hero Section: Nationwide Route Network Atlas (1990s In-Flight Cartography)
 # -------------------------------------------------------------
-df_carrier_routes = get_airline_routes_dataset(selected_code, selected_year, min_departures=10)
+df_carrier_routes = get_airline_routes_dataset(selected_code, selected_year, min_departures=10, include_regionals=include_reg)
 
 if not df_carrier_routes.empty:
     st.markdown("### 🌐 Nationwide Route Network Atlas (1990s In-Flight Cartography)")
@@ -326,8 +336,8 @@ if not df_carrier_routes.empty:
 # -------------------------------------------------------------
 # 4. Hub Operations & Yield Curve Charts
 # -------------------------------------------------------------
-df_hubs = get_airline_hubs(selected_code, selected_year)
-df_yields = get_airline_yield_curve(selected_code, selected_year)
+df_hubs = get_airline_hubs(selected_code, selected_year, include_regionals=include_reg)
+df_yields = get_airline_yield_curve(selected_code, selected_year, include_regionals=include_reg)
 
 c1, c2 = st.columns([1.1, 1.3])
 

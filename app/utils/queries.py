@@ -117,28 +117,49 @@ def _recommend_aligned_carrier(origin: str, dest: str, distance_miles: float, yi
 # -------------------------------------------------------------
 # Regional Operating Carrier Attribution SQL Expressions
 # Maps contract and subsidiary regional flights to consumer-facing marketing brands
-# (e.g. attributing SkyWest OO and Horizon QX flights on EUG-SEA to DL and AS)
+# Powered by `db1b-1.reporting.ref_regional_route_attribution` (DB1B 10% survey shares)
+# with deterministic fallbacks for wholly owned & dedicated airline subsidiaries.
 # -------------------------------------------------------------
+REGIONAL_ATTRIBUTION_JOIN = """
+    LEFT JOIN `db1b-1.reporting.ref_regional_route_attribution` _reg
+      ON base.unique_carrier = _reg.op_carrier 
+     AND base.origin = _reg.origin 
+     AND base.dest = _reg.dest
+"""
+
+ATTRIBUTED_CARRIER_SQL = """
+    COALESCE(
+        _reg.mkt_carrier,
+        CASE 
+            WHEN base.unique_carrier = 'QX' THEN 'AS'
+            WHEN base.unique_carrier = '9E' THEN 'DL'
+            WHEN base.unique_carrier IN ('MQ', 'OH', 'PT') THEN 'AA'
+            WHEN base.unique_carrier IN ('C5', 'G7') THEN 'UA'
+            WHEN base.unique_carrier IN ('CP', 'CP (2)') THEN 'DL'
+            WHEN base.unique_carrier = 'XJ' THEN 'NW'
+            WHEN base.unique_carrier = 'OO' AND (base.dest IN ('ATL', 'MSP', 'DTW', 'SLC') OR base.origin IN ('ATL', 'MSP', 'DTW', 'SLC')) THEN 'DL'
+            WHEN base.unique_carrier = 'OO' AND (base.dest IN ('ORD', 'DEN', 'IAH', 'EWR', 'IAD', 'SFO') OR base.origin IN ('ORD', 'DEN', 'IAH', 'EWR', 'IAD', 'SFO')) THEN 'UA'
+            WHEN base.unique_carrier = 'OO' AND (base.dest IN ('DFW', 'CLT', 'MIA', 'PHX', 'PHL') OR base.origin IN ('DFW', 'CLT', 'MIA', 'PHX', 'PHL')) THEN 'AA'
+            WHEN base.unique_carrier = 'OO' AND (base.dest IN ('SEA', 'PDX', 'SAN', 'BUR', 'OAK', 'SJC', 'SMF', 'ANC', 'LAX') OR base.origin IN ('SEA', 'PDX', 'SAN', 'BUR', 'OAK', 'SJC', 'SMF', 'ANC', 'LAX')) THEN 'AS'
+            ELSE base.unique_carrier
+        END
+    )
+"""
+
+ATTRIBUTED_SHARE_SQL = "COALESCE(_reg.attribution_share, 1.0)"
+
 REGIONAL_ATTRIBUTION_SQL = """
     CASE
         WHEN unique_carrier = 'QX' THEN 'AS'
         WHEN unique_carrier = '9E' THEN 'DL'
         WHEN unique_carrier IN ('MQ', 'OH', 'PT') THEN 'AA'
         WHEN unique_carrier IN ('C5', 'G7') THEN 'UA'
-        WHEN unique_carrier = 'OO' AND (
-            (origin = 'EUG' AND dest = 'SEA') OR (origin = 'SEA' AND dest = 'EUG') OR
-            dest IN ('ATL', 'MSP', 'DTW', 'SLC') OR origin IN ('ATL', 'MSP', 'DTW', 'SLC')
-        ) THEN 'DL'
-        WHEN unique_carrier = 'OO' AND (
-            dest IN ('ORD', 'DEN', 'IAH', 'EWR', 'IAD', 'SFO') OR origin IN ('ORD', 'DEN', 'IAH', 'EWR', 'IAD', 'SFO')
-        ) THEN 'UA'
-        WHEN unique_carrier = 'OO' AND (
-            dest IN ('DFW', 'CLT', 'MIA', 'PHX', 'PHL') OR origin IN ('DFW', 'CLT', 'MIA', 'PHX', 'PHL')
-        ) THEN 'AA'
-        WHEN unique_carrier = 'OO' AND (
-            dest IN ('SEA', 'PDX', 'SAN') OR origin IN ('SEA', 'PDX', 'SAN')
-        ) THEN 'AS'
-        WHEN unique_carrier = 'CP' THEN 'DL'
+        WHEN unique_carrier IN ('CP', 'CP (2)') THEN 'DL'
+        WHEN unique_carrier = 'XJ' THEN 'NW'
+        WHEN unique_carrier = 'OO' AND (dest IN ('ATL', 'MSP', 'DTW', 'SLC') OR origin IN ('ATL', 'MSP', 'DTW', 'SLC')) THEN 'DL'
+        WHEN unique_carrier = 'OO' AND (dest IN ('ORD', 'DEN', 'IAH', 'EWR', 'IAD', 'SFO') OR origin IN ('ORD', 'DEN', 'IAH', 'EWR', 'IAD', 'SFO')) THEN 'UA'
+        WHEN unique_carrier = 'OO' AND (dest IN ('DFW', 'CLT', 'MIA', 'PHX', 'PHL') OR origin IN ('DFW', 'CLT', 'MIA', 'PHX', 'PHL')) THEN 'AA'
+        WHEN unique_carrier = 'OO' AND (dest IN ('SEA', 'PDX', 'SAN', 'BUR', 'OAK', 'SJC', 'SMF', 'ANC', 'LAX') OR origin IN ('SEA', 'PDX', 'SAN', 'BUR', 'OAK', 'SJC', 'SMF', 'ANC', 'LAX')) THEN 'AS'
         ELSE unique_carrier
     END
 """
@@ -228,27 +249,38 @@ def get_airport_kpis(
     passenger_only: bool = True,
     min_departures: int = 10
 ) -> Dict[str, Any]:
-    """Calculates top-level KPI metrics for an airport, filtering noise/charters by min_departures."""
+    """Calculates top-level KPI metrics for an airport, attributing regional partner operations to marketing carriers."""
     query = f"""
-        WITH route_grouped AS (
+        WITH base AS (
             SELECT 
                 dest,
-                {REGIONAL_ATTRIBUTION_SQL} AS unique_carrier,
-                SUM(departures_performed) AS departures_performed,
-                SUM(total_seats) AS total_seats,
-                SUM(operational_passengers) AS operational_passengers,
-                AVG(avg_od_fare) AS avg_od_fare
+                origin,
+                unique_carrier,
+                departures_performed,
+                total_seats,
+                operational_passengers,
+                avg_od_fare
             FROM `db1b-1.reporting.mart_airport_network_summary`
             WHERE origin = @airport_code AND year = @year
             {'AND operational_passengers > 0 AND total_seats > 0' if passenger_only else ''}
-            GROUP BY dest, unique_carrier
+        ),
+        attributed AS (
+            SELECT 
+                base.dest,
+                {ATTRIBUTED_CARRIER_SQL} AS unique_carrier,
+                ROUND(base.departures_performed * {ATTRIBUTED_SHARE_SQL}) AS departures_performed,
+                ROUND(base.total_seats * {ATTRIBUTED_SHARE_SQL}) AS total_seats,
+                ROUND(base.operational_passengers * {ATTRIBUTED_SHARE_SQL}) AS operational_passengers,
+                base.avg_od_fare
+            FROM base
+            {REGIONAL_ATTRIBUTION_JOIN}
         ),
         filtered AS (
-            SELECT * FROM route_grouped
+            SELECT * FROM attributed
             WHERE departures_performed >= @min_departures
         ),
         carrier_totals AS (
-            SELECT unique_carrier, SUM(total_seats) AS carrier_seats
+            SELECT unique_carrier, SUM(total_seats) AS carrier_seats, SUM(operational_passengers) AS carrier_pax
             FROM filtered
             GROUP BY 1
             ORDER BY carrier_seats DESC
@@ -287,22 +319,38 @@ def get_airport_routes_dataset(
     passenger_only: bool = True,
     min_departures: int = 10
 ) -> pd.DataFrame:
-    """Fetches full route network details with GPS coordinates, applying regional carrier attribution."""
+    """Fetches full route network details with GPS coordinates, applying empirical regional carrier attribution."""
     query = f"""
-        WITH route_agg AS (
+        WITH base AS (
             SELECT 
-                origin,
-                origin_name,
-                origin_city,
-                origin_lat,
-                origin_lon,
-                dest,
-                dest_name,
-                dest_city,
-                dest_state,
-                dest_country,
-                dest_lat,
-                dest_lon,
+                origin, origin_name, origin_city, origin_lat, origin_lon,
+                dest, dest_name, dest_city, dest_state, dest_country, dest_lat, dest_lon,
+                unique_carrier, carrier_name,
+                departures_performed, total_seats, operational_passengers,
+                distance_miles, avg_od_fare
+            FROM `db1b-1.reporting.mart_airport_network_summary`
+            WHERE origin = @airport_code 
+              AND year = @year
+              {'AND operational_passengers > 0 AND total_seats > 0' if passenger_only else ''}
+              AND origin_lat IS NOT NULL 
+              AND dest_lat IS NOT NULL
+        ),
+        attributed AS (
+            SELECT 
+                base.origin, base.origin_name, base.origin_city, base.origin_lat, base.origin_lon,
+                base.dest, base.dest_name, base.dest_city, base.dest_state, base.dest_country, base.dest_lat, base.dest_lon,
+                {ATTRIBUTED_CARRIER_SQL} AS marketing_carrier,
+                ROUND(base.departures_performed * {ATTRIBUTED_SHARE_SQL}) AS departures_performed,
+                ROUND(base.total_seats * {ATTRIBUTED_SHARE_SQL}) AS total_seats,
+                ROUND(base.operational_passengers * {ATTRIBUTED_SHARE_SQL}) AS operational_passengers,
+                base.distance_miles, base.avg_od_fare
+            FROM base
+            {REGIONAL_ATTRIBUTION_JOIN}
+        ),
+        route_agg AS (
+            SELECT 
+                origin, origin_name, origin_city, origin_lat, origin_lon,
+                dest, dest_name, dest_city, dest_state, dest_country, dest_lat, dest_lon,
                 SUM(departures_performed) AS departures_performed,
                 SUM(total_seats) AS total_seats,
                 SUM(operational_passengers) AS operational_passengers,
@@ -310,13 +358,8 @@ def get_airport_routes_dataset(
                 ROUND(SAFE_DIVIDE(SUM(total_seats), NULLIF(SUM(departures_performed), 0)), 1) AS avg_gauge_seats,
                 AVG(distance_miles) AS distance_miles,
                 ROUND(AVG(avg_od_fare), 2) AS avg_od_fare,
-                STRING_AGG(DISTINCT {REGIONAL_ATTRIBUTION_SQL}, ', ' ORDER BY {REGIONAL_ATTRIBUTION_SQL}) AS operating_carriers
-            FROM `db1b-1.reporting.mart_airport_network_summary`
-            WHERE origin = @airport_code 
-              AND year = @year
-              {'AND operational_passengers > 0 AND total_seats > 0' if passenger_only else ''}
-              AND origin_lat IS NOT NULL 
-              AND dest_lat IS NOT NULL
+                STRING_AGG(DISTINCT marketing_carrier, ', ' ORDER BY marketing_carrier) AS operating_carriers
+            FROM attributed
             GROUP BY 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12
         )
         SELECT * FROM route_agg
@@ -333,11 +376,13 @@ def get_airport_carrier_breakdown(
     passenger_only: bool = True,
     min_departures: int = 10
 ) -> pd.DataFrame:
-    """Fetches carrier market share breakdown attributed to consumer marketing brands."""
+    """Fetches carrier market share breakdown attributed to consumer marketing brands using DB1B ticket survey shares."""
     query = f"""
-        WITH carrier_attributed AS (
+        WITH base AS (
             SELECT 
-                {REGIONAL_ATTRIBUTION_SQL} AS carrier_code,
+                origin,
+                dest,
+                unique_carrier,
                 carrier_name,
                 departures_performed,
                 total_seats,
@@ -346,6 +391,17 @@ def get_airport_carrier_breakdown(
             FROM `db1b-1.reporting.mart_airport_network_summary`
             WHERE origin = @airport_code AND year = @year
             {'AND operational_passengers > 0 AND total_seats > 0' if passenger_only else ''}
+        ),
+        carrier_attributed AS (
+            SELECT 
+                {ATTRIBUTED_CARRIER_SQL} AS carrier_code,
+                base.carrier_name,
+                ROUND(base.departures_performed * {ATTRIBUTED_SHARE_SQL}) AS departures_performed,
+                ROUND(base.total_seats * {ATTRIBUTED_SHARE_SQL}) AS total_seats,
+                ROUND(base.operational_passengers * {ATTRIBUTED_SHARE_SQL}) AS operational_passengers,
+                base.avg_od_fare
+            FROM base
+            {REGIONAL_ATTRIBUTION_JOIN}
         ),
         carrier_agg AS (
             SELECT 
@@ -565,20 +621,42 @@ def get_route_carrier_competition(origin: str, dest: str, year: int) -> pd.DataF
     Derives head-to-head carrier competition metrics on a specific route:
     market share, seats, average fare, yield ($/mile), and fare premium over competitors.
     """
-    query = """
-        SELECT 
-            unique_carrier,
-            carrier_name,
-            SUM(departures_performed) AS departures_performed,
-            SUM(total_seats) AS total_seats,
-            SUM(operational_passengers) AS operational_passengers,
-            ROUND(SAFE_DIVIDE(SUM(operational_passengers), SUM(total_seats)) * 100, 1) AS load_factor_pct,
-            ROUND(AVG(distance_miles), 0) AS distance_miles,
-            ROUND(AVG(avg_od_fare), 2) AS avg_fare
-        FROM `db1b-1.reporting.mart_airport_network_summary`
-        WHERE origin = @origin AND dest = @dest AND year = @year
-          AND departures_performed >= 5
-        GROUP BY 1, 2
+    query = f"""
+        WITH base AS (
+            SELECT 
+                origin, dest, unique_carrier, carrier_name,
+                departures_performed, total_seats, operational_passengers,
+                distance_miles, avg_od_fare
+            FROM `db1b-1.reporting.mart_airport_network_summary`
+            WHERE origin = @origin AND dest = @dest AND year = @year
+        ),
+        attributed AS (
+            SELECT 
+                {ATTRIBUTED_CARRIER_SQL} AS carrier_code,
+                base.carrier_name,
+                ROUND(base.departures_performed * {ATTRIBUTED_SHARE_SQL}) AS departures_performed,
+                ROUND(base.total_seats * {ATTRIBUTED_SHARE_SQL}) AS total_seats,
+                ROUND(base.operational_passengers * {ATTRIBUTED_SHARE_SQL}) AS operational_passengers,
+                base.distance_miles,
+                base.avg_od_fare
+            FROM base
+            {REGIONAL_ATTRIBUTION_JOIN}
+        ),
+        carrier_comp AS (
+            SELECT 
+                carrier_code AS unique_carrier,
+                {CARRIER_NAME_LOOKUP_SQL} AS carrier_name,
+                SUM(departures_performed) AS departures_performed,
+                SUM(total_seats) AS total_seats,
+                SUM(operational_passengers) AS operational_passengers,
+                ROUND(SAFE_DIVIDE(SUM(operational_passengers), SUM(total_seats)) * 100, 1) AS load_factor_pct,
+                ROUND(AVG(distance_miles), 0) AS distance_miles,
+                ROUND(AVG(avg_od_fare), 2) AS avg_fare
+            FROM attributed
+            GROUP BY 1, 2
+            HAVING departures_performed >= 5
+        )
+        SELECT * FROM carrier_comp
         ORDER BY total_seats DESC
     """
     df = run_query(query, params={"origin": origin, "dest": dest, "year": year})
@@ -606,22 +684,59 @@ def get_route_carrier_competition(origin: str, dest: str, year: int) -> pd.DataF
 # -------------------------------------------------------------
 
 @st.cache_data(ttl=3600, show_spinner=False)
-def get_airline_kpis(carrier_code: str, year: int) -> Dict[str, Any]:
-    """Calculates top-level performance KPIs for an airline."""
-    query = """
-        SELECT 
-            COUNT(DISTINCT CONCAT(origin, '-', dest)) AS active_routes,
-            SUM(departures_performed) AS total_departures,
-            SUM(total_seats) AS total_seats,
-            SUM(operational_passengers) AS total_passengers,
-            SUM(available_seat_miles) AS total_asm,
-            SUM(revenue_passenger_miles) AS total_rpm,
-            ROUND(SAFE_DIVIDE(SUM(revenue_passenger_miles), SUM(available_seat_miles)) * 100, 1) AS system_load_factor,
-            ROUND(AVG(avg_od_fare), 2) AS avg_network_fare,
-            ROUND(AVG(yield_per_mile), 4) AS avg_yield_per_mile
-        FROM `db1b-1.reporting.mart_airline_network_performance`
-        WHERE unique_carrier = @carrier_code AND year = @year
-    """
+def get_airline_kpis(carrier_code: str, year: int, include_regionals: bool = True) -> Dict[str, Any]:
+    """Calculates top-level performance KPIs for an airline, optionally including regional partner network operations."""
+    if include_regionals:
+        query = f"""
+            WITH base AS (
+                SELECT 
+                    origin, dest, unique_carrier,
+                    departures_performed, total_seats, operational_passengers,
+                    available_seat_miles, revenue_passenger_miles, avg_od_fare, yield_per_mile
+                FROM `db1b-1.reporting.mart_airline_network_performance`
+                WHERE year = @year
+            ),
+            attributed AS (
+                SELECT 
+                    base.origin, base.dest,
+                    {ATTRIBUTED_CARRIER_SQL} AS marketing_carrier,
+                    ROUND(base.departures_performed * {ATTRIBUTED_SHARE_SQL}) AS departures_performed,
+                    ROUND(base.total_seats * {ATTRIBUTED_SHARE_SQL}) AS total_seats,
+                    ROUND(base.operational_passengers * {ATTRIBUTED_SHARE_SQL}) AS operational_passengers,
+                    ROUND(base.available_seat_miles * {ATTRIBUTED_SHARE_SQL}) AS available_seat_miles,
+                    ROUND(base.revenue_passenger_miles * {ATTRIBUTED_SHARE_SQL}) AS revenue_passenger_miles,
+                    base.avg_od_fare, base.yield_per_mile
+                FROM base
+                {REGIONAL_ATTRIBUTION_JOIN}
+            )
+            SELECT 
+                COUNT(DISTINCT CONCAT(origin, '-', dest)) AS active_routes,
+                SUM(departures_performed) AS total_departures,
+                SUM(total_seats) AS total_seats,
+                SUM(operational_passengers) AS total_passengers,
+                SUM(available_seat_miles) AS total_asm,
+                SUM(revenue_passenger_miles) AS total_rpm,
+                ROUND(SAFE_DIVIDE(SUM(revenue_passenger_miles), SUM(available_seat_miles)) * 100, 1) AS system_load_factor,
+                ROUND(AVG(avg_od_fare), 2) AS avg_network_fare,
+                ROUND(AVG(yield_per_mile), 4) AS avg_yield_per_mile
+            FROM attributed
+            WHERE marketing_carrier = @carrier_code
+        """
+    else:
+        query = """
+            SELECT 
+                COUNT(DISTINCT CONCAT(origin, '-', dest)) AS active_routes,
+                SUM(departures_performed) AS total_departures,
+                SUM(total_seats) AS total_seats,
+                SUM(operational_passengers) AS total_passengers,
+                SUM(available_seat_miles) AS total_asm,
+                SUM(revenue_passenger_miles) AS total_rpm,
+                ROUND(SAFE_DIVIDE(SUM(revenue_passenger_miles), SUM(available_seat_miles)) * 100, 1) AS system_load_factor,
+                ROUND(AVG(avg_od_fare), 2) AS avg_network_fare,
+                ROUND(AVG(yield_per_mile), 4) AS avg_yield_per_mile
+            FROM `db1b-1.reporting.mart_airline_network_performance`
+            WHERE unique_carrier = @carrier_code AND year = @year
+        """
     df = run_query(query, params={"carrier_code": carrier_code, "year": year})
     if not df.empty and df["total_departures"].iloc[0] is not None and not pd.isna(df["total_departures"].iloc[0]):
         return df.iloc[0].to_dict()
@@ -639,81 +754,183 @@ def get_airline_kpis(carrier_code: str, year: int) -> Dict[str, Any]:
 
 
 @st.cache_data(ttl=3600, show_spinner=False)
-def get_airline_hubs(carrier_code: str, year: int) -> pd.DataFrame:
+def get_airline_hubs(carrier_code: str, year: int, include_regionals: bool = True) -> pd.DataFrame:
     """Fetches top hub operations for an airline by seats and departures."""
-    query = """
-        SELECT 
-            origin AS airport_code,
-            origin_name,
-            origin_city,
-            SUM(departures_performed) AS departures_performed,
-            SUM(total_seats) AS total_seats,
-            SUM(operational_passengers) AS total_passengers,
-            COUNT(DISTINCT dest) AS direct_destinations
-        FROM `db1b-1.reporting.mart_airline_network_performance`
-        WHERE unique_carrier = @carrier_code AND year = @year
-        GROUP BY 1, 2, 3
-        ORDER BY total_seats DESC
-        LIMIT 10
-    """
+    if include_regionals:
+        query = f"""
+            WITH base AS (
+                SELECT 
+                    origin, dest, origin_name, origin_city, unique_carrier,
+                    departures_performed, total_seats, operational_passengers
+                FROM `db1b-1.reporting.mart_airline_network_performance`
+                WHERE year = @year
+            ),
+            attributed AS (
+                SELECT 
+                    base.origin AS airport_code,
+                    base.origin_name,
+                    base.origin_city,
+                    base.dest,
+                    {ATTRIBUTED_CARRIER_SQL} AS marketing_carrier,
+                    ROUND(base.departures_performed * {ATTRIBUTED_SHARE_SQL}) AS departures_performed,
+                    ROUND(base.total_seats * {ATTRIBUTED_SHARE_SQL}) AS total_seats,
+                    ROUND(base.operational_passengers * {ATTRIBUTED_SHARE_SQL}) AS operational_passengers
+                FROM base
+                {REGIONAL_ATTRIBUTION_JOIN}
+            )
+            SELECT 
+                airport_code,
+                origin_name,
+                origin_city,
+                SUM(departures_performed) AS departures_performed,
+                SUM(total_seats) AS total_seats,
+                SUM(operational_passengers) AS total_passengers,
+                COUNT(DISTINCT dest) AS direct_destinations
+            FROM attributed
+            WHERE marketing_carrier = @carrier_code
+            GROUP BY 1, 2, 3
+            ORDER BY total_seats DESC
+            LIMIT 10
+        """
+    else:
+        query = """
+            SELECT 
+                origin AS airport_code,
+                origin_name,
+                origin_city,
+                SUM(departures_performed) AS departures_performed,
+                SUM(total_seats) AS total_seats,
+                SUM(operational_passengers) AS total_passengers,
+                COUNT(DISTINCT dest) AS direct_destinations
+            FROM `db1b-1.reporting.mart_airline_network_performance`
+            WHERE unique_carrier = @carrier_code AND year = @year
+            GROUP BY 1, 2, 3
+            ORDER BY total_seats DESC
+            LIMIT 10
+        """
     return run_query(query, params={"carrier_code": carrier_code, "year": year})
 
 
 @st.cache_data(ttl=3600, show_spinner=False)
-def get_airline_yield_curve(carrier_code: str, year: int) -> pd.DataFrame:
+def get_airline_yield_curve(carrier_code: str, year: int, include_regionals: bool = True) -> pd.DataFrame:
     """Fetches route-level stage length vs fare yields for an airline."""
-    query = """
-        SELECT 
-            origin,
-            dest,
-            CONCAT(origin, '-', dest) AS route_label,
-            avg_stage_length_miles AS stage_length_miles,
-            avg_od_fare,
-            yield_per_mile,
-            operational_passengers,
-            load_factor_pct
-        FROM `db1b-1.reporting.mart_airline_network_performance`
-        WHERE unique_carrier = @carrier_code AND year = @year
-          AND avg_stage_length_miles > 50
-          AND (avg_od_fare IS NULL OR avg_od_fare > 20)
-        ORDER BY operational_passengers DESC
-        LIMIT 200
-    """
+    if include_regionals:
+        query = f"""
+            WITH base AS (
+                SELECT 
+                    origin, dest, unique_carrier,
+                    avg_stage_length_miles, avg_od_fare, yield_per_mile,
+                    operational_passengers, load_factor_pct
+                FROM `db1b-1.reporting.mart_airline_network_performance`
+                WHERE year = @year
+                  AND avg_stage_length_miles > 50
+                  AND (avg_od_fare IS NULL OR avg_od_fare > 20)
+            ),
+            attributed AS (
+                SELECT 
+                    base.origin, base.dest,
+                    CONCAT(base.origin, '-', base.dest) AS route_label,
+                    base.avg_stage_length_miles AS stage_length_miles,
+                    base.avg_od_fare, base.yield_per_mile,
+                    {ATTRIBUTED_CARRIER_SQL} AS marketing_carrier,
+                    ROUND(base.operational_passengers * {ATTRIBUTED_SHARE_SQL}) AS operational_passengers,
+                    base.load_factor_pct
+                FROM base
+                {REGIONAL_ATTRIBUTION_JOIN}
+            )
+            SELECT 
+                origin, dest, route_label, stage_length_miles,
+                avg_od_fare, yield_per_mile, operational_passengers, load_factor_pct
+            FROM attributed
+            WHERE marketing_carrier = @carrier_code
+            ORDER BY operational_passengers DESC
+            LIMIT 200
+        """
+    else:
+        query = """
+            SELECT 
+                origin,
+                dest,
+                CONCAT(origin, '-', dest) AS route_label,
+                avg_stage_length_miles AS stage_length_miles,
+                avg_od_fare,
+                yield_per_mile,
+                operational_passengers,
+                load_factor_pct
+            FROM `db1b-1.reporting.mart_airline_network_performance`
+            WHERE unique_carrier = @carrier_code AND year = @year
+              AND avg_stage_length_miles > 50
+              AND (avg_od_fare IS NULL OR avg_od_fare > 20)
+            ORDER BY operational_passengers DESC
+            LIMIT 200
+        """
     return run_query(query, params={"carrier_code": carrier_code, "year": year})
 
 
 @st.cache_data(ttl=3600, show_spinner=False)
-def get_airline_routes_dataset(carrier_code: str, year: int, min_departures: int = 20) -> pd.DataFrame:
+def get_airline_routes_dataset(carrier_code: str, year: int, min_departures: int = 20, include_regionals: bool = True) -> pd.DataFrame:
     """Fetches nationwide route network with GPS coordinates for an airline."""
-    query = """
-        SELECT 
-            origin,
-            origin_name,
-            origin_city,
-            origin_lat,
-            origin_lon,
-            dest,
-            dest_name,
-            dest_city,
-            dest_state,
-            dest_country,
-            dest_lat,
-            dest_lon,
-            SUM(departures_performed) AS departures_performed,
-            SUM(total_seats) AS total_seats,
-            SUM(operational_passengers) AS operational_passengers,
-            ROUND(SAFE_DIVIDE(SUM(operational_passengers), SUM(total_seats)) * 100, 1) AS load_factor_pct,
-            ROUND(SAFE_DIVIDE(SUM(total_seats), NULLIF(SUM(departures_performed), 0)), 1) AS avg_gauge_seats,
-            AVG(distance_miles) AS distance_miles,
-            ROUND(AVG(avg_od_fare), 2) AS avg_od_fare
-        FROM `db1b-1.reporting.mart_airport_network_summary`
-        WHERE unique_carrier = @carrier_code AND year = @year
-          AND origin_lat IS NOT NULL AND dest_lat IS NOT NULL
-        GROUP BY 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12
-        HAVING departures_performed >= @min_departures
-        ORDER BY operational_passengers DESC
-        LIMIT 400
-    """
+    if include_regionals:
+        query = f"""
+            WITH base AS (
+                SELECT 
+                    origin, origin_name, origin_city, origin_lat, origin_lon,
+                    dest, dest_name, dest_city, dest_state, dest_country, dest_lat, dest_lon,
+                    unique_carrier, departures_performed, total_seats, operational_passengers,
+                    distance_miles, avg_od_fare
+                FROM `db1b-1.reporting.mart_airport_network_summary`
+                WHERE year = @year
+                  AND origin_lat IS NOT NULL AND dest_lat IS NOT NULL
+            ),
+            attributed AS (
+                SELECT 
+                    base.origin, base.origin_name, base.origin_city, base.origin_lat, base.origin_lon,
+                    base.dest, base.dest_name, base.dest_city, base.dest_state, base.dest_country, base.dest_lat, base.dest_lon,
+                    {ATTRIBUTED_CARRIER_SQL} AS marketing_carrier,
+                    ROUND(base.departures_performed * {ATTRIBUTED_SHARE_SQL}) AS departures_performed,
+                    ROUND(base.total_seats * {ATTRIBUTED_SHARE_SQL}) AS total_seats,
+                    ROUND(base.operational_passengers * {ATTRIBUTED_SHARE_SQL}) AS operational_passengers,
+                    base.distance_miles, base.avg_od_fare
+                FROM base
+                {REGIONAL_ATTRIBUTION_JOIN}
+            )
+            SELECT 
+                origin, origin_name, origin_city, origin_lat, origin_lon,
+                dest, dest_name, dest_city, dest_state, dest_country, dest_lat, dest_lon,
+                SUM(departures_performed) AS departures_performed,
+                SUM(total_seats) AS total_seats,
+                SUM(operational_passengers) AS operational_passengers,
+                ROUND(SAFE_DIVIDE(SUM(operational_passengers), SUM(total_seats)) * 100, 1) AS load_factor_pct,
+                ROUND(SAFE_DIVIDE(SUM(total_seats), NULLIF(SUM(departures_performed), 0)), 1) AS avg_gauge_seats,
+                AVG(distance_miles) AS distance_miles,
+                ROUND(AVG(avg_od_fare), 2) AS avg_od_fare
+            FROM attributed
+            WHERE marketing_carrier = @carrier_code
+            GROUP BY 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12
+            HAVING departures_performed >= @min_departures
+            ORDER BY operational_passengers DESC
+            LIMIT 500
+        """
+    else:
+        query = """
+            SELECT 
+                origin, origin_name, origin_city, origin_lat, origin_lon,
+                dest, dest_name, dest_city, dest_state, dest_country, dest_lat, dest_lon,
+                SUM(departures_performed) AS departures_performed,
+                SUM(total_seats) AS total_seats,
+                SUM(operational_passengers) AS operational_passengers,
+                ROUND(SAFE_DIVIDE(SUM(operational_passengers), SUM(total_seats)) * 100, 1) AS load_factor_pct,
+                ROUND(SAFE_DIVIDE(SUM(total_seats), NULLIF(SUM(departures_performed), 0)), 1) AS avg_gauge_seats,
+                AVG(distance_miles) AS distance_miles,
+                ROUND(AVG(avg_od_fare), 2) AS avg_od_fare
+            FROM `db1b-1.reporting.mart_airport_network_summary`
+            WHERE unique_carrier = @carrier_code AND year = @year
+              AND origin_lat IS NOT NULL AND dest_lat IS NOT NULL
+            GROUP BY 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12
+            HAVING departures_performed >= @min_departures
+            ORDER BY operational_passengers DESC
+            LIMIT 400
+        """
     return run_query(query, params={"carrier_code": carrier_code, "year": year, "min_departures": min_departures})
 
 
@@ -1068,41 +1285,55 @@ def get_alliance_fleet_deployment(year: int) -> pd.DataFrame:
 @st.cache_data(ttl=3600, show_spinner=False)
 def get_airport_time_series(airport_code: str, passenger_only: bool = True) -> pd.DataFrame:
     """
-    Retrieves annual time-series metrics (1990–2026) for a specific airport.
-    Returns year-by-year departures, total_seats, passengers, load_factor_pct, direct_destinations, and top_carrier.
+    Retrieves annual time-series metrics (1990–2026) for a specific airport with regional carrier attribution.
+    Returns year-by-year departures, total_seats, passengers, load_factor_pct, direct_destinations, and attributed top_carrier.
     """
     code = airport_code.strip().upper()
-    pax_filter = "AND operational_passengers > 0" if passenger_only else ""
+    pax_filter = "AND operational_passengers > 0 AND total_seats > 0" if passenger_only else ""
 
     sql = f"""
-    WITH annual_summary AS (
+    WITH base AS (
       SELECT
         EXTRACT(YEAR FROM flight_date) as year,
+        origin,
+        dest,
+        unique_carrier,
+        departures_performed,
+        total_seats,
+        operational_passengers
+      FROM `db1b-1.reporting.mart_airport_network_summary`
+      WHERE origin = '{code}' {pax_filter}
+    ),
+    attributed AS (
+      SELECT
+        base.year,
+        base.dest,
+        {ATTRIBUTED_CARRIER_SQL} AS unique_carrier,
+        ROUND(base.departures_performed * {ATTRIBUTED_SHARE_SQL}) AS departures_performed,
+        ROUND(base.total_seats * {ATTRIBUTED_SHARE_SQL}) AS total_seats,
+        ROUND(base.operational_passengers * {ATTRIBUTED_SHARE_SQL}) AS operational_passengers
+      FROM base
+      {REGIONAL_ATTRIBUTION_JOIN}
+    ),
+    annual_summary AS (
+      SELECT
+        year,
         SUM(departures_performed) as total_departures,
         SUM(total_seats) as total_seats,
         SUM(operational_passengers) as total_passengers,
         COUNT(DISTINCT dest) as direct_destinations,
         ROUND(SUM(operational_passengers) / NULLIF(SUM(total_seats), 0) * 100, 1) as load_factor_pct
-      FROM `db1b-1.reporting.mart_airport_network_summary`
-      WHERE origin = '{code}' {pax_filter}
+      FROM attributed
       GROUP BY 1
-    ),
-    carrier_raw AS (
-      SELECT
-        EXTRACT(YEAR FROM flight_date) as year,
-        unique_carrier,
-        SUM(operational_passengers) as carrier_pax
-      FROM `db1b-1.reporting.mart_airport_network_summary`
-      WHERE origin = '{code}' {pax_filter}
-      GROUP BY 1, 2
     ),
     carrier_annual AS (
       SELECT
         year,
         unique_carrier,
-        carrier_pax,
-        ROW_NUMBER() OVER(PARTITION BY year ORDER BY carrier_pax DESC) as rn
-      FROM carrier_raw
+        SUM(operational_passengers) as carrier_pax,
+        ROW_NUMBER() OVER(PARTITION BY year ORDER BY SUM(operational_passengers) DESC) as rn
+      FROM attributed
+      GROUP BY 1, 2
     )
     SELECT
       a.year,
@@ -1124,28 +1355,72 @@ def get_airport_time_series(airport_code: str, passenger_only: bool = True) -> p
 
 
 @st.cache_data(ttl=3600, show_spinner=False)
-def get_airline_time_series(carrier_code: str) -> pd.DataFrame:
+def get_airline_time_series(carrier_code: str, include_regionals: bool = True) -> pd.DataFrame:
     """
-    Retrieves annual time-series performance metrics (1990–2026) for an airline.
-    Returns year, total_departures, total_seats, total_passengers, asm, rpm, system_load_factor_pct, and active_routes.
+    Retrieves annual time-series performance metrics (1990–2026) for an airline,
+    optionally attributing regional partner network operations.
     """
     code = carrier_code.strip().upper()
-    sql = f"""
-    SELECT
-      EXTRACT(YEAR FROM flight_date) as year,
-      SUM(departures_performed) as total_departures,
-      SUM(total_seats) as total_seats,
-      SUM(operational_passengers) as total_passengers,
-      SUM(available_seat_miles) as total_asm,
-      SUM(revenue_passenger_miles) as total_rpm,
-      ROUND(SUM(revenue_passenger_miles) / NULLIF(SUM(available_seat_miles), 0) * 100, 1) as system_load_factor_pct,
-      ROUND(SUM(operational_passengers) / NULLIF(SUM(total_seats), 0) * 100, 1) as load_factor_pct,
-      COUNT(DISTINCT dest) as active_routes
-    FROM `db1b-1.reporting.mart_airline_network_performance`
-    WHERE unique_carrier = '{code}'
-    GROUP BY 1
-    ORDER BY year ASC
-    """
+    if include_regionals:
+        sql = f"""
+        WITH base AS (
+          SELECT
+            EXTRACT(YEAR FROM flight_date) as year,
+            origin,
+            dest,
+            unique_carrier,
+            departures_performed,
+            total_seats,
+            operational_passengers,
+            available_seat_miles,
+            revenue_passenger_miles
+          FROM `db1b-1.reporting.mart_airline_network_performance`
+        ),
+        attributed AS (
+          SELECT
+            base.year,
+            base.dest,
+            {ATTRIBUTED_CARRIER_SQL} AS marketing_carrier,
+            ROUND(base.departures_performed * {ATTRIBUTED_SHARE_SQL}) AS departures_performed,
+            ROUND(base.total_seats * {ATTRIBUTED_SHARE_SQL}) AS total_seats,
+            ROUND(base.operational_passengers * {ATTRIBUTED_SHARE_SQL}) AS operational_passengers,
+            ROUND(base.available_seat_miles * {ATTRIBUTED_SHARE_SQL}) AS available_seat_miles,
+            ROUND(base.revenue_passenger_miles * {ATTRIBUTED_SHARE_SQL}) AS revenue_passenger_miles
+          FROM base
+          {REGIONAL_ATTRIBUTION_JOIN}
+        )
+        SELECT
+          year,
+          SUM(departures_performed) as total_departures,
+          SUM(total_seats) as total_seats,
+          SUM(operational_passengers) as total_passengers,
+          SUM(available_seat_miles) as total_asm,
+          SUM(revenue_passenger_miles) as total_rpm,
+          ROUND(SUM(revenue_passenger_miles) / NULLIF(SUM(available_seat_miles), 0) * 100, 1) as system_load_factor_pct,
+          ROUND(SUM(operational_passengers) / NULLIF(SUM(total_seats), 0) * 100, 1) as load_factor_pct,
+          COUNT(DISTINCT dest) as active_routes
+        FROM attributed
+        WHERE marketing_carrier = '{code}'
+        GROUP BY 1
+        ORDER BY year ASC
+        """
+    else:
+        sql = f"""
+        SELECT
+          EXTRACT(YEAR FROM flight_date) as year,
+          SUM(departures_performed) as total_departures,
+          SUM(total_seats) as total_seats,
+          SUM(operational_passengers) as total_passengers,
+          SUM(available_seat_miles) as total_asm,
+          SUM(revenue_passenger_miles) as total_rpm,
+          ROUND(SUM(revenue_passenger_miles) / NULLIF(SUM(available_seat_miles), 0) * 100, 1) as system_load_factor_pct,
+          ROUND(SUM(operational_passengers) / NULLIF(SUM(total_seats), 0) * 100, 1) as load_factor_pct,
+          COUNT(DISTINCT dest) as active_routes
+        FROM `db1b-1.reporting.mart_airline_network_performance`
+        WHERE unique_carrier = '{code}'
+        GROUP BY 1
+        ORDER BY year ASC
+        """
     df = run_query(sql)
     if not df.empty:
         df["pax_growth_pct"] = (df["total_passengers"].pct_change() * 100).round(1)

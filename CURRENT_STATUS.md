@@ -1,29 +1,27 @@
 # Current Project Status: AvDB
 
 **Last Updated**: 2026-09-17
-**Current Phase**: Phase 13 Delivered (Longitudinal Time-Series Analytics & Trending Over Time 1990–2026 across Airports, Airlines, Fleet & Alliances)
+**Current Phase**: Phase 14 Delivered (Empirical Regional Carrier Attribution via DOT DB1B 10% Ticket Survey & Proportional Mainline Splitting)
 ---
 
 ## 🎯 Active Focus
-Delivered comprehensive longitudinal trending over time across the AvDB dashboard suite:
-1. **Longitudinal Time-Series Query Engine (`app/utils/queries.py`)**:
-   - `get_airport_time_series`: Aggregates 1990–2026 passenger volume, commercial departures, seat capacity, load factors, route breadth, and YoY % growth rates.
-   - `get_airline_time_series`: Tracks 36-year carrier evolution with ASM, RPM, system load factors, network route counts, and YoY growth.
-   - `get_fleet_time_series`: Analyzes 36-year aircraft gauge (average seats per departure) across major aircraft families (A320, B737, B777, E175, CRJ, etc.).
-   - `get_alliances_time_series`: Longitudinal market share transition from the 1989 NW/KL Wings alliance to Star Alliance, SkyTeam, and oneworld.
-2. **Interactive Visualizers (`app/utils/visualizers.py`)**:
-   - Airport Growth Trend Chart: Dual-axis volume and load factor curve with historical macro-shock annotations (9/11 in 2001, Global Financial Crisis in 2008, COVID-19 in 2020).
-   - Airline Capacity & Yield Trajectory: Clustered ASM vs RPM bar comparison with superimposed system load factor trendline.
-   - Aircraft Gauge Evolution: Multi-line chart illustrating the up-gauging shift from regional jets back into higher-capacity narrowbodies and widebodies.
-   - Alliance Market Share Evolution: 100% stacked area visualization tracking alliance consolidation.
-3. **Cross-Dashboard UI Integration**:
-   - **Airports Tab**: Displays annual passenger volume with automated YoY delta badge, plus an interactive "Multi-Year Growth Timeline (1990–2026)" expander highlighting all-time traffic peaks and long-term expansion.
-   - **Airlines Tab**: Displays departures with YoY comparison, accompanied by an interactive "Historical Network Trajectory (1990–2026)" expander highlighting peak capacity milestones and route counts.
-   - **Fleet & Routes Tab**: Features a dedicated "Three-Decade Aircraft Gauge Evolution" expander illustrating fleet up-gauging trends.
-   - **Alliances Tab**: Includes an "Alliance Market Share Evolution (1990–2026)" expander showing 36 years of global consolidation touching US gateways.
+Delivered empirical route-level regional carrier attribution and multi-carrier capacity splitting across the AvDB dashboard suite:
+1. **Empirical BigQuery Route Attribution Table (`db1b-1.reporting.ref_regional_route_attribution`)**:
+   - Materialized from 79.8M records in `OD40_DB1B_RAW` across 7,024 regional route pairs (`op_carrier`, `origin`, `dest`, `mkt_carrier`, `sample_coupons`, `attribution_share`, `is_primary`).
+   - Replaced fragile hub-only heuristics with empirical ticketing data: e.g. on EUG-SEA, SkyWest (`OO`) tickets are proportionally attributed as 66.4% Delta (`DL`) and 33.6% Alaska (`AS`); EUG-LAX is 98.2% Alaska (`AS`); EUG-PDX is 99.9% Alaska (`AS`).
+   - Integrated deterministic subsidiary mappings for dedicated regional operators: Horizon `QX` $\rightarrow$ `AS`, Endeavor `9E` $\rightarrow$ `DL`, Envoy/PSA/Piedmont `MQ`/`OH`/`PT` $\rightarrow$ `AA`, CommuteAir/GoJet `C5`/`G7` $\rightarrow$ `UA`, Compass `CP` $\rightarrow$ `DL`.
+2. **Query Engine Modernization (`app/utils/queries.py`)**:
+   - `get_airport_kpis`: Attributed regional flights so `leading_carrier` reflects true consumer brands (e.g. EUG correctly reflects Alaska Airlines `AS` as the market leader with ~36% share).
+   - `get_airport_routes_dataset`: Route details aggregate marketing brands (`AS, DL`) rather than raw metal (`OO, QX`).
+   - `get_airport_carrier_breakdown`: Proportional route splitting credits Alaska with mainline `AS` + Horizon `QX` + Alaska SkyWest `OO[AS]`, and Delta with `DL` + Delta SkyWest `OO[DL]`.
+   - `get_route_carrier_competition`: Route-level competition head-to-head compares mainline brands directly.
+   - `get_airport_time_series`: Fixed `top_carrier` over 1990–2026 to reflect marketing carriers, accurately showing Alaska (`AS`) dominant across 2013–2021 and 2025–2026 at EUG.
+   - `get_airline_kpis`, `get_airline_hubs`, `get_airline_yield_curve`, `get_airline_routes_dataset`, `get_airline_time_series`: Added `include_regionals: bool = True` support, allowing airlines like Alaska (`AS`) to capture their full 46M-passenger network.
+3. **UI Enhancements**:
+   - **Airports Tab**: Added attribution methodology notice explaining the empirical DOT DB1B ticket survey route-splitting.
+   - **Airlines Tab**: Added `Network Scope` selector ("Full Network (inc. Regionals)" vs "Mainline Metal Only") defaulting to Full Network.
 4. **Validation & Testing**:
-   - 100% pass across all regression tests, auth checks, query syntax verification, and API endpoints via `tests/run_all_tests.py`.
-   - Verified BigQuery schema alignment across all time-series queries: fixed `PARTITION BY` non-grouped column references in `get_airport_time_series`, corrected `available_seat_miles`/`revenue_passenger_miles` in `get_airline_time_series`, and `operational_passengers` in `get_fleet_time_series`.
+   - 100% pass across all regression tests, auth checks, query syntax verification, and API endpoints via `tests/run_all_tests.py`, including automated assertions in `test_regional_carrier_attribution()`.
 
 ---
 
@@ -34,6 +32,7 @@ Delivered comprehensive longitudinal trending over time across the AvDB dashboar
 | `mart_airport_network_summary` | **8,532,624** | `flight_date` (MONTH) | `origin`, `dest`, `unique_carrier` | Direct destinations, pax volume, seat capacity, load factors, DB1B inferred fares, GPS coordinates. |
 | `mart_airline_network_performance` | **8,532,624** | `flight_date` (MONTH) | `unique_carrier`, `origin`, `dest` | Available Seat Miles (ASM), RPM, load factors, route market share %, yield per passenger-mile. |
 | `mart_fleet_route_dynamics` | **13,604,268** | `flight_date` (MONTH) | `aircraft_family`, `unique_carrier`, `origin` | Equipment types (A320/A321, B738, E175, Widebodies), avg gauge (seats/dep), stage length economics. |
+| `ref_regional_route_attribution` | **7,024** | — | `origin`, `dest`, `op_carrier` | Route-specific empirical marketing carrier shares from 79.8M DB1B ticket survey coupons. |
 | `user_travel.user_flight_logs` | **User Vault** | `created_at` (DAY) | `user_email`, `origin`, `dest`, `carrier_code` | User Flighty segments, subfleet variants, seat positions, CO2 emissions, fail-safe purge controls. |
 | `ref_airports` | **50,409** | — | `airport_code` | Master airport GPS coordinates, classifications, metro area flags. |
 | `ref_city_markets` | **10 Metro Areas** | — | — | Catchment mapping (WAS, NYC, CHI, DFW, LON, etc.). |
@@ -42,6 +41,10 @@ Delivered comprehensive longitudinal trending over time across the AvDB dashboar
 ---
 
 ## ✅ Recently Completed
+- [x] **Empirical Route-Level Regional Carrier Attribution Engine (`db1b-1.reporting.ref_regional_route_attribution`)**.
+- [x] **Proportional Multi-Carrier SkyWest Splitting on Dual-Hub Corridors (e.g. EUG-SEA, SEA-GEG, etc.)**.
+- [x] **Network Scope Toggle in Airlines Explorer ("Full Network (inc. Regionals)" vs "Mainline Metal Only")**.
+- [x] **Regional Carrier Attribution Test Suite (`test_regional_carrier_attribution`) passing 100%**.
 - [x] **Longitudinal Time-Series Query Engine (1990–2026) across Airports, Airlines, Fleet, and Alliances**.
 - [x] **Macro-Shock Historical Annotations (9/11, GFC, COVID-19)**.
 - [x] **YoY Delta Growth Tracking on Core KPI Cards**.
@@ -50,13 +53,11 @@ Delivered comprehensive longitudinal trending over time across the AvDB dashboar
 - [x] **BigQuery User Travel Vault (`db1b-1.user_travel.user_flight_logs`) with 1,000-Flight Cap & Typed `DELETE` Purge**.
 - [x] **User Privacy Policy Page (`app/pages/6_🔒_Privacy_Policy.py`)**.
 - [x] **Removed All Portfolio Backlinks Across Platform**.
-- [x] **Portfolio Explainer & Site Preview Updated to 93.9M+ Records**.
-- [x] **Extant Historical Route Data & FFP Partner Research (`docs/ffp_partnerships_research.md`)**.
 - [x] **Unified Test Suite Passed 100% (`tests/run_all_tests.py`)**.
 
 ---
 
 ## ⏳ Next Immediate Steps & Audit Roadmap
-1. **Deploy to Google Cloud Run**: Execute `./scripts/deploy.sh` to release the new longitudinal time-series analytics, Alliances tab, persistent user vault, and privacy policy to `https://avdb.riffe.co.uk`.
+1. **Deploy to Google Cloud Run**: Execute `./scripts/deploy.sh` to release the new empirical regional carrier attribution, longitudinal time-series analytics, Alliances tab, persistent user vault, and privacy policy to `https://avdb.riffe.co.uk`.
 2. **Phase 1 DB1B Historical Ingestion (2000–2025 Q2)**: Build and run automated PREZIP downloader for quarterly `DB1BMarket` files into `db1b-1.DB1B_RAW.historical_db1b_market`.
 3. **Phase 2 Historical Fare Ingestion (1990–1999)**: Ingest early DB1B (1993–1999) and DB1A (1990–1992) from NBER / TranStats archives as planned in `playbook.md`.
