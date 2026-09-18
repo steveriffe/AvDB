@@ -269,9 +269,9 @@ if not df_carrier_routes.empty:
         air_theme_label = st.selectbox(
             "Cartography Theme",
             options=[
+                "💖 Mapbox: Love (Custom)",
                 "🏁 Mapbox: Mono (Monochromatic)",
                 "🎨 Mapbox: Personal (Custom)",
-                "💖 Mapbox: Love (Custom)",
                 "🌌 Midnight Navy (Dark)",
                 "📜 Classic In-Flight Paper (Light)",
                 "🌑 Minimal Slate (Dark)"

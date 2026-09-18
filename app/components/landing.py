@@ -100,7 +100,7 @@ def _build_anc_demo_deck() -> Any:
     )
 
     token = settings.mapbox_token
-    style_url = MAP_THEMES.get("mono", MAP_THEMES["midnight"])
+    style_url = MAP_THEMES.get("love", MAP_THEMES["midnight"])
 
     return pdk.Deck(
         layers=[route_layer, node_layer],
@@ -533,7 +533,7 @@ def render_landing_page():
 
             st.markdown("<div style='margin-top: 14px;'></div>", unsafe_allow_html=True)
 
-            deck_dave = build_flighty_travel_deck(df_dave, home_airport="IAH", map_theme="mono", colorway="cobalt")
+            deck_dave = build_flighty_travel_deck(df_dave, home_airport="IAH", map_theme="love", colorway="cobalt")
             st.pydeck_chart(deck_dave, height=380, width="stretch")
 
             # Searchable Table

@@ -254,7 +254,7 @@ def test_dave_pierce_dataset():
     assert "AIR CANADA" in carriers, "Expected Air Canada"
 
     # 6. Monochromatic PyDeck route decks generate correctly
-    deck = build_flighty_travel_deck(df, home_airport="IAH", map_theme="mono", colorway="cobalt")
+    deck = build_flighty_travel_deck(df, home_airport="IAH", map_theme="love", colorway="cobalt")
     assert len(deck.layers) >= 2, "Expected PyDeck deck with Great-Circle layers"
 
     deck_anc = _build_anc_demo_deck()
