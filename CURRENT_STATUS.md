@@ -1,30 +1,28 @@
 # Current Project Status: AvDB
 
 **Last Updated**: 2026-09-17
-**Current Phase**: Phase 12 Delivered (Airline Alliances Tab with NW/KL Wings Alliance, BigQuery Persistent Travel Vault with 1,000-Flight Cap & Fail-Safe DELETE, Privacy Policy, Zero External Backlinks, and FFP Partner Research)
+**Current Phase**: Phase 13 Delivered (Longitudinal Time-Series Analytics & Trending Over Time 1990–2026 across Airports, Airlines, Fleet & Alliances)
 ---
 
 ## 🎯 Active Focus
-Delivered dedicated alliances lens, BigQuery user flight vault, privacy governance, and FFP research:
-1. **Global Alliances & Joint Ventures Lens (`app/pages/5_🌐_Alliances.py`)**:
-   - Built a comprehensive comparative intelligence tab analyzing Star Alliance, SkyTeam, oneworld, and the pioneering **Northwest / KLM (NW/KL) Wings Alliance** (and Qualiflyer).
-   - Metrics include system passenger volume, commercial departures, Available Seat Miles (ASM), Revenue Passenger Miles (RPM), system load factor %, and widebody vs. narrowbody fleet deployment mix.
-   - Prominently highlights the **US-origin & gateway data boundary notice** clarifying BTS T-100 / DB1B coverage.
-2. **BigQuery Persistent Travel Vault (`app/utils/flighty.py` & `app/pages/4_📱_Flighty_Traveler.py`)**:
-   - Created `db1b-1.user_travel.user_flight_logs` (partitioned by creation date, clustered by user email, origin, dest, carrier).
-   - Enforces a **1,000-flight safety limit** per user account.
-   - Implemented transparent platform storage telemetry (total user flights, registered travelers).
-   - Built **fail-safe user data purge controls**: requires typing exact uppercase `DELETE` before the permanent deletion SQL query executes.
-3. **Dedicated User Privacy Policy (`app/pages/6_🔒_Privacy_Policy.py`)**:
-   - Transparent disclosure on identity management (Google OAuth strictly for session authorization against allowlist).
-   - Details cloud vault storage, user ownership, and complete absence of third-party ad networks, marketing beacons, or tracking pixels.
-4. **Removal of External Backlinks**:
-   - Completely stripped all portfolio backlink bars and links to `portfolio.riffe.co.uk` across AvDB landing, sidebars, and styling components.
-5. **Site Preview & Explainer Update**:
-   - Updated both AvDB's public landing page and the portfolio explainer files (`Portfolio/public/avdb.html` and `Portfolio/public/index.html`) to reflect the **93.9M+ record warehouse scale**.
-6. **Extant Historical Route Data & Frequent Flyer Program (FFP) Research (`docs/ffp_partnerships_research.md`)**:
-   - Audited extant pre-1990 data sources (CAB Form 41 Schedules T-1/T-2/T-3 1970–1989, TranStats T-9, OAG timetables, NBER archives).
-   - Designed schema and architectural plan for a future **Frequent Flyer Program (FFP) Historical Partners** lens (tracking bilateral reciprocity for Alaska Mileage Plan, Northwest WorldPerks, Delta SkyMiles, AA AAdvantage).
+Delivered comprehensive longitudinal trending over time across the AvDB dashboard suite:
+1. **Longitudinal Time-Series Query Engine (`app/utils/queries.py`)**:
+   - `get_airport_time_series`: Aggregates 1990–2026 passenger volume, commercial departures, seat capacity, load factors, route breadth, and YoY % growth rates.
+   - `get_airline_time_series`: Tracks 36-year carrier evolution with ASM, RPM, system load factors, network route counts, and YoY growth.
+   - `get_fleet_time_series`: Analyzes 36-year aircraft gauge (average seats per departure) across major aircraft families (A320, B737, B777, E175, CRJ, etc.).
+   - `get_alliances_time_series`: Longitudinal market share transition from the 1989 NW/KL Wings alliance to Star Alliance, SkyTeam, and oneworld.
+2. **Interactive Visualizers (`app/utils/visualizers.py`)**:
+   - Airport Growth Trend Chart: Dual-axis volume and load factor curve with historical macro-shock annotations (9/11 in 2001, Global Financial Crisis in 2008, COVID-19 in 2020).
+   - Airline Capacity & Yield Trajectory: Clustered ASM vs RPM bar comparison with superimposed system load factor trendline.
+   - Aircraft Gauge Evolution: Multi-line chart illustrating the up-gauging shift from regional jets back into higher-capacity narrowbodies and widebodies.
+   - Alliance Market Share Evolution: 100% stacked area visualization tracking alliance consolidation.
+3. **Cross-Dashboard UI Integration**:
+   - **Airports Tab**: Displays annual passenger volume with automated YoY delta badge, plus an interactive "Multi-Year Growth Timeline (1990–2026)" expander highlighting all-time traffic peaks and long-term expansion.
+   - **Airlines Tab**: Displays departures with YoY comparison, accompanied by an interactive "Historical Network Trajectory (1990–2026)" expander highlighting peak capacity milestones and route counts.
+   - **Fleet & Routes Tab**: Features a dedicated "Three-Decade Aircraft Gauge Evolution" expander illustrating fleet up-gauging trends.
+   - **Alliances Tab**: Includes an "Alliance Market Share Evolution (1990–2026)" expander showing 36 years of global consolidation touching US gateways.
+4. **Validation & Testing**:
+   - 100% pass across all regression tests, auth checks, query syntax verification, and API endpoints via `tests/run_all_tests.py`.
 
 ---
 
@@ -43,10 +41,12 @@ Delivered dedicated alliances lens, BigQuery user flight vault, privacy governan
 ---
 
 ## ✅ Recently Completed
-- [x] **Global Airline Alliances Lens (`app/pages/5_🌐_Alliances.py`)**.
-- [x] **Northwest / KLM (NW/KL) Wings Alliance Integration & Vector SVG Logo**.
-- [x] **BigQuery User Travel Vault (`db1b-1.user_travel.user_flight_logs`)**.
-- [x] **1,000 Flight Safety Limit & Typed `DELETE` Purge Workflow**.
+- [x] **Longitudinal Time-Series Query Engine (1990–2026) across Airports, Airlines, Fleet, and Alliances**.
+- [x] **Macro-Shock Historical Annotations (9/11, GFC, COVID-19)**.
+- [x] **YoY Delta Growth Tracking on Core KPI Cards**.
+- [x] **Expandable Historical Trend Modules across All Primary Dashboard Pages**.
+- [x] **Global Airline Alliances Lens (`app/pages/5_🌐_Alliances.py`) with NW/KL Wings Alliance**.
+- [x] **BigQuery User Travel Vault (`db1b-1.user_travel.user_flight_logs`) with 1,000-Flight Cap & Typed `DELETE` Purge**.
 - [x] **User Privacy Policy Page (`app/pages/6_🔒_Privacy_Policy.py`)**.
 - [x] **Removed All Portfolio Backlinks Across Platform**.
 - [x] **Portfolio Explainer & Site Preview Updated to 93.9M+ Records**.
@@ -56,6 +56,6 @@ Delivered dedicated alliances lens, BigQuery user flight vault, privacy governan
 ---
 
 ## ⏳ Next Immediate Steps & Audit Roadmap
-1. **Deploy Updates to Cloud Run**: Execute `./scripts/deploy.sh` to release the Alliances tab, persistent user travel vault, and privacy policy to `https://avdb.riffe.co.uk`.
+1. **Deploy to Google Cloud Run**: Execute `./scripts/deploy.sh` to release the new longitudinal time-series analytics, Alliances tab, persistent user vault, and privacy policy to `https://avdb.riffe.co.uk`.
 2. **Phase 1 DB1B Historical Ingestion (2000–2025 Q2)**: Build and run automated PREZIP downloader for quarterly `DB1BMarket` files into `db1b-1.DB1B_RAW.historical_db1b_market`.
 3. **Phase 2 Historical Fare Ingestion (1990–1999)**: Ingest early DB1B (1993–1999) and DB1A (1990–1992) from NBER / TranStats archives as planned in `playbook.md`.

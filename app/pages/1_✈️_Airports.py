@@ -34,6 +34,7 @@ from app.utils.queries import (
     get_airport_fleet_mix,
     get_unserved_connecting_markets,
     get_route_carrier_competition,
+    get_airport_time_series,
 )
 from app.utils.visualizers import (
     build_route_map_deck,
@@ -43,6 +44,7 @@ from app.utils.visualizers import (
     build_airport_fleet_bar_chart,
     build_unserved_markets_scatter_chart,
     build_carrier_premium_bar_chart,
+    build_airport_growth_trend_chart,
 )
 from app.utils.alliances import (
     get_carrier_alliance,
@@ -118,16 +120,27 @@ if catchment_info:
     """)
 
 # -------------------------------------------------------------
-# 2. Top-Level Apple-Style KPI Cards
+# 2. Top-Level Apple-Style KPI Cards with YoY Context
 # -------------------------------------------------------------
 kpi_data = get_airport_kpis(selected_airport, selected_year, passenger_only=is_pax_only, min_departures=min_deps)
+df_time_series = get_airport_time_series(selected_airport, passenger_only=is_pax_only)
+
+# Compute YoY delta for selected year
+yoy_pax_delta = None
+if not df_time_series.empty and selected_year in df_time_series["year"].values:
+    curr_row = df_time_series[df_time_series["year"] == selected_year]
+    if not curr_row.empty:
+        growth = curr_row.iloc[0].get("pax_growth_pct")
+        if pd.notna(growth):
+            prefix = "+" if growth > 0 else ""
+            yoy_pax_delta = f"{prefix}{growth:.1f}% YoY"
 
 kpi1, kpi2, kpi3, kpi4, kpi5 = st.columns(5)
 
 tot_pax = kpi_data.get('total_passengers') or 0
 with kpi1:
     pax_val = f"{tot_pax / 1e6:.2f}M" if tot_pax >= 1e6 else f"{tot_pax:,}"
-    render_kpi_card("Total Passengers", pax_val)
+    render_kpi_card("Total Passengers", pax_val, delta=yoy_pax_delta)
 
 with kpi2:
     render_kpi_card("Direct Destinations", f"{kpi_data.get('direct_destinations', 0):,}")
@@ -142,7 +155,6 @@ with kpi4:
 
 with kpi5:
     leading_c = kpi_data.get('leading_carrier') or '—'
-    # Resolve leading carrier code for logo and alliance lookup
     leading_code = leading_c.split('—')[0].strip() if '—' in leading_c else leading_c.strip()
     if "(" in leading_c and ")" in leading_c:
         leading_code = leading_c.split("(")[-1].split(")")[0].strip()
@@ -150,6 +162,28 @@ with kpi5:
     leading_alliance = get_carrier_alliance(leading_code, selected_year) if leading_code != "—" else None
     leading_sub = f"🌐 {leading_alliance['alliance_name']}" if leading_alliance else "Independent / Unaligned"
     render_kpi_card("Leading Carrier", leading_c, subtitle=leading_sub, logo_url=leading_logo)
+
+# Multi-Year Trend Expander / Chart
+if not df_time_series.empty:
+    st.markdown("<div style='margin-top: 14px;'></div>", unsafe_allow_html=True)
+    with st.expander("📈 Historical Timeline & Multi-Year Growth (1990–2026)", expanded=False):
+        fig_trend = build_airport_growth_trend_chart(df_time_series, selected_airport)
+        st.plotly_chart(fig_trend, width="stretch")
+        
+        # Trend Highlights & Inflection Points
+        col_th1, col_th2, col_th3 = st.columns(3)
+        with col_th1:
+            peak_row = df_time_series.loc[df_time_series["total_passengers"].idxmax()]
+            st.metric("All-Time Peak Volume", f"{peak_row['total_passengers']/1e6:.2f}M Pax", f"Peak Year: {int(peak_row['year'])}")
+        with col_th2:
+            base_row = df_time_series.iloc[0]
+            curr_yr_row = df_time_series.iloc[-1]
+            long_term_growth = ((curr_yr_row['total_passengers'] - base_row['total_passengers']) / max(base_row['total_passengers'], 1)) * 100
+            st.metric("Long-Term Growth (1990 ➔ Present)", f"+{long_term_growth:.0f}%", f"From {base_row['total_passengers']/1e6:.1f}M in {int(base_row['year'])}")
+        with col_th3:
+            max_routes = df_time_series["direct_destinations"].max()
+            max_route_yr = int(df_time_series.loc[df_time_series["direct_destinations"].idxmax()]["year"])
+            st.metric("Max Direct Network", f"{max_routes} Destinations", f"Achieved in {max_route_yr}")
 
 # -------------------------------------------------------------
 # 3. Analytical Charts (Top Routes, Carrier/Alliance Donut, Fleet Mix)

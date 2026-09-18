@@ -35,9 +35,11 @@ from app.utils.queries import (
     get_airline_hub_expansion_proposals,
     get_unserved_connecting_markets,
     get_airline_routes_dataset,
+    get_airline_time_series,
 )
 from app.utils.visualizers import (
     build_airline_network_deck,
+    build_airline_trajectory_chart,
 )
 from app.utils.alliances import (
     get_carrier_alliance,
@@ -189,9 +191,19 @@ if timeline or pred_merger or absorbed_mergers:
                 )
 
 # -------------------------------------------------------------
-# 2. Top KPI Cards
+# 2. Top KPI Cards with YoY Context
 # -------------------------------------------------------------
 kpis = get_airline_kpis(selected_code, selected_year)
+df_airline_ts = get_airline_time_series(selected_code)
+
+yoy_deps_delta = None
+if not df_airline_ts.empty and selected_year in df_airline_ts["year"].values:
+    curr_al_row = df_airline_ts[df_airline_ts["year"] == selected_year]
+    if not curr_al_row.empty:
+        growth = curr_al_row.iloc[0].get("pax_growth_pct")
+        if pd.notna(growth):
+            prefix = "+" if growth > 0 else ""
+            yoy_deps_delta = f"{prefix}{growth:.1f}% YoY"
 
 k1, k2, k3, k4, k5 = st.columns(5)
 
@@ -201,7 +213,7 @@ with k1:
 
 with k2:
     deps_val = f"{tot_deps/1e3:.1f}K" if tot_deps >= 1000 else f"{tot_deps:,}"
-    render_kpi_card("Total Departures", deps_val)
+    render_kpi_card("Total Departures", deps_val, delta=yoy_deps_delta)
 
 with k3:
     lf_str = f"{kpis['system_load_factor']:.1f}%" if kpis.get('system_load_factor') and not pd.isna(kpis['system_load_factor']) else "—"
@@ -214,6 +226,25 @@ with k4:
 with k5:
     fare_str = f"${kpis['avg_network_fare']:.0f}" if kpis.get('avg_network_fare') and not pd.isna(kpis['avg_network_fare']) else "—"
     render_kpi_card("Avg Network Fare", fare_str)
+
+# Multi-Year Trajectory Expander
+if not df_airline_ts.empty:
+    st.markdown("<div style='margin-top: 14px;'></div>", unsafe_allow_html=True)
+    with st.expander("📈 Historical Timeline & Network Trajectory (1990–2026)", expanded=False):
+        fig_al_trend = build_airline_trajectory_chart(df_airline_ts, carriers_dict.get(selected_code, selected_code))
+        st.plotly_chart(fig_al_trend, width="stretch")
+        
+        # Historical milestone highlights
+        m_col1, m_col2, m_col3 = st.columns(3)
+        with m_col1:
+            peak_al_pax = df_airline_ts.loc[df_airline_ts["total_passengers"].idxmax()]
+            st.metric("All-Time Passenger Peak", f"{peak_al_pax['total_passengers']/1e6:.2f}M Pax", f"Year: {int(peak_al_pax['year'])}")
+        with m_col2:
+            peak_asm = df_airline_ts.loc[df_airline_ts["total_asm"].idxmax()]
+            st.metric("All-Time Capacity Peak", f"{peak_asm['total_asm']/1e9:.2f}B ASM", f"Year: {int(peak_asm['year'])}")
+        with m_col3:
+            peak_lf = df_airline_ts.loc[df_airline_ts["system_load_factor_pct"].idxmax()]
+            st.metric("Highest Annual Load Factor", f"{peak_lf['system_load_factor_pct']:.1f}%", f"Year: {int(peak_lf['year'])}")
 
 # -------------------------------------------------------------
 # 3. Hero Section: Nationwide Route Network Atlas (1990s In-Flight Cartography)

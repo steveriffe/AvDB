@@ -84,3 +84,4 @@ CLUSTER BY program_airline_code, partner_airline_code, effective_start_date;
    - Geodesic route map showing routes where a member of the selected program could earn or redeem miles in a given year.
 3. **Alliance Independent Matrix**:
    - Highlight non-aligned "free agent" years (e.g., Alaska Airlines 1983–2020) and how bilateral FFP agreements filled critical international gateway connectivity without the antitrust immunity requirements of a metal-neutral joint venture.
+

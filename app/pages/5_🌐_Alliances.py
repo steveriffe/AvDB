@@ -17,7 +17,9 @@ from app.utils.auth import require_auth
 from app.utils.queries import (
     get_alliance_performance_metrics,
     get_alliance_fleet_deployment,
+    get_alliances_time_series,
 )
+from app.utils.visualizers import build_alliance_market_share_trend_chart
 from app.utils.alliances import (
     ALLIANCE_COLORS,
     get_vector_logo_data_uri,
@@ -187,7 +189,27 @@ with vcol2:
     st.plotly_chart(fig_bar, width="stretch")
 
 # -------------------------------------------------------------
-# 5. Alliance Deep-Dive Profiles
+# 5. Multi-Year Historical Trend: 1990–2026 Alliance Evolution
+# -------------------------------------------------------------
+with st.expander("📈 Alliance Market Share Evolution (1990–2026)", expanded=False):
+    st.markdown(
+        "<p style='color: #94A3B8; font-size: 0.9rem; margin-bottom: 12px;'>"
+        "Tracking 36 years of global consolidation and joint-venture formation touching US international gateways: "
+        "from the 1989 Northwest/KLM transatlantic joint venture (Wings), through the founding of Star Alliance (1997), "
+        "oneworld (1999), and SkyTeam (2000), up to current multilateral immunity partnerships."
+        "</p>",
+        unsafe_allow_html=True,
+    )
+    with st.spinner("Generating 36-year alliance market trajectory..."):
+        df_alliance_ts = get_alliances_time_series()
+    if not df_alliance_ts.empty:
+        fig_ts = build_alliance_market_share_trend_chart(df_alliance_ts)
+        st.plotly_chart(fig_ts, width="stretch")
+    else:
+        st.info("Time-series alliance intelligence currently calculating.")
+
+# -------------------------------------------------------------
+# 6. Alliance Deep-Dive Profiles
 # -------------------------------------------------------------
 st.markdown("---")
 st.markdown("### 🏛️ Alliance Profiles & Member Carriers")
@@ -241,7 +263,7 @@ for _, a_row in df_perf.iterrows():
                         )
 
 # -------------------------------------------------------------
-# 6. Fleet Deployment Mix: Widebody vs Narrowbody by Alliance
+# 7. Fleet Deployment Mix: Widebody vs Narrowbody by Alliance
 # -------------------------------------------------------------
 if not df_fleet.empty:
     st.markdown("---")
@@ -272,3 +294,4 @@ if not df_fleet.empty:
         legend=dict(orientation="h", y=1.15, x=0.1)
     )
     st.plotly_chart(fig_fleet, width="stretch")
+

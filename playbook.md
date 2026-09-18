@@ -232,3 +232,24 @@ flowchart LR
   - [x] Audited CAB Form 41 (1970–1989), TranStats T-9, and OAG timetables in `docs/ffp_partnerships_research.md`.
   - [x] Formulated architectural plan and schema design for a future Frequent Flyer Program (FFP) Historical Partners page.
 
+---
+
+### Phase 13: Longitudinal Time-Series Analytics & Trending Over Time (1990–2026)
+- [x] **13.1 High-Performance Partition-Aware Time-Series Query Engine (`app/utils/queries.py`)**:
+  - [x] `get_airport_time_series(airport_code, passenger_only)`: 36-year traffic, departures, load factor, route breadth, and YoY growth.
+  - [x] `get_airline_time_series(carrier_code)`: Historical ASM, RPM, system load factor %, route count, and YoY growth.
+  - [x] `get_fleet_time_series(aircraft_family)`: Gauge (seats per departure) evolution by aircraft category.
+  - [x] `get_alliances_time_series()`: 1990–2026 global alliance market share shift across US gateways.
+- [x] **13.2 Tailored Longitudinal Visualizers (`app/utils/visualizers.py`)**:
+  - [x] `build_airport_growth_trend_chart`: Dual-axis growth curve with macro-shock event lines (2001 9/11, 2008 GFC, 2020 COVID).
+  - [x] `build_airline_trajectory_chart`: Grouped capacity (ASM/RPM) with load factor trajectory overlay.
+  - [x] `build_fleet_gauge_trend_chart`: Multi-decade up-gauging trends across aircraft families.
+  - [x] `build_alliance_market_share_trend_chart`: 100% stacked area chart tracking alliance formation and consolidation.
+- [x] **13.3 Dashboard Integrations Across Analytical Lenses**:
+  - [x] Airports (`app/pages/1_✈️_Airports.py`): YoY delta on KPI card + Multi-Year Growth Timeline expander.
+  - [x] Airlines (`app/pages/2_🏢_Airlines.py`): YoY delta on KPI card + Historical Network Trajectory expander.
+  - [x] Fleet & Routes (`app/pages/3_💺_Fleet_Routes.py`): Three-decade gauge evolution expander.
+  - [x] Alliances (`app/pages/5_🌐_Alliances.py`): 36-year alliance market share transition expander.
+- [x] **13.4 Regression & End-to-End Verification**:
+  - [x] Validated against full test suite (`tests/run_all_tests.py`) with 100% pass rate.
+

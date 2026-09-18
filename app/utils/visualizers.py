@@ -1024,3 +1024,215 @@ def build_flighty_seat_preference_donut(df_flights: pd.DataFrame) -> go.Figure:
     )
     return fig
 
+
+# -------------------------------------------------------------
+# Multi-Year Trending & Time-Series Chart Builders
+# -------------------------------------------------------------
+
+def build_airport_growth_trend_chart(df_ts: pd.DataFrame, airport_name: str) -> go.Figure:
+    """
+    Builds a dual-axis 36-year growth curve for an airport:
+    - Passengers (Filled Blue Area)
+    - Available Seats (Dashed Sky Line)
+    - Load Factor % (Amber Scatter on Secondary Axis)
+    - Event Annotations (9/11 in 2001, 2008 Financial Crisis, 2020 COVID)
+    """
+    if df_ts.empty:
+        return go.Figure()
+
+    fig = go.Figure()
+
+    # Total Seats (Capacity Ceiling)
+    fig.add_trace(go.Scatter(
+        x=df_ts["year"],
+        y=df_ts["total_seats"] / 1e6,
+        name="Available Seats",
+        mode="lines",
+        line=dict(color="rgba(56, 189, 248, 0.6)", width=2, dash="dash"),
+        hovertemplate="<b>%{x}</b><br>Seats: %{y:.2f}M<extra></extra>"
+    ))
+
+    # Total Passengers (Filled Area)
+    fig.add_trace(go.Scatter(
+        x=df_ts["year"],
+        y=df_ts["total_passengers"] / 1e6,
+        name="Passengers Carried",
+        mode="lines",
+        fill="tozeroy",
+        fillcolor="rgba(37, 99, 235, 0.25)",
+        line=dict(color="#2563EB", width=3),
+        hovertemplate="<b>%{x}</b><br>Passengers: %{y:.2f}M<extra></extra>"
+    ))
+
+    # Load Factor % (Secondary Axis)
+    fig.add_trace(go.Scatter(
+        x=df_ts["year"],
+        y=df_ts["load_factor_pct"],
+        name="Load Factor %",
+        mode="lines+markers",
+        yaxis="y2",
+        line=dict(color="#FF9F0A", width=2),
+        marker=dict(size=5, color="#FF9F0A"),
+        hovertemplate="<b>%{x}</b><br>Load Factor: %{y:.1f}%<extra></extra>"
+    ))
+
+    # Macro Event Vertical Markers
+    events = [
+        (2001, "9/11 Shock", "top left"),
+        (2008, "Financial Crisis", "top left"),
+        (2020, "COVID-19 Pandemic", "top left")
+    ]
+    for yr, label, pos in events:
+        if yr in df_ts["year"].values:
+            fig.add_vline(
+                x=yr, 
+                line_width=1, 
+                line_dash="dot", 
+                line_color="rgba(239, 68, 68, 0.45)",
+                annotation_text=label,
+                annotation_position=pos,
+                annotation_font=dict(size=10, color="#F87171")
+            )
+
+    fig.update_layout(
+        title=dict(
+            text=f"📈 36-Year Passenger & Capacity Growth: {airport_name} (1990–2026)",
+            font=dict(family="Plus Jakarta Sans", size=15, color="#FFFFFF")
+        ),
+        xaxis=dict(title="", tickmode="linear", dtick=5, gridcolor="rgba(255,255,255,0.05)", color="#94A3B8"),
+        yaxis=dict(title="Million Passengers / Seats", gridcolor="rgba(255,255,255,0.05)", color="#94A3B8"),
+        yaxis2=dict(title="Load Factor %", overlaying="y", side="right", range=[40, 100], color="#FF9F0A"),
+        legend=dict(orientation="h", yanchor="bottom", y=1.05, xanchor="center", x=0.5, font=dict(color="#CBD5E1", size=11)),
+        paper_bgcolor="rgba(0,0,0,0)",
+        plot_bgcolor="rgba(0,0,0,0)",
+        margin=dict(l=40, r=40, t=60, b=30),
+        height=360,
+    )
+    return fig
+
+
+def build_airline_trajectory_chart(df_ts: pd.DataFrame, carrier_name: str) -> go.Figure:
+    """
+    Builds an annual trajectory chart for an airline:
+    - Available Seat Miles (ASM) and Revenue Passenger Miles (RPM)
+    - System Load Factor %
+    """
+    if df_ts.empty:
+        return go.Figure()
+
+    fig = go.Figure()
+
+    # ASM
+    fig.add_trace(go.Bar(
+        x=df_ts["year"],
+        y=df_ts["total_asm"] / 1e9,
+        name="Capacity (Billion ASM)",
+        marker_color="rgba(56, 189, 248, 0.4)",
+        hovertemplate="<b>%{x}</b><br>ASM: %{y:.2f}B<extra></extra>"
+    ))
+
+    # RPM
+    fig.add_trace(go.Bar(
+        x=df_ts["year"],
+        y=df_ts["total_rpm"] / 1e9,
+        name="Traffic (Billion RPM)",
+        marker_color="#2563EB",
+        hovertemplate="<b>%{x}</b><br>RPM: %{y:.2f}B<extra></extra>"
+    ))
+
+    # System Load Factor %
+    fig.add_trace(go.Scatter(
+        x=df_ts["year"],
+        y=df_ts["system_load_factor_pct"],
+        name="System Load Factor %",
+        mode="lines+markers",
+        yaxis="y2",
+        line=dict(color="#FF6B00", width=2.5),
+        marker=dict(size=6, color="#FF6B00"),
+        hovertemplate="<b>%{x}</b><br>Load Factor: %{y:.1f}%<extra></extra>"
+    ))
+
+    fig.update_layout(
+        barmode="group",
+        title=dict(
+            text=f"🌐 Historical Capacity & Yield Trajectory: {carrier_name} (1990–2026)",
+            font=dict(family="Plus Jakarta Sans", size=15, color="#FFFFFF")
+        ),
+        xaxis=dict(title="", tickmode="linear", dtick=5, gridcolor="rgba(255,255,255,0.05)", color="#94A3B8"),
+        yaxis=dict(title="Billion Miles (ASM / RPM)", gridcolor="rgba(255,255,255,0.05)", color="#94A3B8"),
+        yaxis2=dict(title="System Load Factor %", overlaying="y", side="right", range=[35, 95], color="#FF6B00"),
+        legend=dict(orientation="h", yanchor="bottom", y=1.06, xanchor="center", x=0.5, font=dict(color="#CBD5E1", size=11)),
+        paper_bgcolor="rgba(0,0,0,0)",
+        plot_bgcolor="rgba(0,0,0,0)",
+        margin=dict(l=40, r=40, t=60, b=30),
+        height=360,
+    )
+    return fig
+
+
+def build_fleet_gauge_trend_chart(df_ts: pd.DataFrame) -> go.Figure:
+    """
+    Builds a 3-decade aircraft gauge evolution chart (seats per departure) by category.
+    """
+    if df_ts.empty:
+        return go.Figure()
+
+    fig = px.line(
+        df_ts,
+        x="year",
+        y="avg_gauge",
+        color="aircraft_family",
+        markers=True,
+        color_discrete_sequence=["#BF5AF2", "#0A84FF", "#30D158", "#FF9F0A", "#8E8E93"],
+        title="💺 Aircraft Gauge Evolution: Average Seats per Departure (1990–2026)"
+    )
+    fig.update_layout(
+        xaxis=dict(title="", tickmode="linear", dtick=5, gridcolor="rgba(255,255,255,0.05)", color="#94A3B8"),
+        yaxis=dict(title="Seats / Departure (Gauge)", gridcolor="rgba(255,255,255,0.05)", color="#94A3B8"),
+        legend=dict(orientation="h", yanchor="bottom", y=1.06, xanchor="center", x=0.5, font=dict(color="#CBD5E1", size=11)),
+        paper_bgcolor="rgba(0,0,0,0)",
+        plot_bgcolor="rgba(0,0,0,0)",
+        margin=dict(l=40, r=40, t=60, b=30),
+        font=dict(color="#CBD5E1", family="Plus Jakarta Sans"),
+        height=360,
+    )
+    return fig
+
+
+def build_alliance_market_share_trend_chart(df_ts: pd.DataFrame) -> go.Figure:
+    """
+    Builds a 100% stacked area chart tracking global alliance market share shift since 1990.
+    """
+    if df_ts.empty:
+        return go.Figure()
+
+    color_map = {
+        "Star Alliance": "#C5A059",
+        "SkyTeam": "#0090DA",
+        "oneworld": "#1A2C80",
+        "Wings Alliance (NW / KL)": "#D62828",
+        "Qualiflyer": "#D0021B",
+        "Independent / Unaligned": "#64748B",
+    }
+
+    fig = px.area(
+        df_ts,
+        x="year",
+        y="pax_share_pct",
+        color="alliance_name",
+        color_discrete_map=color_map,
+        title="🌐 Multilateral Alliance Passenger Share Evolution (1990–2026)"
+    )
+    fig.update_layout(
+        xaxis=dict(title="", tickmode="linear", dtick=5, gridcolor="rgba(255,255,255,0.05)", color="#94A3B8"),
+        yaxis=dict(title="Passenger Market Share %", range=[0, 100], gridcolor="rgba(255,255,255,0.05)", color="#94A3B8"),
+        legend=dict(orientation="h", yanchor="bottom", y=1.06, xanchor="center", x=0.5, font=dict(color="#CBD5E1", size=11)),
+        paper_bgcolor="rgba(0,0,0,0)",
+        plot_bgcolor="rgba(0,0,0,0)",
+        margin=dict(l=40, r=40, t=60, b=30),
+        font=dict(color="#CBD5E1", family="Plus Jakarta Sans"),
+        height=360,
+    )
+    return fig
+
+

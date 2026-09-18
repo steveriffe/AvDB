@@ -31,8 +31,9 @@ from app.utils.queries import (
     get_fleet_kpis,
     get_fleet_aircraft_breakdown,
     get_fleet_operators_breakdown,
+    get_fleet_time_series,
 )
-from app.utils.visualizers import FAMILY_COLORS
+from app.utils.visualizers import FAMILY_COLORS, build_fleet_gauge_trend_chart
 from app.utils.alliances import get_carrier_logo_url
 from app.data.ref_aircraft_specs import get_aircraft_spec
 
@@ -96,6 +97,23 @@ with k5:
 with k6:
     yield_val = f"${kpis['yield_per_mile']:.4f}" if kpis.get('yield_per_mile') else "—"
     render_kpi_card("Yield / Passenger-Mile", yield_val)
+
+# Multi-Year Gauge & Up-Gauging Trajectory Expander
+df_fleet_ts = get_fleet_time_series()
+if not df_fleet_ts.empty:
+    st.markdown("<div style='margin-top: 14px;'></div>", unsafe_allow_html=True)
+    with st.expander("📈 Three-Decade Gauge Evolution & Category Shifts (1990–2026)", expanded=False):
+        fig_gauge_trend = build_fleet_gauge_trend_chart(df_fleet_ts)
+        st.plotly_chart(fig_gauge_trend, width="stretch")
+        
+        # Historical context summary
+        fc1, fc2, fc3 = st.columns(3)
+        with fc1:
+            st.metric("1990 Baseline Narrowbody Gauge", "130 seats/dep", "MD-80s, 737 Classics, 727s")
+        with fc2:
+            st.metric("2000s Regional Jet Surge", "25–50 seats/dep", "CRJ-100/200 & ERJ-145 explosion")
+        with fc3:
+            st.metric("2020s Up-Gauging Renaissance", "175–230 seats/dep", "A321neo, 737 MAX 9, E175 transitions")
 
 # -------------------------------------------------------------
 # 3. Aircraft Model Deployment & Yield Economics

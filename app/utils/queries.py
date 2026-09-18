@@ -1061,3 +1061,171 @@ def get_alliance_fleet_deployment(year: int) -> pd.DataFrame:
     ).reset_index()
 
 
+# -------------------------------------------------------------
+# Multi-Year Time-Series & Trending Queries (1990–2026)
+# -------------------------------------------------------------
+
+@st.cache_data(ttl=3600, show_spinner=False)
+def get_airport_time_series(airport_code: str, passenger_only: bool = True) -> pd.DataFrame:
+    """
+    Retrieves annual time-series metrics (1990–2026) for a specific airport.
+    Returns year-by-year departures, total_seats, passengers, load_factor_pct, direct_destinations, and top_carrier.
+    """
+    code = airport_code.strip().upper()
+    pax_filter = "AND operational_passengers > 0" if passenger_only else ""
+
+    sql = f"""
+    WITH annual_summary AS (
+      SELECT
+        EXTRACT(YEAR FROM flight_date) as year,
+        SUM(departures_performed) as total_departures,
+        SUM(total_seats) as total_seats,
+        SUM(operational_passengers) as total_passengers,
+        COUNT(DISTINCT dest) as direct_destinations,
+        ROUND(SUM(operational_passengers) / NULLIF(SUM(total_seats), 0) * 100, 1) as load_factor_pct
+      FROM `db1b-1.reporting.mart_airport_network_summary`
+      WHERE origin = '{code}' {pax_filter}
+      GROUP BY 1
+    ),
+    carrier_annual AS (
+      SELECT
+        EXTRACT(YEAR FROM flight_date) as year,
+        unique_carrier,
+        SUM(operational_passengers) as carrier_pax,
+        ROW_NUMBER() OVER(PARTITION BY EXTRACT(YEAR FROM flight_date) ORDER BY SUM(operational_passengers) DESC) as rn
+      FROM `db1b-1.reporting.mart_airport_network_summary`
+      WHERE origin = '{code}' {pax_filter}
+      GROUP BY 1, 2
+    )
+    SELECT
+      a.year,
+      a.total_departures,
+      a.total_seats,
+      a.total_passengers,
+      a.direct_destinations,
+      a.load_factor_pct,
+      c.unique_carrier as top_carrier
+    FROM annual_summary a
+    LEFT JOIN carrier_annual c ON a.year = c.year AND c.rn = 1
+    ORDER BY a.year ASC
+    """
+    df = run_query(sql)
+    if not df.empty:
+        # Calculate YoY passenger growth
+        df["pax_growth_pct"] = (df["total_passengers"].pct_change() * 100).round(1)
+    return df
+
+
+@st.cache_data(ttl=3600, show_spinner=False)
+def get_airline_time_series(carrier_code: str) -> pd.DataFrame:
+    """
+    Retrieves annual time-series performance metrics (1990–2026) for an airline.
+    Returns year, total_departures, total_seats, total_passengers, asm, rpm, system_load_factor_pct, and active_routes.
+    """
+    code = carrier_code.strip().upper()
+    sql = f"""
+    SELECT
+      EXTRACT(YEAR FROM flight_date) as year,
+      SUM(departures_performed) as total_departures,
+      SUM(total_seats) as total_seats,
+      SUM(operational_passengers) as total_passengers,
+      SUM(distance_miles * total_seats) as total_asm,
+      SUM(distance_miles * operational_passengers) as total_rpm,
+      ROUND(SUM(distance_miles * operational_passengers) / NULLIF(SUM(distance_miles * total_seats), 0) * 100, 1) as system_load_factor_pct,
+      ROUND(SUM(operational_passengers) / NULLIF(SUM(total_seats), 0) * 100, 1) as load_factor_pct,
+      COUNT(DISTINCT dest) as active_routes
+    FROM `db1b-1.reporting.mart_airline_network_performance`
+    WHERE unique_carrier = '{code}'
+    GROUP BY 1
+    ORDER BY year ASC
+    """
+    df = run_query(sql)
+    if not df.empty:
+        df["pax_growth_pct"] = (df["total_passengers"].pct_change() * 100).round(1)
+        df["asm_growth_pct"] = (df["total_asm"].pct_change() * 100).round(1)
+    return df
+
+
+@st.cache_data(ttl=3600, show_spinner=False)
+def get_fleet_time_series(aircraft_family: Optional[str] = None) -> pd.DataFrame:
+    """
+    Retrieves annual gauge and equipment mix trends (1990–2026).
+    If aircraft_family is specified, returns model-level gauge and departures over time.
+    If None, returns industry-wide category transitions (Mainline vs Widebody vs RJ vs Prop).
+    """
+    fam_filter = f"WHERE aircraft_family = '{aircraft_family}'" if aircraft_family and aircraft_family != "All Families" else ""
+    
+    sql = f"""
+    SELECT
+      EXTRACT(YEAR FROM flight_date) as year,
+      aircraft_family,
+      SUM(departures_performed) as departures,
+      SUM(total_seats) as total_seats,
+      SUM(passengers_carried) as passengers,
+      ROUND(SUM(total_seats) / NULLIF(SUM(departures_performed), 0), 1) as avg_gauge
+    FROM `db1b-1.reporting.mart_fleet_route_dynamics`
+    {fam_filter}
+    GROUP BY 1, 2
+    ORDER BY year ASC, departures DESC
+    """
+    return run_query(sql)
+
+
+@st.cache_data(ttl=3600, show_spinner=False)
+def get_alliances_time_series() -> pd.DataFrame:
+    """
+    Retrieves multi-year alliance market share trends (1990–2026) across
+    Star Alliance, SkyTeam, oneworld, Wings Alliance (NW/KL), Qualiflyer, and Independent.
+    """
+    from app.utils.alliances import get_carrier_alliance
+    
+    sql = """
+    SELECT
+      EXTRACT(YEAR FROM flight_date) as year,
+      unique_carrier,
+      SUM(departures_performed) as departures,
+      SUM(total_seats) as total_seats,
+      SUM(operational_passengers) as passengers
+    FROM `db1b-1.reporting.mart_airport_network_summary`
+    GROUP BY 1, 2
+    ORDER BY year ASC
+    """
+    df_raw = run_query(sql)
+    if df_raw.empty:
+        return pd.DataFrame()
+
+    records = []
+    for _, r in df_raw.iterrows():
+        yr = int(r["year"])
+        c = str(r["unique_carrier"]).strip().upper()
+        a_info = get_carrier_alliance(c, yr)
+        a_name = a_info["alliance_name"] if a_info else "Independent / Unaligned"
+        if a_name == "Wings Alliance":
+            a_name = "Wings Alliance (NW / KL)"
+
+        records.append({
+            "year": yr,
+            "alliance_name": a_name,
+            "departures": r["departures"],
+            "total_seats": r["total_seats"],
+            "passengers": r["passengers"]
+        })
+
+    df = pd.DataFrame(records)
+    if df.empty:
+        return pd.DataFrame()
+
+    agg = df.groupby(["year", "alliance_name"]).agg(
+        departures=("departures", "sum"),
+        total_seats=("total_seats", "sum"),
+        passengers=("passengers", "sum")
+    ).reset_index()
+
+    # Compute annual market share %
+    yearly_totals = agg.groupby("year")["passengers"].transform("sum")
+    agg["pax_share_pct"] = (agg["passengers"] / yearly_totals * 100).round(1)
+
+    return agg
+
+
+

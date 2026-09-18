@@ -123,3 +123,4 @@ with col_t2:
     st.metric("Total Registered Traveling Users", f"{telemetry['total_traveler_users']:,}")
 
 st.caption("AvDB Architecture: Hosted in Google Cloud Run (us-west1) • BigQuery Google-Managed Encryption • Transport Layer Security (TLS 1.3)")
+
