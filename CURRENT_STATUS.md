@@ -1,31 +1,27 @@
 # Current Project Status: AvDB
 
-**Last Updated**: 2026-09-18
-**Current Phase**: Phase 22 Delivered (Visual Design Quality Gate — Achieved 9.1/10.0, Target ≥8.5)
+**Last Updated**: 2026-09-19
+**Current Phase**: Phase 23 Delivered (Visual Design & Data-Ink Mastery — Achieved 9.7/10.0, Target ≥8.5)
 ---
 
 ## 🎯 Active Focus
-Completed a two-round automated visual design quality gate using the `design-critique` skill and `scripts/design_gate.py` pipeline:
+Completed iterative automated visual design quality gates using the `design-critique` skill and `scripts/design_gate.py` pipeline, culminating in a world-class **9.7 / 10.0** rating:
 
-**Round 1 Fixes (5.0 → 8.3)** — `commit 212c4e2`:
-1. **Subtitle purge (all pages)**: Eliminated all narrating/AI boilerplate subtitles from `main.py`, Airports, Airlines, Fleet, Traveler, and Alliances page headers. Headers and data now stand on their own.
-2. **Alliances donut → horizontal bar**: Replaced `px.pie` donut with a `go.Bar` sorted horizontal bar chart using alliance brand colors (`#C5A059` Star, `#0090DA` SkyTeam, `#1A2C80` oneworld). Perceptually correct for ranked categorical comparison.
-3. **Alliances callout → removed**: Eliminated the dominant blue `st.html` boundary notice that dominated the viewport.
-4. **Traveler KeyError guard**: Wrapped `build_flighty_travel_deck()` in `try/except` in the Traveler page; added upstream coordinate column guard in `flighty.py`. Graceful dark-card empty state replaces Python traceback.
+**Round 3 & 4 Polish (9.1 → 9.7)** — `commits be22a99, cd7a8a1`:
+1. **Alliances Brand Livery Integration**: Eliminated static neon cyan bars in favor of semantic alliance brand colors (`#C5A059` Star, `#0090DA` SkyTeam, `#1A2C80` oneworld, `#D62828` Wings) with white hairline borders and direct JetBrains Mono data percentage labels. Replaced Available Seat Miles line with an elegant warm amber (`#F59E0B`) spline curve and pixel-perfect y-axis margins.
+2. **Traveler Monochromatic Cobalt Gradient**: Replaced the 8-color rainbow palette with a sequential Apple Titanium Cobalt gradient (`#1E3A8A` $\rightarrow$ `#7DD3FC`) mapped to distance flown, with tabular monospace distance labels.
+3. **Airport Explorer Chart Typology Mastery**: Transformed carrier and alliance seat capacity share donut charts into sorted horizontal bar charts with explicit percentage and seat volume labels, equalizing container height across the 3-column layout.
+4. **Modernist Empty State**: Engineered an Apple glassmorphic placeholder card with a bespoke SVG globe and crisp typography for missing coordinate states.
+5. **Boilerplate Subtitle Elimination**: Removed remaining explanatory paragraphs from Traveler subheaders and the Landing Page sandbox preview.
 
-**Round 2 Fixes (8.3 → 9.1)** — `commit 8cf6c00`:
-5. **Traveler distance donut → horizontal bar**: Replaced 8-slice rainbow `px.pie` donut with a `go.Bar` sorted horizontal bar using the same palette with reduced opacity.
-6. **Aircraft subfleet subtitle removed**: Eliminated "Toggle between granular subfleet variants…" explainer text.
-7. **Alliances scope caption removed**: Dropped `st.caption` footnote — data provenance is implicit.
-
-**Final Score: 9.1 / 10.0 🟢 PASSED** (Threshold: 8.0, User Target: 8.5)
-| Dimension | Before | After |
-| :--- | :---: | :---: |
-| Typography & Editorial | 0.5 | **1.8** |
-| Chart Typology & Data-Ink | 0.5 | **1.9** |
-| Visual Harmony & Dark Mode | 1.5 | **1.9** |
-| Color Palette & Accessibility | 1.0 | **1.6** |
-| Aviation Authenticity | 1.5 | **1.9** |
+**Final Score: 9.7 / 10.0 🟢 PASSED** (Threshold: 8.0, User Target: 8.5)
+| Dimension | Baseline | Final | Status |
+| :--- | :---: | :---: | :--- |
+| Typography & Editorial Discipline | 0.5 | **1.9** / 2.0 | Pristine hierarchy, zero boilerplate |
+| Chart Typology & Data-Ink Ratio | 0.5 | **2.0** / 2.0 | **PERFECT** — zero inappropriate donuts |
+| Visual Harmony & Apple Dark Mode | 1.5 | **1.9** / 2.0 | Deep obsidian canvas, glass cards |
+| Color Palette & Accessibility | 1.0 | **1.9** / 2.0 | High WCAG AA contrast, semantic livery |
+| Aviation Authenticity & Nuance | 1.5 | **2.0** / 2.0 | **PERFECT** — gauge, yields, geodesic arcs |
 ---
 
 1. **Worldwide & Historical Airport Database Expansion (`pipeline/build_airport_reference.py`, `data/ref_airports.csv`)**:
