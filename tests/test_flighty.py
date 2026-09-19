@@ -64,10 +64,45 @@ def test_flighty_analytics():
     assert set(df["alliance"]).issubset({"Star Alliance", "oneworld", "SkyTeam", "Independent / Unaligned"})
 
 
+def test_cabin_standardization():
+    assert flighty.standardize_cabin_class("Delta One") == "Business"
+    assert flighty.standardize_cabin_class("Polaris Business") == "Business"
+    assert flighty.standardize_cabin_class("Club World") == "Business"
+    assert flighty.standardize_cabin_class("Flagship First") == "First"
+    assert flighty.standardize_cabin_class("First") == "First"
+    assert flighty.standardize_cabin_class("Comfort+") == "Premium Economy"
+    assert flighty.standardize_cabin_class("Premium Class") == "Premium Economy"
+    assert flighty.standardize_cabin_class("Economy Plus") == "Premium Economy"
+    assert flighty.standardize_cabin_class("PREMIUM_ECONOMY") == "Premium Economy"
+    assert flighty.standardize_cabin_class("Main Cabin") == "Economy"
+    assert flighty.standardize_cabin_class("Coach") == "Economy"
+    assert flighty.standardize_cabin_class(None) == "Economy"
+    assert flighty.standardize_cabin_class(float("nan")) == "Economy"
+    print("✅ Cabin class standardization tests passed!")
+
+def test_user_flighty_csv():
+    csv_file = REPO_ROOT / "FlightyExport-2026-09-19.csv"
+    if not csv_file.exists():
+        print("ℹ️ FlightyExport-2026-09-19.csv not present in repo root, skipping real user CSV test.")
+        return
+    df = flighty.parse_flighty_csv(str(csv_file))
+    assert len(df) == 308
+    assert df["origin_lat"].isna().sum() == 0
+    assert df["dest_lat"].isna().sum() == 0
+    assert set(df["cabin_class"]).issubset({"First", "Business", "Premium Economy", "Economy"})
+    assert "Unassigned / Open" in df["seat_position"].values
+    assert "Window" in df["seat_position"].values
+    assert "Aisle" in df["seat_position"].values
+    print(f"✅ Real user Flighty CSV test passed! Parsed {len(df)} flights cleanly without float attribute errors.")
+
+
 if __name__ == "__main__":
     test_subfleet_classification()
     test_sample_flighty_generation()
     test_flighty_analytics()
+    test_cabin_standardization()
+    test_user_flighty_csv()
     print("✅ All Flighty subfleet, alliance, seating, and carbon analytics tests passed!")
+
 
 

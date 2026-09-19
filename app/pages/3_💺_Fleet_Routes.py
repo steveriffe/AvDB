@@ -206,54 +206,50 @@ if spec:
         photo_source = spec.get("photo_source_url", "#")
         photo_caption = spec.get("photo_caption", "")
         
-        st.markdown(
-            f"""
-            <div style="background: rgba(17, 29, 51, 0.85); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 14px; overflow: hidden; box-shadow: 0 12px 30px rgba(0,0,0,0.4);">
-                <div style="position: relative; overflow: hidden; max-height: 250px;">
-                    <img src="{photo_url}" style="width: 100%; height: 250px; object-fit: cover; filter: brightness(1.02);" alt="{selected_model}"/>
-                    <div style="position: absolute; bottom: 8px; left: 10px; background: rgba(11, 25, 44, 0.85); backdrop-filter: blur(8px); padding: 4px 10px; border-radius: 6px; font-size: 11px; font-family: 'JetBrains Mono', monospace; color: #CBD5E1; border: 1px solid rgba(255,255,255,0.1);">
-                        {photo_caption}
-                    </div>
-                </div>
-                <div style="padding: 10px 14px; background: rgba(6, 9, 17, 0.7); display: flex; justify-content: space-between; align-items: center; font-size: 11px; font-family: 'JetBrains Mono', monospace; border-top: 1px solid rgba(255,255,255,0.06);">
-                    <span style="color: #94A3B8;">📷 <b>Photo:</b> {photo_credit} ({photo_license})</span>
-                    <a href="{photo_source}" target="_blank" rel="noopener noreferrer" style="color: #38BDF8; text-decoration: none; font-weight: 600;">License & Source ↗</a>
-                </div>
-            </div>
-            """,
-            unsafe_allow_html=True
+        photo_html = (
+            f"<div style='background: rgba(17, 29, 51, 0.85); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 14px; overflow: hidden; box-shadow: 0 12px 30px rgba(0,0,0,0.4);'>"
+            f"<div style='position: relative; overflow: hidden; max-height: 250px;'>"
+            f"<img src='{photo_url}' style='width: 100%; height: 250px; object-fit: cover; filter: brightness(1.02);' alt='{selected_model}'/>"
+            f"<div style='position: absolute; bottom: 8px; left: 10px; background: rgba(11, 25, 44, 0.85); backdrop-filter: blur(8px); padding: 4px 10px; border-radius: 6px; font-size: 11px; font-family: \"JetBrains Mono\", monospace; color: #CBD5E1; border: 1px solid rgba(255,255,255,0.1);'>"
+            f"{photo_caption}"
+            f"</div>"
+            f"</div>"
+            f"<div style='padding: 10px 14px; background: rgba(6, 9, 17, 0.7); display: flex; justify-content: space-between; align-items: center; font-size: 11px; font-family: \"JetBrains Mono\", monospace; border-top: 1px solid rgba(255,255,255,0.06);'>"
+            f"<span style='color: #94A3B8;'>📷 <b>Photo:</b> {photo_credit} ({photo_license})</span>"
+            f"<a href='{photo_source}' target='_blank' rel='noopener noreferrer' style='color: #38BDF8; text-decoration: none; font-weight: 600;'>License & Source ↗</a>"
+            f"</div>"
+            f"</div>"
         )
+        st.html(photo_html)
     with spec_col2:
         status_color = "#10B981" if "Active" in spec.get("status", "") else "#FF9F0A"
         mtow_str = f"{spec.get('mtow_lbs', 0):,} lbs" if spec.get('mtow_lbs') else "N/A"
         height_str = f" / {spec.get('height_ft')} ft" if spec.get('height_ft') else ""
         
-        st.markdown(
-            f"""
-            <div style="background: rgba(17, 29, 51, 0.85); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 14px; padding: 18px 20px; backdrop-filter: blur(14px);">
-                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
-                    <div>
-                        <div style="color: #FFFFFF; font-size: 18px; font-weight: 800; font-family: 'Plus Jakarta Sans', sans-serif;">{selected_model}</div>
-                        <div style="color: #94A3B8; font-size: 12px; font-family: 'JetBrains Mono', monospace; margin-top: 2px;">{spec['family']} · First Flight: {spec.get('first_flight', 'N/A')}</div>
-                    </div>
-                    <div style="text-align: right;">
-                        <span style="background: rgba(56, 189, 248, 0.15); border: 1px solid rgba(56, 189, 248, 0.35); color: #38BDF8; padding: 3px 8px; border-radius: 6px; font-size: 11px; font-weight: 600; font-family: 'JetBrains Mono', monospace;">{spec['category']}</span><br/>
-                        <span style="display: inline-block; margin-top: 4px; color: {status_color}; font-size: 10.5px; font-weight: 600;">● {spec.get('status', 'Active')}</span>
-                    </div>
-                </div>
-                <p style="color: #CBD5E1; font-size: 12.5px; line-height: 1.5; margin-bottom: 14px;">{spec['summary']}</p>
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; font-size: 12px; font-family: 'JetBrains Mono', monospace;">
-                    <div><span style="color: #94A3B8;">Gauge:</span> <b style="color: #FFFFFF;">{spec['seats_typical']}</b></div>
-                    <div><span style="color: #94A3B8;">Max Range:</span> <b style="color: #10B981;">{spec['range_miles']:,} sm</b></div>
-                    <div><span style="color: #94A3B8;">Span / Length:</span> <b style="color: #FFFFFF;">{spec['wingspan_ft']} ft / {spec['length_ft']} ft{height_str}</b></div>
-                    <div><span style="color: #94A3B8;">MTOW:</span> <b style="color: #FB923C;">{mtow_str}</b></div>
-                    <div><span style="color: #94A3B8;">Cruise Speed:</span> <b style="color: #FFFFFF;">{spec['cruise_speed']}</b></div>
-                    <div><span style="color: #94A3B8;">Powerplant:</span> <b style="color: #38BDF8;">{spec['engines']}</b></div>
-                </div>
-            </div>
-            """,
-            unsafe_allow_html=True
+        spec_html = (
+            f"<div style='background: rgba(17, 29, 51, 0.85); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 14px; padding: 18px 20px; backdrop-filter: blur(14px);'>"
+            f"<div style='display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;'>"
+            f"<div>"
+            f"<div style='color: #FFFFFF; font-size: 18px; font-weight: 800; font-family: \"Plus Jakarta Sans\", sans-serif;'>{selected_model}</div>"
+            f"<div style='color: #94A3B8; font-size: 12px; font-family: \"JetBrains Mono\", monospace; margin-top: 2px;'>{spec['family']} · First Flight: {spec.get('first_flight', 'N/A')}</div>"
+            f"</div>"
+            f"<div style='text-align: right;'>"
+            f"<span style='background: rgba(56, 189, 248, 0.15); border: 1px solid rgba(56, 189, 248, 0.35); color: #38BDF8; padding: 3px 8px; border-radius: 6px; font-size: 11px; font-weight: 600; font-family: \"JetBrains Mono\", monospace;'>{spec['category']}</span><br/>"
+            f"<span style='display: inline-block; margin-top: 4px; color: {status_color}; font-size: 10.5px; font-weight: 600;'>● {spec.get('status', 'Active')}</span>"
+            f"</div>"
+            f"</div>"
+            f"<p style='color: #CBD5E1; font-size: 12.5px; line-height: 1.5; margin-bottom: 14px;'>{spec['summary']}</p>"
+            f"<div style='display: grid; grid-template-columns: 1fr 1fr; gap: 10px; font-size: 12px; font-family: \"JetBrains Mono\", monospace;'>"
+            f"<div><span style='color: #94A3B8;'>Gauge:</span> <b style='color: #FFFFFF;'>{spec['seats_typical']}</b></div>"
+            f"<div><span style='color: #94A3B8;'>Max Range:</span> <b style='color: #10B981;'>{spec['range_miles']:,} sm</b></div>"
+            f"<div><span style='color: #94A3B8;'>Span / Length:</span> <b style='color: #FFFFFF;'>{spec['wingspan_ft']} ft / {spec['length_ft']} ft{height_str}</b></div>"
+            f"<div><span style='color: #94A3B8;'>MTOW:</span> <b style='color: #FB923C;'>{mtow_str}</b></div>"
+            f"<div><span style='color: #94A3B8;'>Cruise Speed:</span> <b style='color: #FFFFFF;'>{spec['cruise_speed']}</b></div>"
+            f"<div><span style='color: #94A3B8;'>Powerplant:</span> <b style='color: #38BDF8;'>{spec['engines']}</b></div>"
+            f"</div>"
+            f"</div>"
         )
+        st.html(spec_html)
         
         # Operators Strip
         ops = spec.get("key_operators", [])
@@ -264,18 +260,19 @@ if spec:
                 op_name = get_carrier_name(op)
                 logo_tag = f"<img src='{l_url}' style='height: 20px; width: 20px; object-fit: contain; border-radius: 4px; flex-shrink: 0;' alt='{op}' />" if l_url else ""
                 logo_htmls.append(
-                    f"""
-                    <div style="display: inline-flex; align-items: center; gap: 7px; background: rgba(11, 25, 44, 0.75); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 8px; padding: 5px 11px; margin: 3px 6px 3px 0;" title="{op_name} ({op})">
-                        {logo_tag}
-                        <span style="color: #FFFFFF; font-weight: 700; font-size: 11px; font-family: 'JetBrains Mono', monospace;">{op}</span>
-                        <span style="color: #94A3B8; font-size: 11px; font-family: 'Plus Jakarta Sans', sans-serif;">{op_name}</span>
-                    </div>
-                    """
+                    f"<div style='display: inline-flex; align-items: center; gap: 7px; background: rgba(11, 25, 44, 0.75); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 8px; padding: 5px 11px; margin: 3px 6px 3px 0;' title='{op_name} ({op})'>"
+                    f"{logo_tag}"
+                    f"<span style='color: #FFFFFF; font-weight: 700; font-size: 11px; font-family: \"JetBrains Mono\", monospace;'>{op}</span>"
+                    f"<span style='color: #94A3B8; font-size: 11px; font-family: \"Plus Jakarta Sans\", sans-serif;'>{op_name}</span>"
+                    f"</div>"
                 )
-            st.markdown(
-                f"<div style='margin-top: 12px;'><span style='font-size: 11px; font-weight: 700; color: #94A3B8; font-family: \"JetBrains Mono\", monospace;'>PRIMARY OPERATORS:</span><br/><div style='display: flex; flex-wrap: wrap; margin-top: 4px;'>{''.join(logo_htmls)}</div></div>",
-                unsafe_allow_html=True
+            ops_html = (
+                f"<div style='margin-top: 12px;'>"
+                f"<span style='font-size: 11px; font-weight: 700; color: #94A3B8; font-family: \"JetBrains Mono\", monospace;'>PRIMARY OPERATORS:</span>"
+                f"<div style='display: flex; flex-wrap: wrap; margin-top: 4px;'>{''.join(logo_htmls)}</div>"
+                f"</div>"
             )
+            st.html(ops_html)
 else:
     st.info(f"Engineering specification card not yet configured for {selected_model}.")
 

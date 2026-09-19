@@ -5,6 +5,7 @@ and enriches personal flight logs with GPS coordinates and BTS route benchmarks.
 """
 import io
 import math
+from pathlib import Path
 import pandas as pd
 import numpy as np
 from typing import Dict, Any, List, Optional, Tuple
@@ -143,19 +144,62 @@ AIRPORT_COORDINATES: Dict[str, Tuple[float, float, str, str]] = {
 }
 
 
-def classify_aircraft(raw_str: str) -> Dict[str, str]:
+_REF_AIRPORTS_CACHE: Optional[Dict[str, Tuple[float, float, str, str]]] = None
+
+def get_airport_coordinates_and_info(code: str) -> Tuple[float, float, str, str]:
+    """Resolves airport 3-letter IATA code to (lat, lon, airport_name, city_name)."""
+    global _REF_AIRPORTS_CACHE
+    c = str(code or "").strip().upper()
+    if c in AIRPORT_COORDINATES:
+        return AIRPORT_COORDINATES[c]
+    
+    if _REF_AIRPORTS_CACHE is None:
+        _REF_AIRPORTS_CACHE = {}
+        try:
+            ref_path = Path(__file__).resolve().parent.parent.parent / "data" / "ref_airports.csv"
+            if ref_path.exists():
+                df_ref = pd.read_csv(ref_path, usecols=["iata_code", "latitude", "longitude", "airport_name", "city", "country"])
+                for _, r in df_ref.dropna(subset=["iata_code"]).iterrows():
+                    iata = str(r["iata_code"]).strip().upper()
+                    city_str = f"{r['city']}, {r['country']}" if pd.notna(r.get("city")) and str(r["city"]).strip() else str(r.get("country", ""))
+                    _REF_AIRPORTS_CACHE[iata] = (
+                        float(r["latitude"]),
+                        float(r["longitude"]),
+                        str(r.get("airport_name", iata)),
+                        city_str
+                    )
+        except Exception:
+            pass
+            
+    if _REF_AIRPORTS_CACHE and c in _REF_AIRPORTS_CACHE:
+        return _REF_AIRPORTS_CACHE[c]
+        
+    return (47.4502, -122.3088, f"Airport ({c})", c)
+
+
+def classify_aircraft(raw_str: Any) -> Dict[str, str]:
     """
     Classifies raw aircraft type strings (e.g. 'Boeing 737-900ER', '737-800',
     'B739', 'A321neo', 'Airbus A320') into exact subfleet, generation, and family.
+    Safely handles floats, None, NaN, and unassigned types.
     """
-    s = str(raw_str or "").strip().upper()
-    if not s:
+    if raw_str is None or (isinstance(raw_str, float) and pd.isna(raw_str)):
         return {
             "family": "Unspecified Aircraft",
             "generation": "Unspecified",
             "subfleet": "Unspecified",
             "category": "Other / Uncategorized"
         }
+    clean_raw = str(raw_str).strip()
+    if not clean_raw or clean_raw.lower() in ["nan", "none", "null", ""]:
+        return {
+            "family": "Unspecified Aircraft",
+            "generation": "Unspecified",
+            "subfleet": "Unspecified",
+            "category": "Other / Uncategorized"
+        }
+
+    s = clean_raw.upper()
 
     # Direct 4-letter ICAO lookup
     for icao, info in SUBFLEET_TAXONOMY.items():
@@ -185,7 +229,7 @@ def classify_aircraft(raw_str: str) -> Dict[str, str]:
         elif "600" in s or "-600" in s:
             return {"family": fam, "generation": "737 NextGen", "subfleet": "Boeing 737-600", "category": cat}
         elif "500" in s or "400" in s or "300" in s:
-            return {"family": fam, "generation": "737 Classic", "subfleet": f"Boeing 737 Classic", "category": cat}
+            return {"family": fam, "generation": "737 Classic", "subfleet": "Boeing 737 Classic", "category": cat}
         elif "MAX" in s:
             return {"family": fam, "generation": "737 MAX", "subfleet": "Boeing 737 MAX (General)", "category": cat}
         else:
@@ -216,6 +260,41 @@ def classify_aircraft(raw_str: str) -> Dict[str, str]:
         else:
             return {"family": fam, "generation": "A320ceo", "subfleet": "Airbus A319ceo", "category": cat}
 
+    # Boeing 747 Jumbo Jet
+    if "747" in s:
+        fam = "Boeing 747"
+        cat = "Widebody"
+        if "8" in s or "748" in s:
+            return {"family": fam, "generation": "747-8", "subfleet": "Boeing 747-8", "category": cat}
+        elif "400" in s or "744" in s:
+            return {"family": fam, "generation": "747-400", "subfleet": "Boeing 747-400", "category": cat}
+        elif "200" in s or "742" in s:
+            return {"family": fam, "generation": "747 Classic", "subfleet": "Boeing 747-200", "category": cat}
+        elif "300" in s or "743" in s:
+            return {"family": fam, "generation": "747 Classic", "subfleet": "Boeing 747-300", "category": cat}
+        else:
+            return {"family": fam, "generation": "747 Classic", "subfleet": "Boeing 747 Classic", "category": cat}
+
+    # Boeing 757
+    if "757" in s:
+        fam = "Boeing 757"
+        cat = "Mainline Narrowbody"
+        if "300" in s:
+            return {"family": fam, "generation": "757 Standard", "subfleet": "Boeing 757-300", "category": cat}
+        else:
+            return {"family": fam, "generation": "757 Standard", "subfleet": "Boeing 757-200", "category": cat}
+
+    # Boeing 767
+    if "767" in s:
+        fam = "Boeing 767"
+        cat = "Widebody"
+        if "400" in s:
+            return {"family": fam, "generation": "767 Extended", "subfleet": "Boeing 767-400ER", "category": cat}
+        elif "300" in s:
+            return {"family": fam, "generation": "767 Extended", "subfleet": "Boeing 767-300ER", "category": cat}
+        else:
+            return {"family": fam, "generation": "767 Classic", "subfleet": "Boeing 767-200ER", "category": cat}
+
     # Boeing 787 Dreamliner
     if "787" in s:
         fam = "Boeing 787"
@@ -228,15 +307,39 @@ def classify_aircraft(raw_str: str) -> Dict[str, str]:
             return {"family": fam, "generation": "787 Dreamliner", "subfleet": "Boeing 787-8", "category": cat}
 
     # Boeing 777
-    if "777" in s:
+    if "777" in s or "77W" in s or "77L" in s:
         fam = "Boeing 777"
         cat = "Widebody"
-        if "300ER" in s or "300" in s or "77W" in s:
+        if "300ER" in s or "300 ER" in s or "77W" in s:
             return {"family": fam, "generation": "777 Extended", "subfleet": "Boeing 777-300ER", "category": cat}
+        elif "300" in s:
+            return {"family": fam, "generation": "777 Classic", "subfleet": "Boeing 777-300", "category": cat}
         elif "200LR" in s or "77L" in s:
             return {"family": fam, "generation": "777 Long Range", "subfleet": "Boeing 777-200LR", "category": cat}
         else:
             return {"family": fam, "generation": "777 Classic", "subfleet": "Boeing 777-200ER", "category": cat}
+
+    # Airbus A330
+    if "330" in s:
+        fam = "Airbus A330"
+        cat = "Widebody"
+        if "900" in s:
+            return {"family": fam, "generation": "A330neo", "subfleet": "Airbus A330-900neo", "category": cat}
+        elif "800" in s:
+            return {"family": fam, "generation": "A330neo", "subfleet": "Airbus A330-800neo", "category": cat}
+        elif "200" in s:
+            return {"family": fam, "generation": "A330ceo", "subfleet": "Airbus A330-200", "category": cat}
+        else:
+            return {"family": fam, "generation": "A330ceo", "subfleet": "Airbus A330-300", "category": cat}
+
+    # Airbus A340
+    if "340" in s:
+        fam = "Airbus A340"
+        cat = "Widebody"
+        if "600" in s:
+            return {"family": fam, "generation": "A340 Extended", "subfleet": "Airbus A340-600", "category": cat}
+        else:
+            return {"family": fam, "generation": "A340 Classic", "subfleet": "Airbus A340-300", "category": cat}
 
     # Airbus A350
     if "350" in s or "A35" in s:
@@ -247,17 +350,24 @@ def classify_aircraft(raw_str: str) -> Dict[str, str]:
         else:
             return {"family": fam, "generation": "A350 XWB", "subfleet": "Airbus A350-900", "category": cat}
 
-    # Embraer E-Jets
-    if "E175" in s or "E-175" in s:
-        return {"family": "Embraer E-Jet", "generation": "E1 E-Jets", "subfleet": "Embraer E175", "category": "Regional Jet"}
-    elif "E170" in s or "E-170" in s:
-        return {"family": "Embraer E-Jet", "generation": "E1 E-Jets", "subfleet": "Embraer E170", "category": "Regional Jet"}
-    elif "E190" in s or "E-190" in s:
-        return {"family": "Embraer E-Jet", "generation": "E1 E-Jets", "subfleet": "Embraer E190", "category": "Regional Jet"}
-    elif "E195" in s or "E-195" in s:
-        return {"family": "Embraer E-Jet", "generation": "E1 E-Jets", "subfleet": "Embraer E195", "category": "Regional Jet"}
+    # Airbus A380 Superjumbo
+    if "380" in s:
+        return {"family": "Airbus A380", "generation": "A380 Superjumbo", "subfleet": "Airbus A380-800", "category": "Widebody"}
 
-    # Bombardier CRJ
+    # Embraer E-Jets & ERJ
+    if "EMBRAER" in s or "E17" in s or "E19" in s or "ERJ" in s:
+        if "145" in s or "140" in s or "135" in s:
+            return {"family": "Embraer ERJ", "generation": "ERJ Family", "subfleet": "Embraer ERJ 145", "category": "Regional Jet"}
+        elif "175" in s:
+            return {"family": "Embraer E-Jet", "generation": "E1 E-Jets", "subfleet": "Embraer E175", "category": "Regional Jet"}
+        elif "170" in s:
+            return {"family": "Embraer E-Jet", "generation": "E1 E-Jets", "subfleet": "Embraer E170", "category": "Regional Jet"}
+        elif "190" in s:
+            return {"family": "Embraer E-Jet", "generation": "E1 E-Jets", "subfleet": "Embraer E190", "category": "Regional Jet"}
+        elif "195" in s:
+            return {"family": "Embraer E-Jet", "generation": "E1 E-Jets", "subfleet": "Embraer E195", "category": "Regional Jet"}
+
+    # Bombardier / MHI CRJ
     if "CRJ" in s:
         fam = "Bombardier CRJ"
         cat = "Regional Jet"
@@ -268,11 +378,41 @@ def classify_aircraft(raw_str: str) -> Dict[str, str]:
         else:
             return {"family": fam, "generation": "CRJ Series", "subfleet": "Bombardier CRJ-200", "category": cat}
 
+    # De Havilland Dash 8
+    if "DASH" in s or "DHC-8" in s or "DH8" in s:
+        fam = "De Havilland Dash 8"
+        cat = "Turboprop / Regional Prop"
+        if "400" in s or "Q400" in s:
+            return {"family": fam, "generation": "Q-Series", "subfleet": "Dash 8 Q400", "category": cat}
+        else:
+            return {"family": fam, "generation": "Classic Series", "subfleet": "Dash 8-100/200/300", "category": cat}
+
+    # McDonnell Douglas / Douglas
+    if "MD-80" in s or "MD80" in s or "MD-88" in s or "MD-82" in s or "MD-83" in s:
+        return {"family": "McDonnell Douglas MD-80", "generation": "MD-80 Series", "subfleet": "MD-80 Series", "category": "Mainline Narrowbody"}
+    elif "MD-90" in s or "MD90" in s:
+        return {"family": "McDonnell Douglas MD-90", "generation": "MD-90 Series", "subfleet": "McDonnell Douglas MD-90", "category": "Mainline Narrowbody"}
+    elif "DC-10" in s or "DC10" in s:
+        return {"family": "McDonnell Douglas DC-10", "generation": "DC-10 Classic", "subfleet": "McDonnell Douglas DC-10", "category": "Widebody"}
+
+    # Lockheed L-1011 TriStar
+    if "L-1011" in s or "TRISTAR" in s:
+        return {"family": "Lockheed L-1011 TriStar", "generation": "TriStar Classic", "subfleet": "Lockheed L-1011 TriStar", "category": "Widebody"}
+
+    # ATR 42/72
+    if "ATR" in s:
+        return {"family": "ATR 42/72", "generation": "ATR Series", "subfleet": "ATR 72" if "72" in s else "ATR 42", "category": "Turboprop / Regional Prop"}
+
+    # Saab 340
+    if "SAAB" in s or ("340" in s and "B" in s):
+        return {"family": "Saab 340", "generation": "Saab 340 Series", "subfleet": "Saab 340B", "category": "Turboprop / Regional Prop"}
+
     # Default fallback
+    clean_val = clean_raw if clean_raw else "Other"
     return {
-        "family": raw_str.strip() or "Other",
-        "generation": raw_str.strip() or "Other",
-        "subfleet": raw_str.strip() or "Other",
+        "family": clean_val,
+        "generation": clean_val,
+        "subfleet": clean_val,
         "category": "Mainline Narrowbody"
     }
 
@@ -287,6 +427,20 @@ def calculate_haversine_distance(lat1: float, lon1: float, lat2: float, lon2: fl
     a = math.sin(delta_phi / 2)**2 + math.cos(phi1) * math.cos(phi2) * math.sin(delta_lambda / 2)**2
     c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
     return round(r * c, 1)
+
+
+ICAO_TO_IATA = {
+    "AAL": "AA", "ACA": "AC", "AFR": "AF", "ASA": "AS", "AWE": "HP",
+    "BAW": "BA", "BMA": "BD", "CCA": "CA", "CDG": "SS", "COA": "CO", 
+    "CPA": "CX", "CSN": "CZ", "DAL": "DL", "DLH": "LH", "EIN": "EI", 
+    "ETD": "EY", "EZY": "U2", "FDX": "FX", "FFT": "F9", "FIN": "AY", 
+    "HAL": "HA", "IBE": "IB", "ICE": "FI", "JBU": "B6", "KAL": "KE", 
+    "KLM": "KL", "NKS": "NK", "NOZ": "DY", "NWA": "NW", "OAL": "OA", 
+    "QXE": "QX", "RNA": "RA", "RYR": "FR", "SAS": "SK", "SIA": "SQ", 
+    "SKW": "OO", "SWA": "WN", "SWR": "LX", "TAP": "TP", "TCX": "MT", 
+    "THY": "TK", "UAL": "UA", "UPS": "5X", "VIR": "VS", "VRD": "VX", 
+    "WZZ": "W6", "XLF": "SE"
+}
 
 
 def normalize_carrier_code(carrier_str: str, flight_str: str = "") -> str:
@@ -304,11 +458,15 @@ def normalize_carrier_code(carrier_str: str, flight_str: str = "") -> str:
             if prefix in CARRIER_LOGOS or prefix in ["AS", "UA", "DL", "AA", "WN", "B6", "NK", "F9", "HA", "BA", "LH", "AF", "KL", "QF", "SQ", "NH", "JL"]:
                 return prefix
 
-    # 2. Check if already 2 letters
+    # 2. Check direct ICAO 3-letter table
+    if c in ICAO_TO_IATA:
+        return ICAO_TO_IATA[c]
+
+    # 3. Check if already 2 letters
     if len(c) == 2 and c.isalpha():
         return c
 
-    # 3. Common airline names
+    # 4. Common airline names
     airline_map = {
         "ALASKA": "AS",
         "HORIZON": "AS",
@@ -351,26 +509,51 @@ def normalize_carrier_code(carrier_str: str, flight_str: str = "") -> str:
     return c[:2] if len(c) >= 2 else "UA"
 
 
-def classify_seat_position(seat_str: str) -> str:
+def standardize_cabin_class(cabin_str: Any) -> str:
+    """
+    Standardizes commercial airline cabin micro-brands (Delta One, Polaris,
+    Club World, Comfort+, Premium Class, Mint, PREMIUM_ECONOMY, etc.) into the 4 canonical industry
+    cabin classes: First, Business, Premium Economy, Economy.
+    """
+    if cabin_str is None or (isinstance(cabin_str, float) and pd.isna(cabin_str)):
+        return "Economy"
+    s = str(cabin_str).strip()
+    if not s or s.lower() in ["nan", "none", "null", ""]:
+        return "Economy"
+    low = s.lower().replace("_", " ")
+    if any(k in low for k in ["first", "la premiere", "la première", "suite"]):
+        return "First"
+    if any(k in low for k in ["business", "polaris", "delta one", "club world", "mint", "upper class", "world business"]):
+        return "Business"
+    if any(k in low for k in ["premium", "comfort", "extra", "plus", "world traveller plus", "select"]):
+        return "Premium Economy"
+    return "Economy"
+
+
+def classify_seat_position(seat_str: Any, seat_type_str: Any = "") -> str:
     """Classifies seat identifier into Window, Aisle, Middle, or Unassigned."""
-    if not seat_str or pd.isna(seat_str):
-        return "Unassigned / Open"
-    s = str(seat_str).strip().upper()
-    if s in ["ANY", "OPEN", "GENERAL", "UNASSIGNED", "NONE", "NAN", ""]:
-        return "Unassigned / Open"
-    
-    letter = s[-1] if s[-1].isalpha() else ""
-    if not letter:
-        return "Unassigned / Open"
-        
-    if letter in ["A", "F", "K"]:
+    s = str(seat_str).strip().upper() if seat_str is not None and not (isinstance(seat_str, float) and pd.isna(seat_str)) else ""
+    stype = str(seat_type_str).strip().upper() if seat_type_str is not None and not (isinstance(seat_type_str, float) and pd.isna(seat_type_str)) else ""
+
+    # Check seat identifier first (e.g. '20C', '11E', '3A')
+    if s and s not in ["ANY", "OPEN", "GENERAL", "UNASSIGNED", "NONE", "NAN"]:
+        letter = s[-1] if s[-1].isalpha() else ""
+        if letter in ["A", "F", "K"]:
+            return "Window"
+        elif letter in ["C", "D", "G", "H"]:
+            return "Aisle"
+        elif letter in ["B", "E", "J"]:
+            return "Middle"
+
+    # Fallback to explicit seat type from export (e.g. Flighty 'Seat Type' column)
+    if "WINDOW" in stype:
         return "Window"
-    elif letter in ["C", "D", "G", "H"]:
+    elif "AISLE" in stype:
         return "Aisle"
-    elif letter in ["B", "E", "J"]:
+    elif "MIDDLE" in stype:
         return "Middle"
-    else:
-        return "Other"
+
+    return "Unassigned / Open"
 
 
 def calculate_flight_carbon_footprint(distance_miles: float, cabin_class: str = "Economy", category: str = "Mainline Narrowbody") -> float:
@@ -401,7 +584,6 @@ def calculate_flight_carbon_footprint(distance_miles: float, cabin_class: str = 
     return round(float(distance_miles) * base_rate * mult, 1)
 
 
-
 def parse_flighty_csv(file_or_content) -> pd.DataFrame:
     """
     Parses Flighty CSV export and enriches it with:
@@ -415,14 +597,18 @@ def parse_flighty_csv(file_or_content) -> pd.DataFrame:
     elif isinstance(file_or_content, (bytes, bytearray)):
         df = pd.read_csv(io.BytesIO(file_or_content))
     elif isinstance(file_or_content, str):
-        df = pd.read_csv(io.StringIO(file_or_content))
+        import os
+        if os.path.exists(file_or_content):
+            df = pd.read_csv(file_or_content)
+        else:
+            df = pd.read_csv(io.StringIO(file_or_content))
     else:
         df = pd.read_csv(file_or_content)
 
     # Normalize column names: lowercase and replace spaces/underscores
     col_map = {}
     for col in df.columns:
-        clean = col.strip().lower().replace(" ", "_").replace("/", "_").replace("-", "_")
+        clean = str(col).strip().lower().replace(" ", "_").replace("/", "_").replace("-", "_")
         col_map[col] = clean
     df.rename(columns=col_map, inplace=True)
 
@@ -438,35 +624,35 @@ def parse_flighty_csv(file_or_content) -> pd.DataFrame:
     # Resolve origin
     orig_col = next((c for c in df.columns if c in ["departure", "origin", "from", "departure_iata", "origin_iata"]), None)
     if orig_col:
-        df["origin"] = df[orig_col].astype(str).str.strip().str.upper().str[:3]
+        df["origin"] = df[orig_col].fillna("SEA").astype(str).str.strip().str.upper().str[:3]
     else:
         df["origin"] = "SEA"
 
     # Resolve destination
     dest_col = next((c for c in df.columns if c in ["arrival", "destination", "dest", "to", "arrival_iata", "dest_iata"]), None)
     if dest_col:
-        df["dest"] = df[dest_col].astype(str).str.strip().str.upper().str[:3]
+        df["dest"] = df[dest_col].fillna("SFO").astype(str).str.strip().str.upper().str[:3]
     else:
         df["dest"] = "SFO"
 
     # Resolve carrier
     carr_col = next((c for c in df.columns if c in ["airline", "carrier", "airline_code", "operating_carrier"]), None)
     if carr_col:
-        df["carrier"] = df[carr_col].astype(str).str.strip().str.upper()
+        df["carrier"] = df[carr_col].fillna("AS").astype(str).str.strip().str.upper()
     else:
         df["carrier"] = "AS"
 
     # Resolve flight number
     flt_col = next((c for c in df.columns if ("flight" in c and "number" in c) or c == "flight"), None)
     if flt_col:
-        df["flight_number"] = df[flt_col].astype(str).str.strip()
+        df["flight_number"] = df[flt_col].fillna("").astype(str).str.strip()
     else:
         df["flight_number"] = ""
 
     # Resolve aircraft type
     act_col = next((c for c in df.columns if any(k in c for k in ["aircraft", "plane", "equipment", "type", "model"])), None)
     if act_col:
-        raw_aircraft = df[act_col].astype(str)
+        raw_aircraft = df[act_col].fillna("").astype(str)
     else:
         raw_aircraft = pd.Series(["Boeing 737-900ER"] * len(df))
 
@@ -478,45 +664,45 @@ def parse_flighty_csv(file_or_content) -> pd.DataFrame:
     df["aircraft_subfleet"] = [c["subfleet"] for c in classified]
     df["aircraft_category"] = [c["category"] for c in classified]
 
-    # Resolve seat & cabin
-    seat_col = next((c for c in df.columns if "seat" in c and "class" not in c), None)
-    df["seat"] = df[seat_col].astype(str).str.strip() if seat_col else ""
+    # Resolve seat & seat type & cabin
+    seat_col = next((c for c in df.columns if c == "seat" or ("seat" in c and "type" not in c and "class" not in c)), None)
+    df["seat"] = df[seat_col].fillna("").astype(str).str.strip() if seat_col else ""
+
+    seat_type_col = next((c for c in df.columns if "seat_type" in c or "seat_position" in c), None)
+    raw_seat_types = df[seat_type_col].fillna("").astype(str).str.strip() if seat_type_col else [""] * len(df)
 
     cabin_col = next((c for c in df.columns if "cabin" in c or "class" in c), None)
-    df["cabin_class"] = df[cabin_col].astype(str).str.strip() if cabin_col else "Economy"
+    if cabin_col:
+        df["cabin_class"] = df[cabin_col].apply(standardize_cabin_class)
+    else:
+        df["cabin_class"] = "Economy"
 
-    # Assign GPS coordinates
-    df["origin_lat"] = np.nan
-    df["origin_lon"] = np.nan
-    df["origin_city"] = ""
-    df["origin_name"] = ""
+    # Assign GPS coordinates using global airport database
+    origin_lats, origin_lons, origin_cities, origin_names = [], [], [], []
+    dest_lats, dest_lons, dest_cities, dest_names = [], [], [], []
 
-    df["dest_lat"] = np.nan
-    df["dest_lon"] = np.nan
-    df["dest_city"] = ""
-    df["dest_name"] = ""
-
-    for idx, row in df.iterrows():
+    for _, row in df.iterrows():
         o = row["origin"]
         d = row["dest"]
-        if o in AIRPORT_COORDINATES:
-            lat, lon, name, city = AIRPORT_COORDINATES[o]
-            df.at[idx, "origin_lat"] = lat
-            df.at[idx, "origin_lon"] = lon
-            df.at[idx, "origin_name"] = name
-            df.at[idx, "origin_city"] = city
-        if d in AIRPORT_COORDINATES:
-            lat, lon, name, city = AIRPORT_COORDINATES[d]
-            df.at[idx, "dest_lat"] = lat
-            df.at[idx, "dest_lon"] = lon
-            df.at[idx, "dest_name"] = name
-            df.at[idx, "dest_city"] = city
+        o_lat, o_lon, o_name, o_city = get_airport_coordinates_and_info(o)
+        d_lat, d_lon, d_name, d_city = get_airport_coordinates_and_info(d)
+        origin_lats.append(o_lat)
+        origin_lons.append(o_lon)
+        origin_names.append(o_name)
+        origin_cities.append(o_city)
+        dest_lats.append(d_lat)
+        dest_lons.append(d_lon)
+        dest_names.append(d_name)
+        dest_cities.append(d_city)
 
-    # Fallback coordinates for any remaining missing coordinates
-    df["origin_lat"] = df["origin_lat"].fillna(47.4502)
-    df["origin_lon"] = df["origin_lon"].fillna(-122.3088)
-    df["dest_lat"] = df["dest_lat"].fillna(37.6213)
-    df["dest_lon"] = df["dest_lon"].fillna(-122.3790)
+    df["origin_lat"] = origin_lats
+    df["origin_lon"] = origin_lons
+    df["origin_name"] = origin_names
+    df["origin_city"] = origin_cities
+    df["dest_lat"] = dest_lats
+    df["dest_lon"] = dest_lons
+    df["dest_name"] = dest_names
+    df["dest_city"] = dest_cities
 
     # Compute distances
     distances = []
@@ -544,7 +730,10 @@ def parse_flighty_csv(file_or_content) -> pd.DataFrame:
     df["alliance"] = alliances
 
     # Seat position preference
-    df["seat_position"] = [classify_seat_position(s) for s in df["seat"]]
+    df["seat_position"] = [
+        classify_seat_position(s, st) 
+        for s, st in zip(df["seat"], raw_seat_types)
+    ]
 
     # CO2 footprint
     df["co2_kg"] = [

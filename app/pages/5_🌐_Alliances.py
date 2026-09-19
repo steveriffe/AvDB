@@ -52,20 +52,17 @@ st.markdown(
 )
 
 # Prominent US Data Boundary Alert
-st.markdown(
-    """
-    <div style="background: rgba(56, 189, 248, 0.08); border: 1px solid rgba(56, 189, 248, 0.3); border-radius: 12px; padding: 14px 18px; margin-bottom: 24px;">
-        <div style="display: flex; align-items: center; gap: 8px; font-weight: 700; color: #38BDF8; font-size: 0.92rem; margin-bottom: 4px;">
-            <span>ℹ️</span> US-Origin & Gateway Data Boundary Notice
-        </div>
-        <div style="color: #CBD5E1; font-size: 0.85rem; line-height: 1.5;">
-            All metrics are computed from U.S. Department of Transportation BTS T-100 operations and DB1B/OD40 ticket surveys. 
-            Data reflects <b>100% of US domestic sectors</b> and <b>all international flights touching US gateways</b> (e.g. British Airways LHR➔JFK, Lufthansa FRA➔ORD, ANA HND➔LAX). 
-            Foreign-to-foreign intra-continental sectors (e.g. Lufthansa domestic Germany, Air France intra-Europe) are not reported to the US DOT and therefore not included.
-        </div>
-    </div>
-    """,
-    unsafe_allow_html=True,
+st.html(
+    "<div style='background: rgba(56, 189, 248, 0.08); border: 1px solid rgba(56, 189, 248, 0.3); border-radius: 12px; padding: 14px 18px; margin-bottom: 24px;'>"
+    "<div style='display: flex; align-items: center; gap: 8px; font-weight: 700; color: #38BDF8; font-size: 0.92rem; margin-bottom: 4px;'>"
+    "<span>ℹ️</span> US-Origin & Gateway Data Boundary Notice"
+    "</div>"
+    "<div style='color: #CBD5E1; font-size: 0.85rem; line-height: 1.5;'>"
+    "All metrics are computed from U.S. Department of Transportation BTS T-100 operations and DB1B/OD40 ticket surveys. "
+    "Data reflects <b>100% of US domestic sectors</b> and <b>all international flights touching US gateways</b> (e.g. British Airways LHR➔JFK, Lufthansa FRA➔ORD, ANA HND➔LAX). "
+    "Foreign-to-foreign intra-continental sectors (e.g. Lufthansa domestic Germany, Air France intra-Europe) are not reported to the US DOT and therefore not included."
+    "</div>"
+    "</div>"
 )
 
 # -------------------------------------------------------------
@@ -235,15 +232,13 @@ for _, a_row in df_perf.iterrows():
             c_logo = get_carrier_logo_url(c_code) or ""
             logo_tag = f"<img src='{c_logo}' style='height: 22px; width: 22px; object-fit: contain; border-radius: 4px; flex-shrink: 0;' alt='{c_code}'/>" if c_logo else ""
             pills_html.append(
-                f"""
-                <div style="display: inline-flex; align-items: center; gap: 8px; background: rgba(11, 25, 44, 0.7); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 10px; padding: 6px 12px; margin: 3px 6px 3px 0;" title="{c_name} ({c_code}): {pax_str} US BTS Passengers">
-                    {logo_tag}
-                    <div>
-                        <div style="font-family: 'Plus Jakarta Sans', sans-serif; font-size: 11px; font-weight: 700; color: #FFFFFF; line-height: 1.2;">{c_name}</div>
-                        <div style="font-family: 'JetBrains Mono', monospace; font-size: 10px; color: #94A3B8;">{c_code} · <span style="color: #38BDF8; font-weight: 600;">{pax_str} Pax</span></div>
-                    </div>
-                </div>
-                """
+                f"<div style='display: inline-flex; align-items: center; gap: 8px; background: rgba(11, 25, 44, 0.7); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 10px; padding: 6px 12px; margin: 3px 6px 3px 0;' title='{c_name} ({c_code}): {pax_str} US BTS Passengers'>"
+                f"{logo_tag}"
+                f"<div>"
+                f"<div style='font-family: \"Plus Jakarta Sans\", sans-serif; font-size: 11px; font-weight: 700; color: #FFFFFF; line-height: 1.2;'>{c_name}</div>"
+                f"<div style='font-family: \"JetBrains Mono\", monospace; font-size: 10px; color: #94A3B8;'>{c_code} · <span style='color: #38BDF8; font-weight: 600;'>{pax_str} Pax</span></div>"
+                f"</div>"
+                f"</div>"
             )
     else:
         for c_code in a_row["carriers"][:12]:
@@ -251,47 +246,42 @@ for _, a_row in df_perf.iterrows():
             c_logo = get_carrier_logo_url(c_code) or ""
             logo_tag = f"<img src='{c_logo}' style='height: 22px; width: 22px; object-fit: contain; border-radius: 4px; flex-shrink: 0;' alt='{c_code}'/>" if c_logo else ""
             pills_html.append(
-                f"""
-                <div style="display: inline-flex; align-items: center; gap: 8px; background: rgba(11, 25, 44, 0.7); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 10px; padding: 6px 12px; margin: 3px 6px 3px 0;" title="{c_name} ({c_code})">
-                    {logo_tag}
-                    <div>
-                        <div style="font-family: 'Plus Jakarta Sans', sans-serif; font-size: 11px; font-weight: 700; color: #FFFFFF; line-height: 1.2;">{c_name}</div>
-                        <div style="font-family: 'JetBrains Mono', monospace; font-size: 10px; color: #94A3B8;">{c_code}</div>
-                    </div>
-                </div>
-                """
+                f"<div style='display: inline-flex; align-items: center; gap: 8px; background: rgba(11, 25, 44, 0.7); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 10px; padding: 6px 12px; margin: 3px 6px 3px 0;' title='{c_name} ({c_code})'>"
+                f"{logo_tag}"
+                f"<div>"
+                f"<div style='font-family: \"Plus Jakarta Sans\", sans-serif; font-size: 11px; font-weight: 700; color: #FFFFFF; line-height: 1.2;'>{c_name}</div>"
+                f"<div style='font-family: \"JetBrains Mono\", monospace; font-size: 10px; color: #94A3B8;'>{c_code}</div>"
+                f"</div>"
+                f"</div>"
             )
 
     members_block = f"<div style='margin-top: 14px; border-top: 1px solid rgba(255, 255, 255, 0.06); padding-top: 12px;'><div style='font-size: 11px; font-weight: 700; color: #94A3B8; font-family: \"JetBrains Mono\", monospace; margin-bottom: 8px;'>TOP MEMBER AIRLINES (BY ANNUAL US PASSENGER VOLUME):</div><div style='display: flex; flex-wrap: wrap;'>{''.join(pills_html)}</div></div>" if pills_html else ""
 
-    with st.container():
-        st.markdown(
-            f"""
-            <div style="background: rgba(17, 29, 51, 0.85); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 16px; padding: 20px; margin-bottom: 20px; backdrop-filter: blur(12px);">
-                <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <div style="display: flex; align-items: center;">
-                        {logo_img}
-                        <div>
-                            <div style="font-family: 'Plus Jakarta Sans', sans-serif; font-size: 1.35rem; font-weight: 800; color: #FFFFFF;">
-                                {a_name}
-                            </div>
-                            <div style="color: #94A3B8; font-size: 0.88rem; font-family: 'JetBrains Mono', monospace; margin-top: 2px;">
-                                US Network Share: <span style="color: #FF6B00; font-weight: 700;">{a_row['passenger_share_pct']}%</span> Pax · {a_row['seat_share_pct']}% Seats · {a_row['load_factor_pct']}% Avg LF
-                            </div>
-                        </div>
-                    </div>
-                    <div style="text-align: right;">
-                        <div style="font-family: 'JetBrains Mono', monospace; font-size: 1.45rem; font-weight: 800; color: #38BDF8;">
-                            {a_row['passengers']/1e6:.1f}M Pax
-                        </div>
-                        <div style="font-size: 0.78rem; color: #94A3B8; font-family: 'JetBrains Mono', monospace;">{a_row['departures']:,} Departures</div>
-                    </div>
-                </div>
-                {members_block}
-            </div>
-            """,
-            unsafe_allow_html=True
-        )
+    profile_html = (
+        f"<div style='background: rgba(17, 29, 51, 0.85); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 16px; padding: 20px; margin-bottom: 20px; backdrop-filter: blur(12px);'>"
+        f"<div style='display: flex; justify-content: space-between; align-items: center;'>"
+        f"<div style='display: flex; align-items: center;'>"
+        f"{logo_img}"
+        f"<div>"
+        f"<div style='font-family: \"Plus Jakarta Sans\", sans-serif; font-size: 1.35rem; font-weight: 800; color: #FFFFFF;'>"
+        f"{a_name}"
+        f"</div>"
+        f"<div style='color: #94A3B8; font-size: 0.88rem; font-family: \"JetBrains Mono\", monospace; margin-top: 2px;'>"
+        f"US Network Share: <span style='color: #FF6B00; font-weight: 700;'>{a_row['passenger_share_pct']}%</span> Pax · {a_row['seat_share_pct']}% Seats · {a_row['load_factor_pct']}% Avg LF"
+        f"</div>"
+        f"</div>"
+        f"</div>"
+        f"<div style='text-align: right;'>"
+        f"<div style='font-family: \"JetBrains Mono\", monospace; font-size: 1.45rem; font-weight: 800; color: #38BDF8;'>"
+        f"{a_row['passengers']/1e6:.1f}M Pax"
+        f"</div>"
+        f"<div style='font-size: 0.78rem; color: #94A3B8; font-family: \"JetBrains Mono\", monospace;'>{a_row['departures']:,} Departures</div>"
+        f"</div>"
+        f"</div>"
+        f"{members_block}"
+        f"</div>"
+    )
+    st.html(profile_html)
 
 # -------------------------------------------------------------
 # 7. Fleet Deployment Mix: Widebody vs Narrowbody by Alliance

@@ -302,6 +302,8 @@ with scol1:
     fig_seat = build_flighty_seat_preference_donut(df_flights)
     st.plotly_chart(fig_seat, width="stretch")
 with scol2:
+    from app.utils.flighty import standardize_cabin_class
+    df_flights["cabin_class"] = df_flights["cabin_class"].apply(standardize_cabin_class)
     cabin_counts = df_flights["cabin_class"].value_counts().reset_index()
     cabin_counts.columns = ["cabin_class", "count"]
     fig_cabin = px.pie(
@@ -309,7 +311,13 @@ with scol2:
         names="cabin_class",
         values="count",
         hole=0.55,
-        color_discrete_sequence=["#30D158", "#0A84FF", "#BF5AF2", "#FF9F0A"]
+        color="cabin_class",
+        color_discrete_map={
+            "First": "#BF5AF2",
+            "Business": "#0A84FF",
+            "Premium Economy": "#30D158",
+            "Economy": "#FF9F0A"
+        }
     )
     fig_cabin.update_layout(
         title=dict(text="Cabin Class Distribution", font=dict(size=14, color="#F5F5F7")),

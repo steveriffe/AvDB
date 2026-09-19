@@ -35,6 +35,7 @@ credentials/
 *.xlsx
 *.zip
 *.tar.gz
+FlightyExport*.csv
 
 # Streamlit
 .streamlit/secrets.toml

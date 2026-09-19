@@ -1,27 +1,23 @@
 # Current Project Status: AvDB
 
 **Last Updated**: 2026-09-18
-**Current Phase**: Phase 19 Delivered (Alliances Regional Attribution, Member Carrier Ranking, Fleet Associated Airlines, and Local High-Resolution Carrier Logo Asset Catalog)
+**Current Phase**: Phase 20 Delivered (Fleet & Alliances HTML Rendering Fixes, Cabin Class 4-Tier Standardization, Worldwide Airport Coordinate Resolution, and Flighty CSV Parser Robustness)
 ---
 
 ## 🎯 Active Focus
-Delivered major data integrity and UI enhancements for alliances, fleet equipment, and airline branding:
-1. **Local High-Resolution Carrier Logo Asset Catalog (`app/assets/logos/`)**:
-   - Downloaded and cataloged 61 transparent airline emblems (PNG/SVG) locally in the repository (< 200 KB total).
-   - Zero external CDN dependencies, eliminating 404/429 latency and image breakage.
-   - Built `get_carrier_logo_url(code)` with base64 Data URI caching (`@lru_cache`).
-   - Built `get_carrier_name(code)` with comprehensive friendly airline names, preventing truncated labels ("Alaska Airlines", not "Alas").
-2. **Alliances Regional Attribution & Realistic Market Shares**:
-   - Integrated route-level regional carrier attribution (`db1b-1.reporting.ref_regional_route_attribution`) into alliance performance queries (`get_alliance_performance_metrics`, `get_alliances_time_series`, `get_alliance_fleet_deployment`).
-   - Attributed ~130M regional passenger trips from feeder operators (SkyWest, Republic, Horizon, Endeavor, Envoy, PSA, Piedmont, etc.) to marketing airlines (AA, DL, UA, AS).
-   - Real-world 2024 shares: oneworld (26.1%), SkyTeam (19.6%), Star Alliance (18.2%), Independent (36.1% led by Southwest at 177.6M pax).
-   - Filtered out DOT air-taxi / commuter survey codes (`02Q`, `07Q`, etc.) with `passengers >= 10,000`.
-   - Ranked member carriers by annual passenger volume descending instead of alphabetical order.
-3. **Fleet Associated Airlines / Primary Operators**:
-   - Updated regional aircraft specs (`ref_aircraft_specs.py`) to list recognized marketing mainlines and major regional operators (`AA`, `DL`, `UA`, `AS`, `OO`, `YX`, `QX`, `9E`, `OH`, `PT`, `C5`).
-   - Restyled the Primary Operators strip on the Fleet page with authentic 20x20px emblems, carrier codes, and full airline names in glassmorphic pills.
-4. **Alliances UI Modernization**:
-   - Replaced squished 10-column cards with responsive flexbox pills displaying the authentic airline emblem, carrier code, friendly name, and annual US passenger volume.
+Delivered UI fixes and personal travel log parser robustness:
+1. **Fleet & Alliances HTML Leakage Resolution (`3_💺_Fleet_Routes.py`, `5_🌐_Alliances.py`)**:
+   - Resolved raw HTML code block leaks on the Fleet and Alliances pages where multiline indented strings passed to `st.markdown` were misinterpreted as `<pre><code>` blocks.
+   - Converted engineering spec cards, primary operator pills, and alliance profile cards to `st.html(...)` with unindented HTML structures.
+2. **Cabin Class 4-Tier Canonical Standardization (`app/utils/flighty.py`, `4_📱_Flighty_Traveler.py`)**:
+   - Built `standardize_cabin_class(...)` mapping micro-brands (Polaris, Delta One, Club World, Comfort+, Premium Class, Economy Plus, Main Cabin Extra, PREMIUM_ECONOMY, etc.) into the 4 canonical industry tiers: **First**, **Business**, **Premium Economy**, **Economy**.
+   - Updated the Cabin Class Distribution donut chart to use discrete color mapping: First (`#BF5AF2`), Business (`#0A84FF`), Premium Economy (`#30D158`), Economy (`#FF9F0A`).
+3. **Flighty CSV Ingestion Robustness & Worldwide Airport Resolution (`app/utils/flighty.py`)**:
+   - Resolved `AttributeError: 'float' object has no attribute 'strip'` when encountering `NaN` or non-string aircraft models, headers, and seats.
+   - Built global airport coordinates cache with fallback to `data/ref_airports.csv`, resolving 100% of global airports (79 / 79 in real user travel log) with exact latitude, longitude, and cities.
+   - Added `ICAO_TO_IATA` dictionary supporting 3-letter ICAO carrier codes (`SWA`, `ASA`, `BAW`, `VIR`, `EZY`, `RYR`, `ETD`, etc.) for seamless alliance and logo matching.
+   - Added Flighty `Seat Type` detection (`WINDOW`, `AISLE`, `MIDDLE`) augmenting seat position classification.
+   - Validated real user flight export (`FlightyExport-2026-09-19.csv`) with 308 flights passing 100% of tests.
 ---
 
 ## 📊 Live BigQuery Analytical Marts (`db1b-1.reporting` & `db1b-1.user_travel`)
