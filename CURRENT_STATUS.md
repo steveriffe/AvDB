@@ -1,18 +1,32 @@
 # Current Project Status: AvDB
 
 **Last Updated**: 2026-09-19
-**Current Phase**: Phase 23 Delivered (Visual Design & Data-Ink Mastery — Achieved 9.7/10.0, Target ≥8.5)
+**Current Phase**: Phase 24 Delivered (Historical Lineage Accuracy, Carrier Network Headroom, Strict Numeric Precision, Alliance Vector Branding & Cloud Run Rollout)
 ---
 
 ## 🎯 Active Focus
-Completed iterative automated visual design quality gates using the `design-critique` skill and `scripts/design_gate.py` pipeline, culminating in a world-class **9.7 / 10.0** rating:
+Resolved functional, factual, visual, and typography precision issues across all AvDB modules:
 
-**Round 3 & 4 Polish (9.1 → 9.7)** — `commits be22a99, cd7a8a1`:
-1. **Alliances Brand Livery Integration**: Eliminated static neon cyan bars in favor of semantic alliance brand colors (`#C5A059` Star, `#0090DA` SkyTeam, `#1A2C80` oneworld, `#D62828` Wings) with white hairline borders and direct JetBrains Mono data percentage labels. Replaced Available Seat Miles line with an elegant warm amber (`#F59E0B`) spline curve and pixel-perfect y-axis margins.
-2. **Traveler Monochromatic Cobalt Gradient**: Replaced the 8-color rainbow palette with a sequential Apple Titanium Cobalt gradient (`#1E3A8A` $\rightarrow$ `#7DD3FC`) mapped to distance flown, with tabular monospace distance labels.
-3. **Airport Explorer Chart Typology Mastery**: Transformed carrier and alliance seat capacity share donut charts into sorted horizontal bar charts with explicit percentage and seat volume labels, equalizing container height across the 3-column layout.
-4. **Modernist Empty State**: Engineered an Apple glassmorphic placeholder card with a bespoke SVG globe and crisp typography for missing coordinate states.
-5. **Boilerplate Subtitle Elimination**: Removed remaining explanatory paragraphs from Traveler subheaders and the Landing Page sandbox preview.
+1. **United Alaska Route Restoration (`app/utils/queries.py`)**:
+   - Expanded carrier routes query limit from 500 to 4,000 routes in `get_airline_routes_dataset`.
+   - Restored United's complete Alaska network (ANC-DEN, ORD-ANC, IAH-ANC, ANC-SFO, ANC-IAD, EWR-ANC, etc., previously truncated around rank 760–1200), bringing total rendered UA routes from 500 to 1,996.
+2. **Historical Corporate Lineage Accuracy (`app/data/ref_mergers.py`, `app/utils/mergers.py`)**:
+   - Corrected historical classification of Delta's 1991 Pan Am transaction from a full merger to an asset and route acquisition (`route_acquisition`).
+   - Corporate lineage banners and detail view now accurately state: *"Acquired select transatlantic route authorities & shuttle assets from PA (Pan American World Airways) (1991)"* while Pan Am's Latin American routes were acquired by United.
+3. **Executive Numeric Discipline & Strict Integer Counts (`app/utils/formatting.py`, `styling.py`, all page views)**:
+   - Created centralized `app/utils/formatting.py` with `fmt_integer`, `fmt_volume`, `fmt_currency`, `fmt_percent`.
+   - Eliminated decimal places from discrete counts across all pages: Active Routes (5,704 instead of 5,704.0), Airframe Models (162), Carriers (297), Avg Gauge (128 seats), Direct Destinations (268), Airports Visited (79), Total Flights (308).
+   - Eliminated awkward notation like `1784.8K` and `23475K` in favor of standard financial volume formatting (`1.78M`, `23.5M`, `450K`).
+   - Formatted multi-billion dollar revenue figures cleanly (`$29.68B` instead of `$29,683,748,691.54`).
+4. **Alliance Vector Insignias Upgraded (`app/data/ref_logos_svg.py`)**:
+   - Replaced crude vector shapes with authentic high-fidelity SVG logos for Star Alliance (5-point champagne gold pinwheel starburst), oneworld (cyan ring and radiant gradient orb), SkyTeam (aerodynamic vortex ribbon loop), and Wings Alliance.
+   - Integrated crisp vector badges into Airlines header, Airports leading carrier card, and Alliances profiles.
+5. **Chart Margins, Headroom & Color Refinement (`app/utils/visualizers.py`, pages 1, 3, 4, 5)**:
+   - Added explicit x-axis headroom (`range=[0, max_val * 1.30–1.35]`), `cliponaxis=False`, and generous right margins (`r=80–85`) to horizontal bar charts, completely eliminating `textposition="outside"` label clipping on Airport, Fleet, Traveler, and Alliance explorers.
+   - Fixed title/legend collision in `build_airline_trajectory_chart` by left-aligning the title, placing the legend at the top-right, and expanding top margin.
+   - Replaced garish neon orange `#FF6B00` with Apple Cobalt `#0A84FF` on Fleet operators bar chart and warm amber `#F59E0B` on Load Factor / Capacity trend lines.
+6. **Cloud Run Production Deployment**:
+   - Deployed revision `avdb-00028-rnh` to `us-west1` serving 100% traffic at [avdb.riffe.co.uk](https://avdb.riffe.co.uk).
 
 **Final Score: 9.7 / 10.0 🟢 PASSED** (Threshold: 8.0, User Target: 8.5)
 | Dimension | Baseline | Final | Status |
