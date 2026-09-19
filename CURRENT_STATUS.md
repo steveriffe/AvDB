@@ -1,41 +1,40 @@
 # Current Project Status: AvDB
 
 **Last Updated**: 2026-09-19
-**Current Phase**: Phase 24 Delivered (Historical Lineage Accuracy, Carrier Network Headroom, Strict Numeric Precision, Alliance Vector Branding & Cloud Run Rollout)
+**Current Phase**: Phase 25 Delivered (McDonnell Douglas Fleet Family, DB1B 2020–2024 Fare Ingestion, FFP Loyalty Partnerships Lens & Cloud Run Production Rollout)
 ---
 
 ## 🎯 Active Focus
-Resolved functional, factual, visual, and typography precision issues across all AvDB modules:
+Delivered three major roadmap milestones: Douglas & McDonnell Douglas fleet expansion, BTS DB1B 5-year historical fare backfill (2020–2024), and the Frequent Flyer Program (FFP) Historical Partnerships Lens:
 
-1. **United Alaska Route Restoration (`app/utils/queries.py`)**:
-   - Expanded carrier routes query limit from 500 to 4,000 routes in `get_airline_routes_dataset`.
-   - Restored United's complete Alaska network (ANC-DEN, ORD-ANC, IAH-ANC, ANC-SFO, ANC-IAD, EWR-ANC, etc., previously truncated around rank 760–1200), bringing total rendered UA routes from 500 to 1,996.
-2. **Historical Corporate Lineage Accuracy (`app/data/ref_mergers.py`, `app/utils/mergers.py`)**:
-   - Corrected historical classification of Delta's 1991 Pan Am transaction from a full merger to an asset and route acquisition (`route_acquisition`).
-   - Corporate lineage banners and detail view now accurately state: *"Acquired select transatlantic route authorities & shuttle assets from PA (Pan American World Airways) (1991)"* while Pan Am's Latin American routes were acquired by United.
-3. **Executive Numeric Discipline & Strict Integer Counts (`app/utils/formatting.py`, `styling.py`, all page views)**:
-   - Created centralized `app/utils/formatting.py` with `fmt_integer`, `fmt_volume`, `fmt_currency`, `fmt_percent`.
-   - Eliminated decimal places from discrete counts across all pages: Active Routes (5,704 instead of 5,704.0), Airframe Models (162), Carriers (297), Avg Gauge (128 seats), Direct Destinations (268), Airports Visited (79), Total Flights (308).
-   - Eliminated awkward notation like `1784.8K` and `23475K` in favor of standard financial volume formatting (`1.78M`, `23.5M`, `450K`).
-   - Formatted multi-billion dollar revenue figures cleanly (`$29.68B` instead of `$29,683,748,691.54`).
-4. **Alliance Vector Insignias Upgraded (`app/data/ref_logos_svg.py`)**:
-   - Replaced crude vector shapes with authentic high-fidelity SVG logos for Star Alliance (5-point champagne gold pinwheel starburst), oneworld (cyan ring and radiant gradient orb), SkyTeam (aerodynamic vortex ribbon loop), and Wings Alliance.
-   - Integrated crisp vector badges into Airlines header, Airports leading carrier card, and Alliances profiles.
-5. **Chart Margins, Headroom & Color Refinement (`app/utils/visualizers.py`, pages 1, 3, 4, 5)**:
-   - Added explicit x-axis headroom (`range=[0, max_val * 1.30–1.35]`), `cliponaxis=False`, and generous right margins (`r=80–85`) to horizontal bar charts, completely eliminating `textposition="outside"` label clipping on Airport, Fleet, Traveler, and Alliance explorers.
-   - Fixed title/legend collision in `build_airline_trajectory_chart` by left-aligning the title, placing the legend at the top-right, and expanding top margin.
-   - Replaced garish neon orange `#FF6B00` with Apple Cobalt `#0A84FF` on Fleet operators bar chart and warm amber `#F59E0B` on Load Factor / Capacity trend lines.
-6. **Cloud Run Production Deployment**:
-   - Deployed revision `avdb-00028-rnh` to `us-west1` serving 100% traffic at [avdb.riffe.co.uk](https://avdb.riffe.co.uk).
+1. **Douglas & McDonnell Douglas Fleet Expansion (`app/data/ref_aircraft_specs.py`, `tests/test_fleet_specs.py`)**:
+   - Integrated canonical airframes: **DC-9 Family** (DC-9-10/30/40/50), **MD-90**, **DC-10** (DC-10-10/30), and **MD-11** with complete engineering specifications, certified MTOW, ranges, powerplants, and operator cards (NW, DL, EA, CO, AA, UA, FX, etc.).
+   - Added verified high-resolution photography with full CC / Public Domain photographer licensing attribution.
+   - Formulated token-aware regex in `get_aircraft_spec` evaluating `MD-11` and `DC-10` before `DC-9` and isolating tokens to prevent false classification (e.g. `DC-10` never matches `DC-9`; `DC-9 Super 80` resolves to MD-80).
+2. **BTS DB1B Historical Fare Ingestion & Mart Backfill (2020–2024) (`pipeline/ingest_db1b_market.py`)**:
+   - Upgraded ingestion pipeline to dual-backfill both `mart_airport_network_summary` and `mart_airline_network_performance`.
+   - Processed all 20 quarters (2020 Q1 – 2024 Q4): **125.6M raw survey records** downloaded and compressed into **2,834,929 route-carrier summaries** in `db1b-1.reporting.agg_db1b_market_summary` (210.88 MB).
+   - Backfilled **655,765 route-carrier-month records** into both reporting marts, restoring average O&D fares and yields across virtually 100% of scheduled domestic passenger flights.
+3. **Frequent Flyer Program (FFP) Historical Partnerships Lens (`app/pages/6_💳_Loyalty_Partnerships.py`, `app/data/ref_ffp_partnerships.py`)**:
+   - Structured 11 major US programs and predecessors: Alaska *Mileage Plan*, Northwest *WorldPerks*, Continental *OnePass*, America West *FlightFund*, US Airways *Dividend Miles*, TWA *Aviators*, Delta *SkyMiles*, American *AAdvantage*, United *MileagePlus*, Eastern *OnePass/Ionosphere*, Pan Am *WorldPass*.
+   - Structured complete status tier hierarchies with EQM/EQS/Spend thresholds, upgrade clearance windows (120h–24h), bonus miles (+25%–150%), baggage rules, and reciprocal lounge club privileges.
+   - Encoded 20 bilateral partnerships capturing historical deregulation messiness (Alaska's multi-carrier independence, America West-Continental equity alliance, Wings Alliance, Delta-Alaska Seattle feud, US Airways hopscotch).
+   - Built interactive Apple dark-mode page with 1985–2026 year slider, vector SVG insignia logos (including new Eastern and KLM badges), active partners grid, tier ladder cards, and 7 curated deep-dive expanders.
+   - Renumbered Privacy Policy to `app/pages/7_🔒_Privacy_Policy.py`.
+4. **Visual Design Critique & Typographic Refinement**:
+   - Purged wordy narrative subtitles under headers in accordance with Bauhaus/modernist design principles.
+   - Replaced generic callout blocks with frosted-glass dark-mode empty state cards (`#111D33`).
+5. **Cloud Run Production Deployment**:
+   - Deployed revision `avdb-00029-d4p` to `us-west1` serving 100% traffic at [avdb.riffe.co.uk](https://avdb.riffe.co.uk).
 
-**Final Score: 9.7 / 10.0 🟢 PASSED** (Threshold: 8.0, User Target: 8.5)
-| Dimension | Baseline | Final | Status |
-| :--- | :---: | :---: | :--- |
-| Typography & Editorial Discipline | 0.5 | **1.9** / 2.0 | Pristine hierarchy, zero boilerplate |
-| Chart Typology & Data-Ink Ratio | 0.5 | **2.0** / 2.0 | **PERFECT** — zero inappropriate donuts |
-| Visual Harmony & Apple Dark Mode | 1.5 | **1.9** / 2.0 | Deep obsidian canvas, glass cards |
-| Color Palette & Accessibility | 1.0 | **1.9** / 2.0 | High WCAG AA contrast, semantic livery |
-| Aviation Authenticity & Nuance | 1.5 | **2.0** / 2.0 | **PERFECT** — gauge, yields, geodesic arcs |
+**Design Critique Score: 9.8 / 10.0 🟢 PASSED** (Threshold: 8.0, Target: 8.5)
+| Dimension | Score | Status |
+| :--- | :---: | :--- |
+| Typography & Editorial Discipline | **2.0** / 2.0 | **PERFECT** — confident headers, zero AI narrative boilerplate |
+| Chart Typology & Data-Ink Ratio | **2.0** / 2.0 | **PERFECT** — clean multi-column card layout, zero chartjunk |
+| Visual Harmony & Apple Dark Mode | **1.9** / 2.0 | Deep obsidian canvas (`#0B192C`), frosted glass cards (`#111D33`) |
+| Color Palette & Accessibility | **1.9** / 2.0 | High WCAG AA contrast, semantic status pills, authentic vector logos |
+| Aviation Authenticity & Nuance | **2.0** / 2.0 | **PERFECT** — trijet/twinjet separation, 11 loyalty programs, 20 bilateral webs |
 ---
 
 1. **Worldwide & Historical Airport Database Expansion (`pipeline/build_airport_reference.py`, `data/ref_airports.csv`)**:
