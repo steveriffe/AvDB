@@ -48,7 +48,7 @@ Delivered comprehensive global and historical airport coordinate enrichment:
 - [x] **Global Airline Alliances Lens (`app/pages/5_🌐_Alliances.py`) with NW/KL Wings Alliance**.
 - [x] **BigQuery User Travel Vault (`db1b-1.user_travel.user_flight_logs`) with 1,000-Flight Cap & Typed `DELETE` Purge**.
 - [x] **Annual Time Series Granularity Unlocked (1990–2025; 36 consecutive years)** across Airports, Airlines, Fleet, and Alliances with zero BigQuery table scan overhead.
-- [x] **Deployed to Google Cloud Run (`avdb-00024-9gh`) at `https://avdb.riffe.co.uk`**.
+- [x] **Deployed to Google Cloud Run (`avdb-00025-clj`) at `https://avdb.riffe.co.uk`**.
 - [x] **Unified Test Suite Passed 100% (`tests/run_all_tests.py`)**.
 
 ---
