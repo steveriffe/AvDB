@@ -240,7 +240,7 @@ with k5:
 # Multi-Year Trajectory Expander
 if not df_airline_ts.empty:
     st.markdown("<div style='margin-top: 14px;'></div>", unsafe_allow_html=True)
-    with st.expander("📈 Historical Timeline & Network Trajectory (1990–2026)", expanded=False):
+    with st.expander("📈 Historical Timeline & Network Trajectory (1990–2025)", expanded=False):
         fig_al_trend = build_airline_trajectory_chart(df_airline_ts, carriers_dict.get(selected_code, selected_code))
         st.plotly_chart(fig_al_trend, width="stretch")
         
@@ -317,13 +317,29 @@ if not df_carrier_routes.empty:
 
     with col_am3:
         air_label_opt = st.selectbox(
-            "Airport Labels",
-            options=["🏛️ Hubs Only", "🌐 Hubs + Top Spokes", "⚪ Dots Only"],
+            "Map Layers & Labels",
+            options=[
+                "✈️ Arcs + Hub Labels",
+                "🌐 Arcs + All Labels",
+                "⚪ Dots Only (Hide Arcs)",
+                "✨ Clean Arcs (No Labels)"
+            ],
             index=0,
             key="air_map_labels",
             label_visibility="collapsed"
         )
-        air_label_density = "hubs_only" if "Hubs Only" in air_label_opt else ("all" if "Top Spokes" in air_label_opt else "none")
+        if "All Labels" in air_label_opt:
+            air_label_density = "all"
+            show_arcs = True
+        elif "Dots Only" in air_label_opt:
+            air_label_density = "dots_only"
+            show_arcs = False
+        elif "Clean Arcs" in air_label_opt:
+            air_label_density = "none"
+            show_arcs = True
+        else:
+            air_label_density = "hubs_only"
+            show_arcs = True
 
     deck_air = build_airline_network_deck(
         df_carrier_routes,
@@ -332,7 +348,8 @@ if not df_carrier_routes.empty:
         carrier_name=carriers_dict[selected_code],
         theme=air_theme,
         colorway=air_color,
-        label_density=air_label_density
+        label_density=air_label_density,
+        show_routes=show_arcs
     )
     st.pydeck_chart(deck_air, width="stretch")
 

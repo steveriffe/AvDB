@@ -190,9 +190,9 @@ with vcol2:
     st.plotly_chart(fig_bar, width="stretch")
 
 # -------------------------------------------------------------
-# 5. Multi-Year Historical Trend: 1990–2026 Alliance Evolution
+# 5. Multi-Year Historical Trend: 1990–2025 Alliance Evolution
 # -------------------------------------------------------------
-with st.expander("📈 Alliance Market Share Evolution (1990–2026)", expanded=False):
+with st.expander("📈 Alliance Market Share Evolution (1990–2025)", expanded=False):
     st.markdown(
         "<p style='color: #94A3B8; font-size: 0.9rem; margin-bottom: 12px;'>"
         "Tracking 36 years of global consolidation and joint-venture formation touching US international gateways: "

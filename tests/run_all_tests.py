@@ -151,31 +151,62 @@ def test_all_module_imports():
 
 
 def test_time_series_queries():
-    """Verify time series queries execute against BigQuery without syntax or partitioning errors."""
+    """Verify time series queries execute against BigQuery without syntax or partitioning errors, and KPIs match."""
+    import pandas as pd
     from app.utils.queries import (
         get_airport_time_series,
+        get_airport_kpis,
         get_airline_time_series,
         get_fleet_time_series,
         get_alliances_time_series
     )
+    from app.utils.visualizers import build_airline_network_deck
     
     df_apt = get_airport_time_series("SEA", passenger_only=True)
     assert not df_apt.empty, "Expected non-empty time series for SEA"
     assert "year" in df_apt.columns and "top_carrier" in df_apt.columns
+    assert df_apt["year"].max() == 2025, "Time series should cap at completed year 2025"
+
+    # Verify COS KPI harmony and peak network accuracy (Western Pacific 1996 hub peak)
+    cos_kpi_2025 = get_airport_kpis("COS", 2025, min_departures=10)
+    cos_ts = get_airport_time_series("COS", passenger_only=True, min_departures=10)
+    cos_ts_2025 = cos_ts[cos_ts["year"] == 2025].iloc[0]
+    assert cos_kpi_2025["total_passengers"] == cos_ts_2025["total_passengers"], "Airport KPI total pax must match time series"
+    cos_peak_dest = cos_ts.loc[cos_ts["direct_destinations"].idxmax()]
+    assert int(cos_peak_dest["year"]) == 1996, f"Expected 1996 peak destinations for COS, got {cos_peak_dest['year']}"
+    assert cos_peak_dest["direct_destinations"] == 36, f"Expected 36 peak destinations for COS in 1996, got {cos_peak_dest['direct_destinations']}"
 
     df_air = get_airline_time_series("UA")
     assert not df_air.empty, "Expected non-empty time series for UA"
     assert "total_asm" in df_air.columns and "total_rpm" in df_air.columns
+    assert df_air["year"].max() == 2025
 
     df_fleet = get_fleet_time_series()
     assert not df_fleet.empty, "Expected non-empty fleet time series"
     assert "avg_gauge" in df_fleet.columns
+    assert df_fleet["year"].max() == 2025
 
     df_alliances = get_alliances_time_series()
     assert not df_alliances.empty, "Expected non-empty alliances time series"
     assert "pax_share_pct" in df_alliances.columns
+    assert df_alliances["year"].max() == 2025
 
-    print("✅ All four time series queries verified without SQL/partitioning error!")
+    # Verify build_airline_network_deck layer toggling (Dots Only vs Arcs)
+    mock_routes = pd.DataFrame([{
+        'origin': 'SEA', 'origin_name': 'Seattle', 'origin_city': 'Seattle', 'origin_lat': 47.4, 'origin_lon': -122.3,
+        'dest': 'ANC', 'dest_name': 'Anchorage', 'dest_city': 'Anchorage', 'dest_state': 'AK', 'dest_country': 'US',
+        'dest_lat': 61.1, 'dest_lon': -149.9, 'departures_performed': 100, 'total_seats': 15000,
+        'operational_passengers': 12000, 'load_factor_pct': 80.0, 'avg_gauge_seats': 150, 'distance_miles': 1400, 'avg_od_fare': 300
+    }])
+    deck_arcs = build_airline_network_deck(mock_routes, ['SEA'], label_density='hubs_only', show_routes=True)
+    deck_dots = build_airline_network_deck(mock_routes, ['SEA'], label_density='dots_only', show_routes=False)
+    deck_clean = build_airline_network_deck(mock_routes, ['SEA'], label_density='none', show_routes=True)
+    assert any(l.type == 'GreatCircleLayer' for l in deck_arcs.layers)
+    assert not any(l.type == 'GreatCircleLayer' for l in deck_dots.layers)
+    assert not any(l.type == 'TextLayer' for l in deck_dots.layers)
+    assert not any(l.type == 'TextLayer' for l in deck_clean.layers)
+
+    print("✅ All four time series queries verified (1990-2025 completed years) and KPI/map layers verified!")
 
 
 def test_regional_carrier_attribution():

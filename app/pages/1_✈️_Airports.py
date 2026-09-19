@@ -123,7 +123,7 @@ if catchment_info:
 # 2. Top-Level Apple-Style KPI Cards with YoY Context
 # -------------------------------------------------------------
 kpi_data = get_airport_kpis(selected_airport, selected_year, passenger_only=is_pax_only, min_departures=min_deps)
-df_time_series = get_airport_time_series(selected_airport, passenger_only=is_pax_only)
+df_time_series = get_airport_time_series(selected_airport, passenger_only=is_pax_only, min_departures=min_deps)
 
 # Compute YoY delta for selected year
 yoy_pax_delta = None
@@ -166,7 +166,7 @@ with kpi5:
 # Multi-Year Trend Expander / Chart
 if not df_time_series.empty:
     st.markdown("<div style='margin-top: 14px;'></div>", unsafe_allow_html=True)
-    with st.expander("📈 Historical Timeline & Multi-Year Growth (1990–2026)", expanded=False):
+    with st.expander("📈 Historical Timeline & Multi-Year Growth (1990–2025)", expanded=False):
         fig_trend = build_airport_growth_trend_chart(df_time_series, selected_airport)
         st.plotly_chart(fig_trend, width="stretch")
         
@@ -179,7 +179,8 @@ if not df_time_series.empty:
             base_row = df_time_series.iloc[0]
             curr_yr_row = df_time_series.iloc[-1]
             long_term_growth = ((curr_yr_row['total_passengers'] - base_row['total_passengers']) / max(base_row['total_passengers'], 1)) * 100
-            st.metric("Long-Term Growth (1990 ➔ Present)", f"+{long_term_growth:.0f}%", f"From {base_row['total_passengers']/1e6:.1f}M in {int(base_row['year'])}")
+            sign_str = "+" if long_term_growth > 0 else ""
+            st.metric(f"Long-Term Growth (1990 ➔ {int(curr_yr_row['year'])})", f"{sign_str}{long_term_growth:.0f}%", f"From {base_row['total_passengers']/1e6:.1f}M in {int(base_row['year'])}")
         with col_th3:
             max_routes = df_time_series["direct_destinations"].max()
             max_route_yr = int(df_time_series.loc[df_time_series["direct_destinations"].idxmax()]["year"])

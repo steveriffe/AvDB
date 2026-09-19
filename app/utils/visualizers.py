@@ -341,8 +341,6 @@ def build_route_map_deck(
         get_pixel_offset=[12, -4],
         get_text_anchor='"start"',
         get_alignment_baseline='"center"',
-        font_family='-apple-system, BlinkMacSystemFont, "SF Pro", "Inter", "Helvetica Neue", Arial, sans-serif',
-        font_weight='"bold"',
         pickable=False,
     )
 
@@ -366,8 +364,6 @@ def build_route_map_deck(
             get_pixel_offset=[6, -2],
             get_text_anchor='"start"',
             get_alignment_baseline='"center"',
-            font_family='-apple-system, BlinkMacSystemFont, "SF Pro", "Inter", "Helvetica Neue", Arial, sans-serif',
-            font_weight='"bold"',
             pickable=False,
         )
         layers.append(dest_text_layer)
@@ -403,6 +399,7 @@ def build_airline_network_deck(
     theme: str = "midnight",
     colorway: str = "auto",
     label_density: str = "hubs_only",
+    show_routes: bool = True,
     mapbox_api_key: Optional[str] = None,
     mapbox_style: Optional[str] = None
 ) -> pdk.Deck:
@@ -551,17 +548,22 @@ def build_airline_network_deck(
         data=df_hubs,
         get_position=["lon", "lat"],
         get_text="hub_label",
-        get_size=11.5,
+        get_size=13,
         get_color=hub_label_color,
-        get_pixel_offset=[10, -4],
+        get_pixel_offset=[12, -4],
         get_text_anchor='"start"',
         get_alignment_baseline='"center"',
-        font_family='-apple-system, BlinkMacSystemFont, "SF Pro", "Inter", "Helvetica Neue", Arial, sans-serif',
-        font_weight='"bold"',
         pickable=False,
     )
 
-    layers = [route_layer, spoke_layer, hub_ring_layer, hub_core_layer, hub_text_layer]
+    layers = []
+    if show_routes and label_density != "dots_only":
+        layers.append(route_layer)
+    layers.extend([spoke_layer, hub_ring_layer, hub_core_layer])
+
+    # Text labels (only if requested)
+    if label_density in ["hubs_only", "hubs", "all"]:
+        layers.append(hub_text_layer)
 
     # Additional text labels for top spoke destinations if requested
     if label_density == "all":
@@ -571,13 +573,11 @@ def build_airline_network_deck(
             data=df_spokes.head(35),
             get_position=["lon", "lat"],
             get_text="airport_code",
-            get_size=9.5,
+            get_size=10,
             get_color=spoke_label_color,
-            get_pixel_offset=[5, -2],
+            get_pixel_offset=[8, -2],
             get_text_anchor='"start"',
             get_alignment_baseline='"center"',
-            font_family='-apple-system, BlinkMacSystemFont, "SF Pro", "Inter", "Helvetica Neue", Arial, sans-serif',
-            font_weight='"bold"',
             pickable=False,
         )
         layers.append(spoke_text_layer)
@@ -1103,7 +1103,7 @@ def build_airport_growth_trend_chart(df_ts: pd.DataFrame, airport_name: str) -> 
 
     fig.update_layout(
         title=dict(
-            text=f"📈 36-Year Passenger & Capacity Growth: {airport_name} (1990–2026)",
+            text=f"📈 36-Year Passenger & Capacity Growth: {airport_name} (1990–2025)",
             font=dict(family="Plus Jakarta Sans", size=15, color="#FFFFFF")
         ),
         xaxis=dict(title="", tickmode="linear", dtick=5, gridcolor="rgba(255,255,255,0.05)", color="#94A3B8"),
@@ -1162,7 +1162,7 @@ def build_airline_trajectory_chart(df_ts: pd.DataFrame, carrier_name: str) -> go
     fig.update_layout(
         barmode="group",
         title=dict(
-            text=f"🌐 Historical Capacity & Yield Trajectory: {carrier_name} (1990–2026)",
+            text=f"🌐 Historical Capacity & Yield Trajectory: {carrier_name} (1990–2025)",
             font=dict(family="Plus Jakarta Sans", size=15, color="#FFFFFF")
         ),
         xaxis=dict(title="", tickmode="linear", dtick=5, gridcolor="rgba(255,255,255,0.05)", color="#94A3B8"),
@@ -1191,7 +1191,7 @@ def build_fleet_gauge_trend_chart(df_ts: pd.DataFrame) -> go.Figure:
         color="aircraft_family",
         markers=True,
         color_discrete_sequence=["#BF5AF2", "#0A84FF", "#30D158", "#FF9F0A", "#8E8E93"],
-        title="💺 Aircraft Gauge Evolution: Average Seats per Departure (1990–2026)"
+        title="💺 Aircraft Gauge Evolution: Average Seats per Departure (1990–2025)"
     )
     fig.update_layout(
         xaxis=dict(title="", tickmode="linear", dtick=5, gridcolor="rgba(255,255,255,0.05)", color="#94A3B8"),
@@ -1228,7 +1228,7 @@ def build_alliance_market_share_trend_chart(df_ts: pd.DataFrame) -> go.Figure:
         y="pax_share_pct",
         color="alliance_name",
         color_discrete_map=color_map,
-        title="🌐 Multilateral Alliance Passenger Share Evolution (1990–2026)"
+        title="🌐 Multilateral Alliance Passenger Share Evolution (1990–2025)"
     )
     fig.update_layout(
         xaxis=dict(title="", tickmode="linear", dtick=5, gridcolor="rgba(255,255,255,0.05)", color="#94A3B8"),

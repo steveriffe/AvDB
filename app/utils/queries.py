@@ -275,26 +275,28 @@ def get_airport_kpis(
             FROM base
             {REGIONAL_ATTRIBUTION_JOIN}
         ),
-        filtered AS (
-            SELECT * FROM attributed
-            WHERE departures_performed >= @min_departures
+        route_totals AS (
+            SELECT dest, SUM(departures_performed) AS route_deps
+            FROM attributed
+            GROUP BY 1
         ),
         carrier_totals AS (
             SELECT unique_carrier, SUM(total_seats) AS carrier_seats, SUM(operational_passengers) AS carrier_pax
-            FROM filtered
+            FROM attributed
             GROUP BY 1
             ORDER BY carrier_seats DESC
             LIMIT 1
         )
         SELECT 
-            COUNT(DISTINCT dest) AS direct_destinations,
-            SUM(departures_performed) AS total_departures,
-            SUM(total_seats) AS total_seats,
-            SUM(operational_passengers) AS total_passengers,
-            ROUND(SAFE_DIVIDE(SUM(operational_passengers), SUM(total_seats)) * 100, 1) AS load_factor_pct,
-            ROUND(AVG(avg_od_fare), 2) AS avg_od_fare,
+            COUNT(DISTINCT CASE WHEN r.route_deps >= @min_departures THEN a.dest END) AS direct_destinations,
+            SUM(a.departures_performed) AS total_departures,
+            SUM(a.total_seats) AS total_seats,
+            SUM(a.operational_passengers) AS total_passengers,
+            ROUND(SAFE_DIVIDE(SUM(a.operational_passengers), SUM(a.total_seats)) * 100, 1) AS load_factor_pct,
+            ROUND(AVG(a.avg_od_fare), 2) AS avg_od_fare,
             (SELECT unique_carrier FROM carrier_totals) AS leading_carrier
-        FROM filtered
+        FROM attributed a
+        LEFT JOIN route_totals r ON a.dest = r.dest
     """
     df = run_query(query, params={"airport_code": airport_code, "year": year, "min_departures": min_departures})
     if not df.empty and df["total_passengers"].iloc[0] is not None and not pd.isna(df["total_passengers"].iloc[0]):
@@ -1387,9 +1389,13 @@ def get_alliance_fleet_deployment(year: int) -> pd.DataFrame:
 # -------------------------------------------------------------
 
 @st.cache_data(ttl=3600, show_spinner=False)
-def get_airport_time_series(airport_code: str, passenger_only: bool = True) -> pd.DataFrame:
+def get_airport_time_series(
+    airport_code: str, 
+    passenger_only: bool = True,
+    min_departures: int = 10
+) -> pd.DataFrame:
     """
-    Retrieves annual time-series metrics (1990–2026) for a specific airport with regional carrier attribution.
+    Retrieves annual time-series metrics (1990–2025 completed years) for a specific airport with regional carrier attribution.
     Returns year-by-year departures, total_seats, passengers, load_factor_pct, direct_destinations, and attributed top_carrier.
     """
     code = airport_code.strip().upper()
@@ -1407,6 +1413,7 @@ def get_airport_time_series(airport_code: str, passenger_only: bool = True) -> p
         operational_passengers
       FROM `db1b-1.reporting.mart_airport_network_summary`
       WHERE origin = '{code}' {pax_filter}
+        AND EXTRACT(YEAR FROM flight_date) <= 2025
     ),
     attributed AS (
       SELECT
@@ -1419,15 +1426,24 @@ def get_airport_time_series(airport_code: str, passenger_only: bool = True) -> p
       FROM base
       {REGIONAL_ATTRIBUTION_JOIN}
     ),
-    annual_summary AS (
+    route_annual AS (
       SELECT
         year,
-        SUM(departures_performed) as total_departures,
-        SUM(total_seats) as total_seats,
-        SUM(operational_passengers) as total_passengers,
-        COUNT(DISTINCT dest) as direct_destinations,
-        ROUND(SUM(operational_passengers) / NULLIF(SUM(total_seats), 0) * 100, 1) as load_factor_pct
+        dest,
+        SUM(departures_performed) as route_deps
       FROM attributed
+      GROUP BY 1, 2
+    ),
+    annual_summary AS (
+      SELECT
+        a.year,
+        SUM(a.departures_performed) as total_departures,
+        SUM(a.total_seats) as total_seats,
+        SUM(a.operational_passengers) as total_passengers,
+        COUNT(DISTINCT CASE WHEN r.route_deps >= {min_departures} THEN a.dest END) as direct_destinations,
+        ROUND(SUM(a.operational_passengers) / NULLIF(SUM(a.total_seats), 0) * 100, 1) as load_factor_pct
+      FROM attributed a
+      LEFT JOIN route_annual r ON a.year = r.year AND a.dest = r.dest
       GROUP BY 1
     ),
     carrier_annual AS (
@@ -1479,6 +1495,7 @@ def get_airline_time_series(carrier_code: str, include_regionals: bool = True) -
             available_seat_miles,
             revenue_passenger_miles
           FROM `db1b-1.reporting.mart_airline_network_performance`
+          WHERE EXTRACT(YEAR FROM flight_date) <= 2025
         ),
         attributed AS (
           SELECT
@@ -1522,6 +1539,7 @@ def get_airline_time_series(carrier_code: str, include_regionals: bool = True) -
           COUNT(DISTINCT dest) as active_routes
         FROM `db1b-1.reporting.mart_airline_network_performance`
         WHERE unique_carrier = '{code}'
+          AND EXTRACT(YEAR FROM flight_date) <= 2025
         GROUP BY 1
         ORDER BY year ASC
         """
@@ -1535,11 +1553,11 @@ def get_airline_time_series(carrier_code: str, include_regionals: bool = True) -
 @st.cache_data(ttl=3600, show_spinner=False)
 def get_fleet_time_series(aircraft_family: Optional[str] = None) -> pd.DataFrame:
     """
-    Retrieves annual gauge and equipment mix trends (1990–2026).
+    Retrieves annual gauge and equipment mix trends (1990–2025).
     If aircraft_family is specified, returns model-level gauge and departures over time.
     If None, returns industry-wide category transitions (Mainline vs Widebody vs RJ vs Prop).
     """
-    fam_filter = f"WHERE aircraft_family = '{aircraft_family}'" if aircraft_family and aircraft_family != "All Families" else ""
+    fam_filter = f"AND aircraft_family = '{aircraft_family}'" if aircraft_family and aircraft_family != "All Families" else ""
     
     sql = f"""
     SELECT
@@ -1550,6 +1568,7 @@ def get_fleet_time_series(aircraft_family: Optional[str] = None) -> pd.DataFrame
       SUM(operational_passengers) as passengers,
       ROUND(SUM(total_seats) / NULLIF(SUM(departures_performed), 0), 1) as avg_gauge
     FROM `db1b-1.reporting.mart_fleet_route_dynamics`
+    WHERE EXTRACT(YEAR FROM flight_date) <= 2025
     {fam_filter}
     GROUP BY 1, 2
     ORDER BY year ASC, departures DESC
@@ -1560,7 +1579,7 @@ def get_fleet_time_series(aircraft_family: Optional[str] = None) -> pd.DataFrame
 @st.cache_data(ttl=3600, show_spinner=False)
 def get_alliances_time_series() -> pd.DataFrame:
     """
-    Retrieves multi-year alliance market share trends (1990–2026) across
+    Retrieves multi-year alliance market share trends (1990–2025) across
     Star Alliance, SkyTeam, oneworld, Wings Alliance (NW/KL), Qualiflyer, and Independent
     with full regional carrier attribution.
     """
@@ -1577,6 +1596,7 @@ def get_alliances_time_series() -> pd.DataFrame:
         SUM(total_seats) as total_seats,
         SUM(operational_passengers) as operational_passengers
       FROM `db1b-1.reporting.mart_airport_network_summary`
+      WHERE EXTRACT(YEAR FROM flight_date) <= 2025
       GROUP BY 1, 2, 3, 4
     ),
     attributed AS (

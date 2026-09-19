@@ -102,7 +102,7 @@ with k6:
 df_fleet_ts = get_fleet_time_series()
 if not df_fleet_ts.empty:
     st.markdown("<div style='margin-top: 14px;'></div>", unsafe_allow_html=True)
-    with st.expander("📈 Three-Decade Gauge Evolution & Category Shifts (1990–2026)", expanded=False):
+    with st.expander("📈 Three-Decade Gauge Evolution & Category Shifts (1990–2025)", expanded=False):
         fig_gauge_trend = build_fleet_gauge_trend_chart(df_fleet_ts)
         st.plotly_chart(fig_gauge_trend, width="stretch")
         
