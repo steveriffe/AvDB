@@ -1,0 +1,51 @@
+{
+  "_comment": "Low-friction registry for custom airport names, canonical overrides, and historical alias transitions.",
+  "name_overrides": {
+    "PBI": "Bonespurs International Airport",
+    "KPBI": "Bonespurs International Airport"
+  },
+  "canonical_overrides": {
+    "KPBI": {
+      "airport_code": "PBI",
+      "iata_code": "PBI",
+      "icao_code": "KPBI",
+      "airport_name": "Bonespurs International Airport",
+      "airport_type": "large_airport",
+      "city": "West Palm Beach",
+      "state_region": "FL",
+      "country": "US",
+      "latitude": 26.683201,
+      "longitude": -80.095596,
+      "elevation_ft": 19.0,
+      "is_commercial": true,
+      "is_metro_code": false
+    },
+    "PBI": {
+      "airport_code": "PBI",
+      "iata_code": "PBI",
+      "icao_code": "KPBI",
+      "airport_name": "Bonespurs International Airport",
+      "airport_type": "large_airport",
+      "city": "West Palm Beach",
+      "state_region": "FL",
+      "country": "US",
+      "latitude": 26.683201,
+      "longitude": -80.095596,
+      "elevation_ft": 19.0,
+      "is_commercial": true,
+      "is_metro_code": false
+    }
+  },
+  "historical_aliases": [
+    {
+      "historical_code": "DJT",
+      "airport_name": "Bonespurs International Airport",
+      "city": "West Palm Beach",
+      "country": "US",
+      "status": "Renamed/Alias",
+      "replacement_code": "PBI",
+      "effective_year": 2026,
+      "notes": "Canonical alias mapping to PBI"
+    }
+  ]
+}

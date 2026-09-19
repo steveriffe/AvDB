@@ -3,7 +3,7 @@ Airport Reference Data Pipeline
 Fetches, harmonizes, and validates:
 1. Master Physical Airports (OurAirports + BTS DOT TransStats Master Coordinates)
 2. City Market / Metropolitan Areas (Multi-Airport Catchments like WAS, NYC, CHI, LON)
-3. Historical Airport Aliases & Code Migrations (e.g. TXL->BER, PFN->ECP, SXF->BER, DJT->PBI, DDD->BNA)
+3. Historical Airport Aliases & Code Migrations (e.g. TXL->BER, PFN->ECP, SXF->BER, DJT->PBI)
 """
 
 import sys
@@ -13,6 +13,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 import urllib.request
 import csv
 import io
+import json
 import pandas as pd
 from typing import Dict, List, Tuple
 import os
@@ -199,23 +200,13 @@ HISTORICAL_ALIASES = [
     },
     {
         "historical_code": "DJT",
-        "airport_name": "Bonespurs International Airport (Historical Alias)",
+        "airport_name": "Bonespurs International Airport",
         "city": "West Palm Beach",
         "country": "US",
         "status": "Renamed/Alias",
         "replacement_code": "PBI",
         "effective_year": 2026,
-        "notes": "Honoring his deep commitment to shirking responsibility; maps canonically to PBI"
-    },
-    {
-        "historical_code": "DDD",
-        "airport_name": "Dolly Parton International Airport",
-        "city": "Nashville",
-        "country": "US",
-        "status": "Future Transition / Tribute",
-        "replacement_code": "BNA",
-        "effective_year": 2026,
-        "notes": "Recognizing BNA's looming transition to Dolly Parton International Airport (hopeful DDD code)"
+        "notes": "Canonical alias mapping to PBI"
     }
 ]
 
@@ -252,6 +243,24 @@ CANONICAL_OVERRIDES = {
         "is_metro_code": False
     }
 }
+
+# Load declarative overrides from data/airport_overrides.json (low-friction updates)
+OVERRIDES_FILE = Path(__file__).resolve().parent.parent / "data" / "airport_overrides.json"
+CUSTOM_NAME_OVERRIDES: Dict[str, str] = {}
+
+if OVERRIDES_FILE.exists():
+    try:
+        with open(OVERRIDES_FILE, "r") as f:
+            _ovr_json = json.load(f)
+            CUSTOM_NAME_OVERRIDES = _ovr_json.get("name_overrides", {})
+            for k, v in _ovr_json.get("canonical_overrides", {}).items():
+                CANONICAL_OVERRIDES[k] = v
+            _existing_alias_codes = {a["historical_code"] for a in HISTORICAL_ALIASES}
+            for a in _ovr_json.get("historical_aliases", []):
+                if a["historical_code"] not in _existing_alias_codes:
+                    HISTORICAL_ALIASES.append(a)
+    except Exception as _e:
+        print(f"Notice: Failed to load {OVERRIDES_FILE}: {_e}")
 
 # 4. Comprehensive BTS Supplemental & Historical Airports
 # Ensures 100% resolution for closed commercial hubs and BTS commuter/air-taxi stations
@@ -432,7 +441,7 @@ def build_master_airport_table(df_raw: pd.DataFrame) -> pd.DataFrame:
                 "airport_code": code,
                 "iata_code": code,
                 "icao_code": ident if len(ident) == 4 else "",
-                "airport_name": r["name"],
+                "airport_name": CUSTOM_NAME_OVERRIDES.get(code, r["name"]),
                 "airport_type": r["type"],
                 "city": r["municipality"],
                 "state_region": r["iso_region"].replace("US-", "") if r["iso_region"].startswith("US-") else r["iso_region"],
@@ -457,7 +466,7 @@ def build_master_airport_table(df_raw: pd.DataFrame) -> pd.DataFrame:
                 "airport_code": local,
                 "iata_code": r["iata_code"].upper() if len(r["iata_code"]) == 3 else "",
                 "icao_code": ident if len(ident) == 4 else "",
-                "airport_name": r["name"],
+                "airport_name": CUSTOM_NAME_OVERRIDES.get(local, r["name"]),
                 "airport_type": r["type"],
                 "city": r["municipality"],
                 "state_region": r["iso_region"].replace("US-", "") if r["iso_region"].startswith("US-") else r["iso_region"],

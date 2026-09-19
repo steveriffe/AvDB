@@ -27,7 +27,8 @@ credentials/
 .DS_Store
 
 # Data files (keep raw & processed datasets out of git)
-/data/
+/data/*
+!data/airport_overrides.json
 *.tsv
 *.parquet
 *.feather

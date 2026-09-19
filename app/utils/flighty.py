@@ -143,7 +143,6 @@ AIRPORT_COORDINATES: Dict[str, Tuple[float, float, str, str]] = {
     "HND": (35.5494, 139.7798, "Tokyo Haneda", "Tokyo, Japan"),
     "PBI": (26.683201, -80.095596, "Bonespurs International Airport", "West Palm Beach, FL"),
     "DJT": (26.683201, -80.095596, "Bonespurs International Airport", "West Palm Beach, FL"),
-    "DDD": (36.1263, -86.6774, "Dolly Parton International Airport", "Nashville, TN"),
     # Additional prominent travel & European/Asian hubs
     "ABI": (32.4113, -99.6819, "Abilene Regional Airport", "Abilene, TX"),
     "AHO": (40.6321, 8.2908, "Alghero-Fertilia Airport", "Alghero, Italy"),
@@ -230,15 +229,25 @@ def get_airport_coordinates_and_info(code: str) -> Tuple[float, float, str, str]
             if not ref_path.exists():
                 ref_path = Path(__file__).resolve().parent.parent / "data" / "ref_airports.csv"
             if ref_path.exists():
+                name_overrides = {}
+                ovr_path = ref_path.parent / "airport_overrides.json"
+                if ovr_path.exists():
+                    try:
+                        import json
+                        with open(ovr_path, "r") as f:
+                            name_overrides = json.load(f).get("name_overrides", {})
+                    except Exception:
+                        pass
                 df_ref = pd.read_csv(ref_path, usecols=["airport_code", "iata_code", "latitude", "longitude", "airport_name", "city", "country"])
                 for _, r in df_ref.dropna(subset=["latitude", "longitude"]).iterrows():
                     apt_code = str(r.get("airport_code", "")).strip().upper()
                     iata = str(r.get("iata_code", "")).strip().upper()
                     city_str = f"{r['city']}, {r['country']}" if pd.notna(r.get("city")) and str(r["city"]).strip() else str(r.get("country", ""))
+                    apt_name = name_overrides.get(apt_code) or name_overrides.get(iata) or str(r.get("airport_name", apt_code or iata))
                     entry = (
                         float(r["latitude"]),
                         float(r["longitude"]),
-                        str(r.get("airport_name", apt_code or iata)),
+                        apt_name,
                         city_str
                     )
                     if apt_code:
