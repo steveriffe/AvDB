@@ -52,10 +52,10 @@ def test_auth_open_registration():
 
 def test_ignore_rules():
     """Verify git check-ignore respects /data/ vs app/data/."""
-    cmd = ["git", "check-ignore", "data/", "app/data/", "app/data/ref_mergers.py"]
+    cmd = ["git", "check-ignore", "data/ref_airports.parquet", "app/data/", "app/data/ref_mergers.py"]
     res = subprocess.run(cmd, capture_output=True, text=True)
     ignored = res.stdout.strip().splitlines()
-    assert "data/" in ignored, "Expected root data/ to be ignored"
+    assert "data/ref_airports.parquet" in ignored, "Expected root data/ to be ignored"
     assert "app/data/" not in ignored, "Expected app/data/ NOT to be ignored"
     assert "app/data/ref_mergers.py" not in ignored, "Expected app/data/ref_mergers.py NOT to be ignored"
 

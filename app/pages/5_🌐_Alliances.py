@@ -72,8 +72,8 @@ col_ctrl1, col_ctrl2 = st.columns([1.5, 3.5])
 with col_ctrl1:
     selected_year = st.selectbox(
         "Analysis Year",
-        options=[2025, 2024, 2023, 2022, 2021, 2020, 2019, 2018, 2015, 2010, 2005, 2000, 1995, 1990],
-        index=1,
+        options=list(range(2025, 1989, -1)),
+        index=0,
         help="Select calendar year for temporal alliance membership attribution."
     )
 

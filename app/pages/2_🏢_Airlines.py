@@ -99,7 +99,7 @@ with col_f1:
 with col_f2:
     selected_year = st.selectbox(
         "Analysis Year",
-        options=[2025, 2024, 2023, 2022, 2021, 2020, 2019, 2018, 2015, 2010, 2005, 2000, 1995, 1990],
+        options=list(range(2025, 1989, -1)),
         index=0,
         label_visibility="collapsed"
     )

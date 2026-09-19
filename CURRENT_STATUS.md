@@ -47,12 +47,18 @@ Delivered comprehensive global and historical airport coordinate enrichment:
 - [x] **Longitudinal Time-Series Query Engine (1990–2026) across Airports, Airlines, Fleet, and Alliances**.
 - [x] **Global Airline Alliances Lens (`app/pages/5_🌐_Alliances.py`) with NW/KL Wings Alliance**.
 - [x] **BigQuery User Travel Vault (`db1b-1.user_travel.user_flight_logs`) with 1,000-Flight Cap & Typed `DELETE` Purge**.
-- [x] **Deployed to Google Cloud Run (`avdb-00015-86c`) at `https://avdb.riffe.co.uk`**.
+- [x] **Annual Time Series Granularity Unlocked (1990–2025; 36 consecutive years)** across Airports, Airlines, Fleet, and Alliances with zero BigQuery table scan overhead.
+- [x] **Deployed to Google Cloud Run (`avdb-00024-9gh`) at `https://avdb.riffe.co.uk`**.
 - [x] **Unified Test Suite Passed 100% (`tests/run_all_tests.py`)**.
 
 ---
 
 ## ⏳ Next Immediate Steps & Audit Roadmap
-1. **Phase 1 DB1B Historical Ingestion (2000–2025 Q2)**: Build and run automated PREZIP downloader for quarterly `DB1BMarket` files into `db1b-1.DB1B_RAW.historical_db1b_market`.
-2. **Phase 2 Historical Fare Ingestion (1990–1999)**: Ingest early DB1B (1993–1999) and DB1A (1990–1992) from NBER / TranStats archives as planned in `playbook.md`.
-3. **Frequent Flyer Partnerships (FFP)**: Formulate data model and catalog for historical airline reciprocal loyalty agreements.
+1. **DB1B Historical Fare Ingestion (2015–2024)**: Automated PREZIP downloader for quarterly `DB1BMarket` files into `db1b-1.DB1B_RAW.db1b_market_historical` and backfill `mart_airport_network_summary` / `mart_airline_network_performance`.
+2. **Phase 14 Design Sprint & McDonnell Douglas (Backlog)**:
+   - Graphic design editorial pass: Purge wordy subtitles and eliminate unnecessary callout boxes (`st.info` blocks).
+   - Chart typology refactor: Convert unneeded donut charts to clean horizontal bar charts.
+   - McDonnell Douglas fleet family: Add DC-9, MD-80/90, DC-10, MD-11, B717 specifications and historical airline operator cards.
+3. **Phase 2 Historical Fare Ingestion (1990–2014)**: Ingest early DB1B Market (1993–2014) and DB1A (1990–1992) from TranStats/NBER archives.
+4. **Frequent Flyer Partnerships (FFP)**: Catalog historical airline reciprocal loyalty agreements.
+

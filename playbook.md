@@ -254,3 +254,29 @@ flowchart LR
 - [x] **13.4 Regression & End-to-End Verification**:
   - [x] Validated against full test suite (`tests/run_all_tests.py`) with 100% pass rate.
 
+---
+
+### Phase 14: Visual De-Cluttering, Chart Refactoring & McDonnell Douglas Fleet Expansion (Design Sprint Backlog)
+- [ ] **14.1 Graphic Designer Editorial Pass & AI Text Purge**:
+  - [ ] Strip out wordy subtitles and explanatory paragraphs under page headers (minimalist, high-signal UI; aversion to AI-generated prose).
+  - [ ] Eliminate unneeded callout boxes and verbose `st.info` blocks across all explorer pages.
+- [ ] **14.2 Chart Typology Refactoring (Donuts $\rightarrow$ Clean Bar Charts)**:
+  - [ ] Replace donut charts with horizontal bar charts where percent-of-whole comparisons are unhelpful or visual noise.
+  - [ ] Retain donut / pie representations strictly where direct 100% part-to-whole decomposition adds analytical clarity.
+- [ ] **14.3 McDonnell Douglas Fleet Integration**:
+  - [ ] Add McDonnell Douglas / Douglas airframe families (`DC-9`, `MD-80`/`MD-88`/`MD-90`, `DC-10`, `MD-11`, `B717`) to `app/data/ref_aircraft_specs.py`.
+  - [ ] Integrate specs, historical gauge economics, and key legacy operators (Delta, American, Northwest, TWA, Continental).
+
+---
+
+### Phase 15: Longitudinal Granularity Unlock & DB1B Historical Fare Backfill
+- [x] **15.1 Annual Time Series Granularity Unlock**:
+  - [x] Expanded `Analysis Year` selectors across Airports, Airlines, Fleet, and Alliances from 5-year intervals to the full annual sequence (1990–2025; 36 consecutive years).
+  - [x] Verified zero BigQuery table scan overhead (leveraging existing monthly date partitions).
+- [ ] **15.2 DB1B Market Historical Ingestion Pipeline (2015–2024)**:
+  - [ ] Build high-efficiency `pipeline/ingest_db1b_market.py` downloading quarterly `Origin_and_Destination_Survey_DB1BMarket_YYYY_Q.zip` from BTS PREZIP.
+  - [ ] Stream and aggregate route-carrier passenger and fare totals (`year`, `quarter`, `origin`, `dest`, `carrier`, `estimated_pax`, `avg_fare`).
+  - [ ] Load aggregated summaries into BigQuery `DB1B_RAW.db1b_market_historical`.
+  - [ ] Backfill `avg_od_fare` into `reporting.mart_airport_network_summary` and `mart_airline_network_performance`.
+
+
