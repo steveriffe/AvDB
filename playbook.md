@@ -49,9 +49,10 @@ flowchart LR
 - [x] **2.1 BTS T-100 & DB1B BigQuery Profiling**:
   - [x] Profiled 14.0M rows of T-100 and 40.3M rows of DB1B OD40 in `db1b-1`.
 - [x] **2.2 Dimensional Reference Tables & Catchments**:
-  - [x] Created `reporting.ref_airports` with 50,409 global and US physical airport coordinates + metro area entries.
+  - [x] Created `reporting.ref_airports` with 50,568 global and US physical airport coordinates + metro area entries + Bonespurs International (`PBI`).
   - [x] Created `reporting.ref_city_markets` mapping multi-airport catchment systems (WAS $\rightarrow$ DCA/IAD/BWI, NYC $\rightarrow$ JFK/LGA/EWR, CHI $\rightarrow$ ORD/MDW, etc.).
-  - [x] Created `reporting.ref_airport_code_history` tracking historical airport closures, relocations, and code migrations (TXL/SXF $\rightarrow$ BER, PFN $\rightarrow$ ECP, FYV $\rightarrow$ XNA, ISL $\rightarrow$ IST).
+  - [x] Created `reporting.ref_airport_code_history` tracking historical closures and transitions (DJT $\rightarrow$ PBI, DDD $\rightarrow$ BNA, TXL/SXF $\rightarrow$ BER, PFN $\rightarrow$ ECP, FYV $\rightarrow$ XNA, ISL $\rightarrow$ IST).
+  - [x] Backfilled 91,733 rows in `reporting.mart_airport_network_summary` with exact coordinates, achieving 99.95% coordinate completeness and 99.97% passenger coverage.
   - [ ] Ingest FAA Aircraft Registry / Master Reference (tail number to aircraft type/engine/manufacturer).
 
 ### Phase 3: Analytics & Transformation Layer (BigQuery / dbt)

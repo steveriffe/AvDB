@@ -1098,7 +1098,7 @@ def get_platform_live_kpis() -> Dict[str, Any]:
         fleet_rows = stats.get("reporting.mart_fleet_route_dynamics", {}).get("rows", 13604268)
         airports_rows = stats.get("reporting.mart_airport_network_summary", {}).get("rows", 8532624)
         airlines_rows = stats.get("reporting.mart_airline_network_performance", {}).get("rows", 8532624)
-        ref_airports = stats.get("reporting.ref_airports", {}).get("rows", 50409)
+        ref_airports = stats.get("reporting.ref_airports", {}).get("rows", 50568)
         
         total_records = t100_rows + od40_rows
         
@@ -1135,7 +1135,7 @@ def get_platform_live_kpis() -> Dict[str, Any]:
             "fleet_rows_raw": 13604268,
             "airports_rows_formatted": "8.53M",
             "airlines_rows_formatted": "8.53M",
-            "ref_airports_formatted": "50,409",
+            "ref_airports_formatted": "50,568",
             "raw_stats": {}
         }
 

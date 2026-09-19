@@ -141,6 +141,76 @@ AIRPORT_COORDINATES: Dict[str, Tuple[float, float, str, str]] = {
     "AMS": (52.3105, 4.7683, "Amsterdam Airport Schiphol", "Amsterdam, Netherlands"),
     "NRT": (35.7720, 140.3929, "Narita International", "Tokyo, Japan"),
     "HND": (35.5494, 139.7798, "Tokyo Haneda", "Tokyo, Japan"),
+    "PBI": (26.683201, -80.095596, "Bonespurs International Airport", "West Palm Beach, FL"),
+    "DJT": (26.683201, -80.095596, "Bonespurs International Airport", "West Palm Beach, FL"),
+    "DDD": (36.1263, -86.6774, "Dolly Parton International Airport", "Nashville, TN"),
+    # Additional prominent travel & European/Asian hubs
+    "ABI": (32.4113, -99.6819, "Abilene Regional Airport", "Abilene, TX"),
+    "AHO": (40.6321, 8.2908, "Alghero-Fertilia Airport", "Alghero, Italy"),
+    "ATH": (37.9364, 23.9445, "Athens Eleftherios Venizelos", "Athens, Greece"),
+    "AUH": (24.4410, 54.6492, "Zayed International Airport", "Abu Dhabi, UAE"),
+    "BCN": (41.2971, 2.0785, "Barcelona-El Prat Airport", "Barcelona, Spain"),
+    "BGO": (60.2934, 5.2181, "Bergen Airport, Flesland", "Bergen, Norway"),
+    "BHD": (54.6181, -5.8725, "George Best Belfast City Airport", "Belfast, UK"),
+    "BTV": (44.4719, -73.1533, "Patrick Leahy Burlington International", "Burlington, VT"),
+    "CAN": (23.3924, 113.2990, "Guangzhou Baiyun International", "Guangzhou, China"),
+    "CFU": (39.6015, 19.9122, "Corfu Ioannis Kapodistrias", "Corfu, Greece"),
+    "COS": (38.8058, -104.7010, "Colorado Springs Municipal", "Colorado Springs, CO"),
+    "DUB": (53.4287, -6.2621, "Dublin Airport", "Dublin, Ireland"),
+    "EDI": (55.9501, -3.3723, "Edinburgh Airport", "Edinburgh, UK"),
+    "ELP": (31.8099, -106.3756, "El Paso International", "El Paso, TX"),
+    "EUG": (44.1246, -123.2120, "Eugene Airport", "Eugene, OR"),
+    "FAI": (64.8151, -147.8560, "Fairbanks International Airport", "Fairbanks, AK"),
+    "FUE": (28.4527, -13.8638, "Fuerteventura Airport", "Fuerteventura, Spain"),
+    "GMP": (37.5583, 126.7910, "Seoul Gimpo International", "Seoul, South Korea"),
+    "GPA": (38.1511, 21.4256, "Patras Araxos Airport", "Patras, Greece"),
+    "GVA": (46.2381, 6.1090, "Geneva International Airport", "Geneva, Switzerland"),
+    "HAK": (19.9349, 110.4590, "Haikou Meilan International", "Haikou, China"),
+    "HEL": (60.3184, 24.9633, "Helsinki Vantaa Airport", "Helsinki, Finland"),
+    "HKG": (22.3118, 113.9149, "Hong Kong International Airport", "Hong Kong, HK"),
+    "KEF": (63.9850, -22.6056, "Keflavik International Airport", "Reykjavik, Iceland"),
+    "KHH": (22.5771, 120.3500, "Kaohsiung International Airport", "Kaohsiung, Taiwan"),
+    "KTM": (27.6966, 85.3591, "Tribhuvan International Airport", "Kathmandu, Nepal"),
+    "KWL": (25.2198, 110.0396, "Guilin Liangjiang International", "Guilin, China"),
+    "LCY": (51.5053, 0.0553, "London City Airport", "London, UK"),
+    "LGB": (33.8165, -118.1499, "Long Beach Airport", "Long Beach, CA"),
+    "LTN": (51.8747, -0.3683, "London Luton Airport", "Luton, UK"),
+    "MAD": (40.4934, -3.5722, "Madrid-Barajas Airport", "Madrid, Spain"),
+    "MAN": (53.3494, -2.2795, "Manchester Airport", "Manchester, UK"),
+    "MCT": (23.6002, 58.2853, "Muscat International Airport", "Muscat, Oman"),
+    "MLA": (35.8459, 14.4915, "Malta International Airport", "Valletta, Malta"),
+    "MSY": (29.9934, -90.2647, "Louis Armstrong New Orleans", "New Orleans, LA"),
+    "OAK": (37.7201, -122.2212, "Oakland San Francisco Bay", "Oakland, CA"),
+    "OKC": (35.3934, -97.5982, "Will Rogers World Airport", "Oklahoma City, OK"),
+    "ORY": (48.7295, 2.3590, "Paris-Orly Airport", "Paris, France"),
+    "PEK": (40.0773, 116.5967, "Beijing Capital International", "Beijing, China"),
+    "PFO": (34.7180, 32.4857, "Paphos International Airport", "Paphos, Cyprus"),
+    "PRG": (50.1009, 14.2599, "Václav Havel Airport Prague", "Prague, Czechia"),
+    "PSA": (43.6839, 10.3927, "Pisa International Airport", "Pisa, Italy"),
+    "RAK": (31.6048, -8.0358, "Marrakesh Menara Airport", "Marrakesh, Morocco"),
+    "SEN": (51.5706, 0.6936, "London Southend Airport", "Southend-on-Sea, UK"),
+    "SIN": (1.3502, 103.9940, "Singapore Changi Airport", "Singapore, Singapore"),
+    "SNA": (33.6751, -117.8693, "John Wayne Airport", "Santa Ana, CA"),
+    "STN": (51.8850, 0.2350, "London Stansted Airport", "London, UK"),
+    "SYX": (18.3029, 109.4120, "Sanya Phoenix International", "Sanya, China"),
+    "VCE": (45.5053, 12.3519, "Venice Marco Polo Airport", "Venice, Italy"),
+    "YHZ": (44.8808, -63.5086, "Halifax Stanfield International", "Halifax, Canada"),
+    "YOW": (45.3225, -75.6692, "Ottawa Macdonald-Cartier", "Ottawa, Canada"),
+    "YUL": (45.4678, -73.7423, "Montréal-Trudeau International", "Montreal, Canada"),
+    "YVR": (49.1939, -123.1840, "Vancouver International", "Vancouver, Canada"),
+    "YYC": (51.1188, -114.0099, "Calgary International Airport", "Calgary, Canada"),
+    "YYJ": (48.6472, -123.4278, "Victoria International Airport", "Victoria, Canada"),
+    "YYT": (47.6186, -52.7519, "St. John's International", "St. John's, Canada"),
+    "YYZ": (43.6759, -79.6294, "Toronto Pearson International", "Toronto, Canada"),
+    # Historical commercial BTS gateways
+    "TXL": (52.5597, 13.2877, "Berlin Tegel Airport", "Berlin, Germany"),
+    "PFN": (30.2121, -85.6828, "Panama City Bay County Airport", "Panama City, FL"),
+    "FBU": (59.8986, 10.6178, "Oslo Fornebu Airport", "Oslo, Norway"),
+    "JRV": (18.2433, -65.6425, "Jose Aponte de la Torre Airport", "Ceiba, PR"),
+    "DQR": (35.9899, -113.8164, "Grand Canyon West Airport", "Peach Springs, AZ"),
+    "MLH": (47.5896, 7.5299, "EuroAirport Basel Mulhouse Freiburg", "Mulhouse, France"),
+    "SXF": (52.3800, 13.5225, "Berlin Schönefeld Airport", "Berlin, Germany"),
+    "DSA": (53.4750, -1.0114, "Doncaster Sheffield Airport", "Doncaster, UK"),
 }
 
 
@@ -157,17 +227,24 @@ def get_airport_coordinates_and_info(code: str) -> Tuple[float, float, str, str]
         _REF_AIRPORTS_CACHE = {}
         try:
             ref_path = Path(__file__).resolve().parent.parent.parent / "data" / "ref_airports.csv"
+            if not ref_path.exists():
+                ref_path = Path(__file__).resolve().parent.parent / "data" / "ref_airports.csv"
             if ref_path.exists():
-                df_ref = pd.read_csv(ref_path, usecols=["iata_code", "latitude", "longitude", "airport_name", "city", "country"])
-                for _, r in df_ref.dropna(subset=["iata_code"]).iterrows():
-                    iata = str(r["iata_code"]).strip().upper()
+                df_ref = pd.read_csv(ref_path, usecols=["airport_code", "iata_code", "latitude", "longitude", "airport_name", "city", "country"])
+                for _, r in df_ref.dropna(subset=["latitude", "longitude"]).iterrows():
+                    apt_code = str(r.get("airport_code", "")).strip().upper()
+                    iata = str(r.get("iata_code", "")).strip().upper()
                     city_str = f"{r['city']}, {r['country']}" if pd.notna(r.get("city")) and str(r["city"]).strip() else str(r.get("country", ""))
-                    _REF_AIRPORTS_CACHE[iata] = (
+                    entry = (
                         float(r["latitude"]),
                         float(r["longitude"]),
-                        str(r.get("airport_name", iata)),
+                        str(r.get("airport_name", apt_code or iata)),
                         city_str
                     )
+                    if apt_code:
+                        _REF_AIRPORTS_CACHE[apt_code] = entry
+                    if iata and iata != "NAN":
+                        _REF_AIRPORTS_CACHE[iata] = entry
         except Exception:
             pass
             
