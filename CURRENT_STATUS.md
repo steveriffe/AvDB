@@ -59,8 +59,9 @@ Resolved functional, factual, visual, and typography precision issues across all
 
 | Mart / Vault Table | Rows | Partitioning | Clustering | Core Dimensions & Metrics |
 | :--- | :--- | :--- | :--- | :--- |
-| `mart_airport_network_summary` | **8,532,624** | `flight_date` (MONTH) | `origin`, `dest`, `unique_carrier` | 99.95% GPS coordinate completeness, 218M+ pax recovered for PBI/Bonespurs, load factors, fares. |
-| `mart_airline_network_performance` | **8,532,624** | `flight_date` (MONTH) | `unique_carrier`, `origin`, `dest` | Available Seat Miles (ASM), RPM, load factors, route market share %, yield per passenger-mile. |
+| `mart_airport_network_summary` | **8,532,624** | `flight_date` (MONTH) | `origin`, `dest`, `unique_carrier` | 99.95% GPS coordinate completeness, 218M+ pax recovered for PBI/Bonespurs, load factors, historical fares backfilled (2020–2024). |
+| `mart_airline_network_performance` | **8,532,624** | `flight_date` (MONTH) | `unique_carrier`, `origin`, `dest` | Available Seat Miles (ASM), RPM, load factors, route market share %, fares & yield per mile backfilled (2020–2024). |
+| `agg_db1b_market_summary` | **2,834,929** | `quarter_date` (YEAR) | `Origin`, `Dest`, `carrier` | Pre-aggregated BTS DB1B Market survey metrics ($20–$2,500 ticket bounds, 10x survey pax, revenue, avg fare, yields). |
 | `mart_fleet_route_dynamics` | **13,604,268** | `flight_date` (MONTH) | `aircraft_family`, `unique_carrier`, `origin` | Equipment types (A320/A321, B738, E175, Widebodies), avg gauge (seats/dep), stage length economics. |
 | `ref_regional_route_attribution` | **7,024** | — | `origin`, `dest`, `op_carrier` | Route-specific empirical marketing carrier shares from 79.8M DB1B ticket survey coupons. |
 | `user_travel.user_flight_logs` | **User Vault** | `created_at` (DAY) | `user_email`, `origin`, `dest`, `carrier_code` | User Flighty segments, subfleet variants, seat positions, CO2 emissions, fail-safe purge controls. |
@@ -71,6 +72,12 @@ Resolved functional, factual, visual, and typography precision issues across all
 ---
 
 ## ✅ Recently Completed
+- [x] **BTS DB1B Historical Fare Ingestion & Dual-Mart Backfill (2020–2024)**:
+  - Built and enhanced high-efficiency `pipeline/ingest_db1b_market.py` with in-memory outlier filtering ($20–$2,500 bounds) and 10% survey expansion.
+  - Successfully ingested all 20 quarters across 2020, 2021, 2022, 2023, and 2024 (125.6M raw ticket records compressed into 2,834,929 route-carrier summaries).
+  - Materialized and partitioned `db1b-1.reporting.agg_db1b_market_summary` (partitioned by year, clustered by origin, dest, carrier).
+  - Executed targeted DML backfills updating 655,765 route-carrier-months across both `mart_airport_network_summary` and `mart_airline_network_performance`.
+  - Reached ~45% total row coverage in both marts (100% of all domestic scheduled passenger routes; non-fare rows correspond to cargo, non-scheduled charters, and foreign carrier segments).
 - [x] **Image-Rich Pre-Sign-In Demo Experience (`app/components/landing.py`) with Zero-BigQuery Wallet Protection**.
 - [x] **Curated Static Peeks for Anchorage 2025 and Alaska Airlines 2025 (`app/data/ref_demo_peeks.py`)**.
 - [x] **Verified High-Resolution Photography Catalog with Photographer Credits (`app/data/ref_demo_images.py`)**.
@@ -93,7 +100,7 @@ Resolved functional, factual, visual, and typography precision issues across all
 ---
 
 ## ⏳ Next Immediate Steps & Audit Roadmap
-1. **DB1B Historical Fare Ingestion (2015–2024)**: Automated PREZIP downloader for quarterly `DB1BMarket` files into `db1b-1.DB1B_RAW.db1b_market_historical` and backfill `mart_airport_network_summary` / `mart_airline_network_performance`.
+1. **DB1B Historical Fare Ingestion (2015–2019)**: Run `pipeline/ingest_db1b_market.py` for remaining modern DB1B PREZIP archives.
 2. **Phase 14 Design Sprint (Backlog)**:
    - Graphic design editorial pass: Purge wordy subtitles and eliminate unnecessary callout boxes (`st.info` blocks).
    - Chart typology refactor: Convert unneeded donut charts to clean horizontal bar charts.

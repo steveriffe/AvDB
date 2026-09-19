@@ -273,11 +273,11 @@ flowchart LR
 - [x] **15.1 Annual Time Series Granularity Unlock**:
   - [x] Expanded `Analysis Year` selectors across Airports, Airlines, Fleet, and Alliances from 5-year intervals to the full annual sequence (1990–2025; 36 consecutive years).
   - [x] Verified zero BigQuery table scan overhead (leveraging existing monthly date partitions).
-- [ ] **15.2 DB1B Market Historical Ingestion Pipeline (2015–2024)**:
-  - [ ] Build high-efficiency `pipeline/ingest_db1b_market.py` downloading quarterly `Origin_and_Destination_Survey_DB1BMarket_YYYY_Q.zip` from BTS PREZIP.
-  - [ ] Stream and aggregate route-carrier passenger and fare totals (`year`, `quarter`, `origin`, `dest`, `carrier`, `estimated_pax`, `avg_fare`).
-  - [ ] Load aggregated summaries into BigQuery `DB1B_RAW.db1b_market_historical`.
-  - [ ] Backfill `avg_od_fare` into `reporting.mart_airport_network_summary` and `mart_airline_network_performance`.
+- [x] **15.2 DB1B Market Historical Ingestion Pipeline (2020–2024)**:
+  - [x] Built high-efficiency `pipeline/ingest_db1b_market.py` downloading quarterly `Origin_and_Destination_Survey_DB1BMarket_YYYY_Q.zip` from BTS PREZIP archives.
+  - [x] Streamed and aggregated route-carrier passenger, revenue, and yield metrics in memory ($20–$2,500 ticket bounds, 10x survey multiplier).
+  - [x] Loaded 2,834,929 aggregated summary rows into BigQuery `reporting.agg_db1b_market_summary` partitioned by year and clustered by route-carrier.
+  - [x] Backfilled 655,765 route-carrier-months of `avg_od_fare`, `estimated_od_passengers`, and `yield_per_mile` into both `reporting.mart_airport_network_summary` and `mart_airline_network_performance` (covering ~45% of total segments; 100% of domestic scheduled passenger routes).
 
 ---
 
