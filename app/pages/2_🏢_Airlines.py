@@ -59,8 +59,7 @@ from app.utils.mergers import (
 # -------------------------------------------------------------
 # 1. Header & Top Control Bar
 # -------------------------------------------------------------
-st.title("🏢 Airline Network & Yield Explorer")
-st.markdown("<p style='color: #8E8E93; margin-top: -12px; margin-bottom: 20px;'>Inspect route network density, hub concentration, fare yield curves, competitor price premiums, historical corporate mergers, and target expansion cities by hub.</p>", unsafe_allow_html=True)
+st.title("🏢 Airline Explorer")
 
 carriers_dict = {
     "AS": "Alaska Airlines (AS)",

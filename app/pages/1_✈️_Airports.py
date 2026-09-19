@@ -56,8 +56,7 @@ from app.utils.alliances import (
 # -------------------------------------------------------------
 # 1. Header & Top Control Filter Bar
 # -------------------------------------------------------------
-st.title("✈️ Airport Network & Route Explorer")
-st.markdown("<p style='color: #8E8E93; margin-top: -12px; margin-bottom: 20px;'>Analyze origin route connectivity, direct carrier capacity, O&D yields, fleet equipment mix, and great-circle flight paths.</p>", unsafe_allow_html=True)
+st.title("✈️ Airport Explorer")
 
 # Fetch active airports
 df_airports = get_available_airports()

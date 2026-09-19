@@ -890,6 +890,12 @@ def build_flighty_travel_deck(
     if df_flights.empty:
         return pdk.Deck(layers=[])
 
+    # Guard: coordinate columns must be present (loaded from BigQuery may lack them)
+    required_coord_cols = ["origin_lat", "origin_lon", "dest_lat", "dest_lon"]
+    missing = [c for c in required_coord_cols if c not in df_flights.columns]
+    if missing:
+        raise KeyError(f"Route map requires coordinate columns: {missing}. Re-parse from CSV to resolve.")
+
     # Aggregate route frequencies
     route_agg = df_flights.groupby([
         "origin", "dest", "origin_lat", "origin_lon", "origin_city", "origin_name",

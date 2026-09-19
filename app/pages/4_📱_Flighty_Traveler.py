@@ -46,13 +46,6 @@ from app.utils.flighty import (
 )
 
 st.title("📱 Flighty Personal Traveler")
-st.markdown(
-    "<p style='color: #8E8E93; font-size: 1.05rem; margin-top: -12px; margin-bottom: 24px;'>"
-    "Upload your personal <b>Flighty CSV export</b> to explore your travel history on AvDB's vintage "
-    "1990s in-flight route cartography, with persistent <b>BigQuery cloud vault storage</b> (up to 1,000 flights) and aircraft subfleet analytics."
-    "</p>",
-    unsafe_allow_html=True
-)
 
 # ----------------------------------------------------------------------
 # Data Ingestion & State Management (BigQuery Vault Integration)
@@ -171,17 +164,26 @@ st.markdown("<div style='margin-top: 24px;'></div>", unsafe_allow_html=True)
 # Personal 1990s In-Flight Route Map
 # ----------------------------------------------------------------------
 st.subheader("🌐 Personal In-Flight Route Map")
-st.markdown("<p style='color: #8E8E93; font-size: 0.9rem;'>Rendered in AvDB's clean 1990s airline in-flight cartography. Line thickness reflects flight frequency.</p>", unsafe_allow_html=True)
 
 # Determine primary home hub
 home_hub = df_flights["origin"].value_counts().index[0] if not df_flights.empty else "SEA"
-deck = build_flighty_travel_deck(
-    df_flights=df_flights,
-    home_airport=home_hub,
-    map_theme=selected_theme,
-    colorway=selected_colorway
-)
-st.pydeck_chart(deck, height=520, width="stretch")
+try:
+    deck = build_flighty_travel_deck(
+        df_flights=df_flights,
+        home_airport=home_hub,
+        map_theme=selected_theme,
+        colorway=selected_colorway
+    )
+    st.pydeck_chart(deck, height=520, width="stretch")
+except (KeyError, Exception) as _map_err:
+    st.markdown(
+        "<div style='background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); "
+        "border-radius: 12px; padding: 32px; text-align: center; color: #8E8E93; font-size: 0.92rem;'>"
+        "✈️ Route map unavailable — coordinate data not resolved for this log.<br/>"
+        "<span style='font-size:0.8rem;'>Upload a fresh CSV to regenerate geodesic arcs.</span>"
+        "</div>",
+        unsafe_allow_html=True,
+    )
 
 st.markdown("<div style='margin-top: 28px;'></div>", unsafe_allow_html=True)
 

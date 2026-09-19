@@ -40,30 +40,9 @@ render_portal_nav_link()
 require_auth()
 
 # -------------------------------------------------------------
-# 1. Header & Data Scope Caveats
+# 1. Header
 # -------------------------------------------------------------
 st.title("🌐 Global Airline Alliances & Joint Ventures")
-st.markdown(
-    "<p style='color: #8E8E93; font-size: 1.05rem; margin-top: -12px; margin-bottom: 20px;'>"
-    "Comparative intelligence across global multilateral alliances (<b>Star Alliance</b>, <b>SkyTeam</b>, <b>oneworld</b>) "
-    "and pioneering transatlantic joint ventures (<b>Northwest / KLM Wings Alliance</b>, <b>Qualiflyer</b>)."
-    "</p>",
-    unsafe_allow_html=True,
-)
-
-# Prominent US Data Boundary Alert
-st.html(
-    "<div style='background: rgba(56, 189, 248, 0.08); border: 1px solid rgba(56, 189, 248, 0.3); border-radius: 12px; padding: 14px 18px; margin-bottom: 24px;'>"
-    "<div style='display: flex; align-items: center; gap: 8px; font-weight: 700; color: #38BDF8; font-size: 0.92rem; margin-bottom: 4px;'>"
-    "<span>ℹ️</span> US-Origin & Gateway Data Boundary Notice"
-    "</div>"
-    "<div style='color: #CBD5E1; font-size: 0.85rem; line-height: 1.5;'>"
-    "All metrics are computed from U.S. Department of Transportation BTS T-100 operations and DB1B/OD40 ticket surveys. "
-    "Data reflects <b>100% of US domestic sectors</b> and <b>all international flights touching US gateways</b> (e.g. British Airways LHR➔JFK, Lufthansa FRA➔ORD, ANA HND➔LAX). "
-    "Foreign-to-foreign intra-continental sectors (e.g. Lufthansa domestic Germany, Air France intra-Europe) are not reported to the US DOT and therefore not included."
-    "</div>"
-    "</div>"
-)
 
 # -------------------------------------------------------------
 # 2. Control Bar: Year Selection
@@ -112,6 +91,7 @@ with k5:
     render_kpi_card("Market Leader", lead_alliance, subtitle=f"{lead_pax_share}% passenger share")
 
 st.markdown("<div style='margin-top: 24px;'></div>", unsafe_allow_html=True)
+st.caption("ℹ️ Scope: US domestic + US gateway international sectors (BTS T-100 & DB1B). Foreign-to-foreign intra-continental sectors not reported to US DOT are excluded.")
 
 # -------------------------------------------------------------
 # 4. Comparative Market Share & Efficiency Visualizers
@@ -128,29 +108,41 @@ COLOR_MAP = {
 }
 
 with vcol1:
-    st.markdown("### 🍩 Passenger Volume by Alliance")
-    fig_donut = px.pie(
-        df_perf,
-        values="passengers",
-        names="alliance_name",
-        color="alliance_name",
-        color_discrete_map=COLOR_MAP,
-        hole=0.55,
-    )
-    fig_donut.update_traces(
-        textposition="inside",
-        textinfo="percent+label",
-        hovertemplate="<b>%{label}</b><br>Passengers: %{value:,.0f}<br>Share: %{percent:.1%}<extra></extra>",
-    )
-    fig_donut.update_layout(
+    st.markdown("### Passenger Volume by Alliance")
+    df_perf_sorted = df_perf.sort_values("passengers", ascending=True)
+    fig_hbar = go.Figure(go.Bar(
+        x=df_perf_sorted["passengers"] / 1e6,
+        y=df_perf_sorted["alliance_name"],
+        orientation="h",
+        marker=dict(
+            color=[COLOR_MAP.get(a, "#64748B") for a in df_perf_sorted["alliance_name"]],
+            opacity=0.88,
+        ),
+        text=[f"{v/1e6:.1f}M" for v in df_perf_sorted["passengers"]],
+        textposition="outside",
+        textfont=dict(color="#CBD5E1", size=12),
+        hovertemplate="<b>%{y}</b><br>Passengers: %{x:.2f}M<extra></extra>",
+    ))
+    fig_hbar.update_layout(
         showlegend=False,
-        margin=dict(t=10, b=10, l=10, r=10),
+        margin=dict(t=10, b=10, l=10, r=60),
         paper_bgcolor="rgba(0,0,0,0)",
         plot_bgcolor="rgba(0,0,0,0)",
         font=dict(color="#CBD5E1", family="Plus Jakarta Sans"),
         height=330,
+        xaxis=dict(
+            title="Passengers (M)",
+            showgrid=True,
+            gridcolor="rgba(255,255,255,0.06)",
+            tickfont=dict(color="#8E8E93"),
+            title_font=dict(color="#8E8E93"),
+        ),
+        yaxis=dict(
+            showgrid=False,
+            tickfont=dict(color="#F5F5F7", size=12),
+        ),
     )
-    st.plotly_chart(fig_donut, width="stretch")
+    st.plotly_chart(fig_hbar, width="stretch")
 
 with vcol2:
     st.markdown("### 📊 Load Factor & Capacity (ASM) Comparison")
@@ -289,12 +281,6 @@ for _, a_row in df_perf.iterrows():
 if not df_fleet.empty:
     st.markdown("---")
     st.markdown("### ✈️ Fleet Equipment Mix Deployment by Alliance")
-    st.markdown(
-        "<p style='color: #94A3B8; font-size: 0.9rem; margin-top: -10px; margin-bottom: 16px;'>"
-        "Distribution of widebody long-haul equipment vs narrowbody mainline and regional jets across alliance networks touching US gateways."
-        "</p>",
-        unsafe_allow_html=True
-    )
     
     fig_fleet = px.bar(
         df_fleet,

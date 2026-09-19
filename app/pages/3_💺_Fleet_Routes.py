@@ -41,8 +41,7 @@ from app.data.ref_aircraft_specs import get_aircraft_spec
 # -------------------------------------------------------------
 # 1. Header & Control Bar
 # -------------------------------------------------------------
-st.title("💺 Fleet Deployment & Aircraft Routing Economics")
-st.markdown("<p style='color: #8E8E93; margin-top: -12px; margin-bottom: 20px;'>Analyze aircraft family allocation, gauge deployment (seats per departure), stage-length matching, and revenue/yield potential per equipment type.</p>", unsafe_allow_html=True)
+st.title("💺 Fleet & Route Dynamics")
 
 col_f1, col_f2 = st.columns([2.5, 1.2])
 

@@ -48,7 +48,6 @@ def main():
     # Authenticated Main Dashboard View
     # -------------------------------------------------------------
     st.title(f"{settings.page_icon} {settings.app_title}")
-    st.markdown("<p style='color: #94A3B8; font-size: 1.15rem; margin-top: -10px; margin-bottom: 24px;'>Enterprise aviation intelligence platform powered by Google BigQuery, BTS T-100 operations, and DB1B ticket yields.</p>", unsafe_allow_html=True)
 
     # Fetch Live KPIs from BigQuery Metadata
     kpis = get_platform_live_kpis()
