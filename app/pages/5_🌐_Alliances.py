@@ -144,32 +144,68 @@ with vcol1:
     st.plotly_chart(fig_hbar, width="stretch")
 
 with vcol2:
-    st.markdown("### 📊 Load Factor & Capacity (ASM) Comparison")
+    st.markdown("### Load Factor & Capacity (ASM) Comparison")
     
-    # Dual-metric comparison
+    # Semantic alliance brand colors with subtle border and crisp opacity
+    alliance_bar_colors = [COLOR_MAP.get(a, "#64748B") for a in df_perf["alliance_name"]]
+
     fig_bar = go.Figure()
     fig_bar.add_trace(go.Bar(
         x=df_perf["alliance_name"],
         y=df_perf["load_factor_pct"],
         name="Load Factor %",
-        marker_color="#38BDF8",
+        marker=dict(
+            color=alliance_bar_colors,
+            opacity=0.82,
+            line=dict(color="rgba(255, 255, 255, 0.15)", width=1)
+        ),
+        text=[f"{lf:.1f}%" for lf in df_perf["load_factor_pct"]],
+        textposition="outside",
+        textfont=dict(color="#CBD5E1", size=11, family="JetBrains Mono"),
         yaxis="y",
         hovertemplate="<b>%{x}</b><br>Load Factor: %{y:.1f}%<extra></extra>"
     ))
     fig_bar.add_trace(go.Scatter(
         x=df_perf["alliance_name"],
         y=df_perf["asm"] / 1e9,
-        name="Available Seat Miles (Billion ASM)",
-        marker=dict(color="#FF6B00", size=10),
+        name="Capacity (Billion ASM)",
+        marker=dict(color="#F59E0B", size=8, line=dict(color="#FFFFFF", width=1.5)),
+        line=dict(color="#F59E0B", width=2.5, shape="spline"),
         mode="lines+markers",
         yaxis="y2",
         hovertemplate="<b>%{x}</b><br>Capacity: %{y:.2f}B ASM<extra></extra>"
     ))
     fig_bar.update_layout(
-        yaxis=dict(title="Load Factor %", range=[50, 100], color="#94A3B8"),
-        yaxis2=dict(title="Billion ASM", overlaying="y", side="right", color="#FF6B00"),
-        legend=dict(orientation="h", y=1.12, x=0.2),
-        margin=dict(t=30, b=30, l=40, r=40),
+        yaxis=dict(
+            title="Load Factor %",
+            range=[40, 105],
+            color="#94A3B8",
+            showgrid=True,
+            gridcolor="rgba(255, 255, 255, 0.05)",
+            zeroline=False,
+            tickfont=dict(color="#94A3B8", size=10, family="JetBrains Mono")
+        ),
+        yaxis2=dict(
+            title="Billion ASM",
+            overlaying="y",
+            side="right",
+            color="#F59E0B",
+            showgrid=False,
+            tickfont=dict(color="#F59E0B", size=10, family="JetBrains Mono")
+        ),
+        xaxis=dict(
+            tickfont=dict(color="#F5F5F7", size=11),
+            showgrid=False
+        ),
+        legend=dict(
+            orientation="h",
+            yanchor="bottom",
+            y=1.05,
+            xanchor="center",
+            x=0.5,
+            font=dict(color="#CBD5E1", size=10)
+        ),
+        margin=dict(t=30, b=30, l=40, r=45),
         paper_bgcolor="rgba(0,0,0,0)",
         plot_bgcolor="rgba(0,0,0,0)",
         font=dict(color="#CBD5E1", family="Plus Jakarta Sans"),

@@ -241,19 +241,26 @@ with fcol1:
     st.plotly_chart(fig_bar, width="stretch")
 
 with fcol2:
-    # Horizontal bar for distance share — perceptually cleaner than multi-slice donut
+    # Monochromatic sequential cobalt/indigo gradient for distance flown
     dist_sorted = fleet_summary.sort_values("total_miles", ascending=True).head(8)
+    n_items = len(dist_sorted)
+    mono_ramp = [
+        "#1E3A8A", "#1E40AF", "#1D4ED8", "#2563EB",
+        "#3B82F6", "#60A5FA", "#38BDF8", "#7DD3FC"
+    ]
+    colors = mono_ramp[max(0, len(mono_ramp) - n_items):]
     fig_dist_bar = go.Figure(go.Bar(
         x=dist_sorted["total_miles"],
         y=dist_sorted[col_target],
         orientation="h",
         marker=dict(
-            color=["#0A84FF", "#30D158", "#FF9F0A", "#BF5AF2", "#FF375F", "#64D2FF", "#FFD60A", "#FF6B00"][:len(dist_sorted)],
+            color=colors,
             opacity=0.85,
+            line=dict(color="rgba(255, 255, 255, 0.12)", width=1)
         ),
         text=[f"{v:,.0f} mi" for v in dist_sorted["total_miles"]],
         textposition="outside",
-        textfont=dict(color="#CBD5E1", size=10),
+        textfont=dict(color="#CBD5E1", size=10, family="JetBrains Mono"),
         hovertemplate="<b>%{y}</b><br>Miles: %{x:,.0f}<extra></extra>",
     ))
     fig_dist_bar.update_layout(
@@ -273,13 +280,6 @@ with fcol2:
 # ----------------------------------------------------------------------
 st.markdown("<div style='margin-top: 28px;'></div>", unsafe_allow_html=True)
 st.subheader("📈 Annual Travel Trends & Global Alliance Loyalty")
-st.markdown(
-    "<p style='color: #8E8E93; font-size: 0.92rem; margin-top: -6px; margin-bottom: 18px;'>"
-    "Track year-over-year flight volume and cumulative air miles alongside historical global alliance loyalty shares "
-    "(Star Alliance, oneworld, SkyTeam, and Independent carriers)."
-    "</p>",
-    unsafe_allow_html=True
-)
 
 ycol1, ycol2 = st.columns([3, 2])
 with ycol1:
@@ -294,13 +294,6 @@ with ycol2:
 # ----------------------------------------------------------------------
 st.markdown("<div style='margin-top: 28px;'></div>", unsafe_allow_html=True)
 st.subheader("💺 In-Flight Experience & Cabin Seating Preferences")
-st.markdown(
-    "<p style='color: #8E8E93; font-size: 0.92rem; margin-top: -6px; margin-bottom: 18px;'>"
-    "Analyze your seating behavior across aircraft cabins: Window vs. Aisle vs. Middle seat selection, "
-    "and premium cabin allocation."
-    "</p>",
-    unsafe_allow_html=True
-)
 
 scol1, scol2 = st.columns(2)
 with scol1:

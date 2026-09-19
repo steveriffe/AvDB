@@ -662,43 +662,55 @@ def build_top_routes_bar_chart(df_routes: pd.DataFrame, top_n: int = 8) -> go.Fi
 
 
 def build_carrier_market_share_donut(df_carriers: pd.DataFrame) -> go.Figure:
-    """Renders an Apple-inspired carrier seat capacity donut chart."""
+    """Renders carrier seat capacity share as an Apple-inspired horizontal bar chart."""
     if df_carriers.empty:
         return go.Figure()
 
-    df_plot = df_carriers.head(6).copy()
-    
-    fig = go.Figure(data=[go.Pie(
-        labels=df_plot["unique_carrier"] + " — " + df_plot["carrier_name"],
-        values=df_plot["total_seats"],
-        hole=0.68,
-        marker=dict(colors=CHART_COLORS),
-        textinfo="percent",
-        textfont=dict(size=11, color="#F5F5F7"),
-        hovertemplate="<b>%{label}</b><br>Seats: %{value:,.0f}<br>Capacity Share: %{percent}<extra></extra>"
+    df_plot = df_carriers.head(6).sort_values("total_seats", ascending=True).copy()
+    total_system_seats = df_carriers["total_seats"].sum() if "total_seats" in df_carriers.columns else df_plot["total_seats"].sum()
+    df_plot["share_pct"] = (df_plot["total_seats"] / max(total_system_seats, 1)) * 100
+    df_plot["label"] = df_plot["unique_carrier"] + " — " + df_plot["carrier_name"]
+
+    fig = go.Figure(data=[go.Bar(
+        x=df_plot["total_seats"],
+        y=df_plot["label"],
+        orientation="h",
+        marker=dict(
+            color="#0A84FF",
+            opacity=0.88,
+            line=dict(color="rgba(255,255,255,0.12)", width=1)
+        ),
+        text=[f"{s:.1f}% ({v/1e3:.0f}K)" if v >= 1e3 else f"{s:.1f}%" for s, v in zip(df_plot["share_pct"], df_plot["total_seats"])],
+        textposition="outside",
+        textfont=dict(color="#CBD5E1", size=10, family="JetBrains Mono"),
+        hovertemplate="<b>%{y}</b><br>Seats: %{x:,.0f}<br>Capacity Share: %{text}<extra></extra>"
     )])
 
     fig.update_layout(
         title=dict(text="Carrier Capacity Share (Seats Available)", font=dict(size=13, color="#F5F5F7")),
-        margin=dict(l=10, r=10, t=32, b=10),
+        margin=dict(l=10, r=60, t=32, b=10),
         paper_bgcolor="rgba(0,0,0,0)",
         plot_bgcolor="rgba(0,0,0,0)",
         height=290,
-        showlegend=True,
-        legend=dict(
-            orientation="v",
-            yanchor="middle",
-            y=0.5,
-            xanchor="left",
-            x=1.02,
-            font=dict(size=9.5, color="#8E8E93")
-        )
+        xaxis=dict(
+            showgrid=True,
+            gridcolor="rgba(255,255,255,0.06)",
+            tickfont=dict(color="#8E8E93", size=10),
+            title=None,
+            showticklabels=False
+        ),
+        yaxis=dict(
+            showgrid=False,
+            tickfont=dict(color="#F5F5F7", size=11),
+            title=None
+        ),
+        showlegend=False
     )
     return fig
 
 
 def build_airport_alliance_share_donut(df_alliance: pd.DataFrame) -> go.Figure:
-    """Renders an Apple-inspired airport alliance seat capacity donut chart."""
+    """Renders airport alliance seat capacity share as an Apple-inspired horizontal bar chart."""
     if df_alliance.empty:
         return go.Figure()
 
@@ -708,37 +720,48 @@ def build_airport_alliance_share_donut(df_alliance: pd.DataFrame) -> go.Figure:
         "SkyTeam": "#0090DA",
         "Wings Alliance": "#4A90E2",
         "Qualiflyer": "#D0021B",
-        "Independent / Unaligned": "#8E8E93"
+        "Independent / Unaligned": "#64748B"
     }
 
-    colors = [alliance_colors_map.get(name, "#64D2FF") for name in df_alliance["alliance_name"]]
+    df_plot = df_alliance.sort_values("total_seats", ascending=True).copy()
+    total_seats = df_plot["total_seats"].sum()
+    df_plot["share_pct"] = (df_plot["total_seats"] / max(total_seats, 1)) * 100
+    colors = [alliance_colors_map.get(name, "#38BDF8") for name in df_plot["alliance_name"]]
 
-    fig = go.Figure(data=[go.Pie(
-        labels=df_alliance["alliance_name"],
-        values=df_alliance["total_seats"],
-        hole=0.68,
-        marker=dict(colors=colors),
-        textinfo="percent",
-        textfont=dict(size=11, color="#F5F5F7"),
-        hovertemplate="<b>%{label}</b><br>Seats: %{value:,.0f}<br>Share: %{percent}<br>Airlines: %{customdata[0]}<extra></extra>",
-        customdata=df_alliance[["carriers"]]
+    fig = go.Figure(data=[go.Bar(
+        x=df_plot["total_seats"],
+        y=df_plot["alliance_name"],
+        orientation="h",
+        marker=dict(
+            color=colors,
+            opacity=0.85,
+            line=dict(color="rgba(255,255,255,0.12)", width=1)
+        ),
+        text=[f"{s:.1f}% ({v/1e3:.0f}K)" if v >= 1e3 else f"{s:.1f}%" for s, v in zip(df_plot["share_pct"], df_plot["total_seats"])],
+        textposition="outside",
+        textfont=dict(color="#CBD5E1", size=10, family="JetBrains Mono"),
+        hovertemplate="<b>%{y}</b><br>Seats: %{x:,.0f}<br>Share: %{text}<extra></extra>"
     )])
 
     fig.update_layout(
         title=dict(text="Global Alliance Capacity Share", font=dict(size=13, color="#F5F5F7")),
-        margin=dict(l=10, r=10, t=32, b=10),
+        margin=dict(l=10, r=50, t=32, b=10),
         paper_bgcolor="rgba(0,0,0,0)",
         plot_bgcolor="rgba(0,0,0,0)",
         height=290,
-        showlegend=True,
-        legend=dict(
-            orientation="v",
-            yanchor="middle",
-            y=0.5,
-            xanchor="left",
-            x=1.02,
-            font=dict(size=9.5, color="#8E8E93")
-        )
+        xaxis=dict(
+            showgrid=True,
+            gridcolor="rgba(255,255,255,0.06)",
+            tickfont=dict(color="#8E8E93", size=10),
+            title=None,
+            showticklabels=False
+        ),
+        yaxis=dict(
+            showgrid=False,
+            tickfont=dict(color="#F5F5F7", size=11),
+            title=None
+        ),
+        showlegend=False
     )
     return fig
 

@@ -363,14 +363,7 @@ def render_landing_page():
     # =========================================================================
     # Representative Product Snapshot & Interactive Scoped Sandbox
     # =========================================================================
-    st.markdown("### 🖥️ Representative Product Preview (Interactive Sandbox)")
-    st.markdown(
-        "<p style='color: #8E8E93; font-size: 0.95rem; margin-top: -8px; margin-bottom: 20px;'>"
-        "Experience the exact analytical tools, monochromatic cartography, and charts used inside AvDB. "
-        "This interactive sandbox is tightly pre-scoped to guarantee <b>zero BigQuery cost explosion</b>."
-        "</p>",
-        unsafe_allow_html=True
-    )
+    st.markdown("### 🖥️ Representative Product Preview")
 
     tab_airports, tab_airlines, tab_fleet, tab_alliances, tab_traveler = st.tabs([
         "✈️ Airport Explorer Preview",
