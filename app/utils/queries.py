@@ -911,7 +911,7 @@ def get_airline_routes_dataset(carrier_code: str, year: int, min_departures: int
             GROUP BY 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12
             HAVING departures_performed >= @min_departures
             ORDER BY operational_passengers DESC
-            LIMIT 500
+            LIMIT 4000
         """
     else:
         query = """
@@ -931,7 +931,7 @@ def get_airline_routes_dataset(carrier_code: str, year: int, min_departures: int
             GROUP BY 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12
             HAVING departures_performed >= @min_departures
             ORDER BY operational_passengers DESC
-            LIMIT 400
+            LIMIT 4000
         """
     return run_query(query, params={"carrier_code": carrier_code, "year": year, "min_departures": min_departures})
 

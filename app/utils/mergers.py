@@ -89,20 +89,31 @@ def format_merger_lineage_html(carrier_code: str) -> str:
             f"</div>"
         )
     
-    # Check if this carrier absorbed other airlines
+    # Check if this carrier absorbed other airlines or acquired routes
     absorbed = get_mergers_as_successor(code)
     if absorbed:
-        predecessor_badges = []
-        for m in absorbed:
-            p_code = m["predecessor_code"]
-            p_name = m["predecessor_name"]
-            predecessor_badges.append(f"<span style='background: rgba(255,255,255,0.08); padding: 2px 6px; border-radius: 4px; font-weight: 600;'>{p_code} ({p_name})</span>")
+        full_mergers = [m for m in absorbed if m.get("transaction_type", "merger") == "merger"]
+        route_acqs = [m for m in absorbed if m.get("transaction_type") == "route_acquisition"]
         
-        badges_str = " ".join(predecessor_badges)
+        parts = []
+        if full_mergers:
+            merger_badges = " ".join([
+                f"<span style='background: rgba(255,255,255,0.08); padding: 2px 6px; border-radius: 4px; font-weight: 600;'>{m['predecessor_code']} ({m['predecessor_name']})</span>"
+                for m in full_mergers
+            ])
+            parts.append(f"Absorbed historical networks of {merger_badges}")
+        if route_acqs:
+            acq_badges = " ".join([
+                f"<span style='background: rgba(255,255,255,0.08); padding: 2px 6px; border-radius: 4px; font-weight: 600;'>{m['predecessor_code']} ({m['predecessor_name']})</span>"
+                for m in route_acqs
+            ])
+            parts.append(f"Acquired select transatlantic route authorities & shuttle assets from {acq_badges} (1991)")
+        
+        content = "; ".join(parts) + "."
         return (
             f"<div style='background: rgba(10, 132, 255, 0.08); border: 1px solid rgba(10, 132, 255, 0.25); "
             f"border-radius: 8px; padding: 8px 12px; margin-bottom: 14px; font-size: 12px; color: #EBEBF5;'>"
-            f"<b>Corporate Lineage</b>: Absorbed historical networks of {badges_str}."
+            f"<b>Corporate Lineage</b>: {content}"
             f"</div>"
         )
     

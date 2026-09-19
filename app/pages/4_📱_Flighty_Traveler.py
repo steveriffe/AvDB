@@ -9,7 +9,15 @@ if str(REPO_ROOT) not in sys.path:
 import streamlit as st
 import pandas as pd
 from app.config import settings
-from app.utils.styling import apply_apple_style, render_kpi_card, render_portal_nav_link
+from app.utils.styling import (
+    apply_apple_style,
+    render_kpi_card,
+    render_portal_nav_link,
+    fmt_integer,
+    fmt_volume,
+    fmt_currency,
+    fmt_percent,
+)
 from app.utils.auth import require_auth
 
 st.set_page_config(
@@ -146,17 +154,17 @@ trees_offset = int(total_co2_tonnes * 45)
 
 kpi1, kpi2, kpi3, kpi4, kpi5, kpi6 = st.columns(6)
 with kpi1:
-    render_kpi_card("Total Flights", f"{total_flights:,}", subtitle="Flight segments")
+    render_kpi_card("Total Flights", fmt_integer(total_flights), subtitle="Flight segments")
 with kpi2:
-    render_kpi_card("Total Distance", f"{total_miles:,} mi", subtitle="Air miles flown")
+    render_kpi_card("Total Distance", f"{fmt_integer(total_miles)} mi", subtitle="Air miles flown")
 with kpi3:
-    render_kpi_card("Airports Visited", f"{unique_airports}", subtitle="Unique IATA hubs")
+    render_kpi_card("Airports Visited", fmt_integer(unique_airports), subtitle="Unique IATA hubs")
 with kpi4:
     render_kpi_card("Top Subfleet", favorite_subfleet, subtitle="Most flown model")
 with kpi5:
     render_kpi_card("Top Carrier", top_carrier, subtitle=f"Top Route: {top_route}", logo_url=top_carrier_logo)
 with kpi6:
-    render_kpi_card("CO₂ Footprint", f"{total_co2_tonnes:.1f} t", subtitle=f"~{trees_offset:,} trees offset")
+    render_kpi_card("CO₂ Footprint", f"{total_co2_tonnes:.1f} t", subtitle=f"~{fmt_integer(trees_offset)} trees offset")
 
 st.markdown("<div style='margin-top: 24px;'></div>", unsafe_allow_html=True)
 
@@ -239,17 +247,23 @@ with fcol1:
         labels={"flights": "Flights Flown", col_target: ""},
         text="flights"
     )
+    max_fl = fleet_summary["flights"].max() if not fleet_summary.empty else 1
     fig_bar.update_layout(
         title=dict(text=f"Flight Volume by {grouping_mode.split('(')[0].strip()}", font=dict(size=14, color="#F5F5F7")),
         paper_bgcolor="rgba(0,0,0,0)",
         plot_bgcolor="rgba(0,0,0,0)",
         height=320,
-        margin=dict(l=10, r=20, t=35, b=10),
-        xaxis=dict(showgrid=True, gridcolor="rgba(255,255,255,0.06)", tickfont=dict(color="#8E8E93")),
+        margin=dict(l=10, r=40, t=35, b=10),
+        xaxis=dict(
+            range=[0, max_fl * 1.25],
+            showgrid=True,
+            gridcolor="rgba(255,255,255,0.06)",
+            tickfont=dict(color="#8E8E93")
+        ),
         yaxis=dict(showgrid=False, tickfont=dict(color="#F5F5F7"), autorange="reversed"),
         coloraxis_showscale=False
     )
-    fig_bar.update_traces(textposition="outside", textfont=dict(color="#F5F5F7"))
+    fig_bar.update_traces(textposition="outside", cliponaxis=False, textfont=dict(color="#F5F5F7"))
     st.plotly_chart(fig_bar, width="stretch")
 
 with fcol2:
@@ -261,10 +275,12 @@ with fcol2:
         "#3B82F6", "#60A5FA", "#38BDF8", "#7DD3FC"
     ]
     colors = mono_ramp[max(0, len(mono_ramp) - n_items):]
+    max_miles = dist_sorted["total_miles"].max() if not dist_sorted.empty else 1
     fig_dist_bar = go.Figure(go.Bar(
         x=dist_sorted["total_miles"],
         y=dist_sorted[col_target],
         orientation="h",
+        cliponaxis=False,
         marker=dict(
             color=colors,
             opacity=0.85,
@@ -280,8 +296,14 @@ with fcol2:
         paper_bgcolor="rgba(0,0,0,0)",
         plot_bgcolor="rgba(0,0,0,0)",
         height=320,
-        margin=dict(l=10, r=70, t=35, b=10),
-        xaxis=dict(showgrid=True, gridcolor="rgba(255,255,255,0.06)", tickfont=dict(color="#8E8E93"), showticklabels=False),
+        margin=dict(l=10, r=85, t=35, b=10),
+        xaxis=dict(
+            range=[0, max_miles * 1.30],
+            showgrid=True,
+            gridcolor="rgba(255,255,255,0.06)",
+            tickfont=dict(color="#8E8E93"),
+            showticklabels=False
+        ),
         yaxis=dict(showgrid=False, tickfont=dict(color="#F5F5F7", size=11)),
         showlegend=False,
     )

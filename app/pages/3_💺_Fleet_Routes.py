@@ -10,7 +10,15 @@ import os
 import streamlit as st
 import pandas as pd
 from app.config import settings
-from app.utils.styling import apply_apple_style, render_kpi_card, render_portal_nav_link
+from app.utils.styling import (
+    apply_apple_style,
+    render_kpi_card,
+    render_portal_nav_link,
+    fmt_integer,
+    fmt_volume,
+    fmt_currency,
+    fmt_percent,
+)
 from app.utils.auth import require_auth
 
 st.set_page_config(
@@ -76,21 +84,20 @@ kpis = get_fleet_kpis(selected_family, selected_year)
 k1, k2, k3, k4, k5, k6 = st.columns(6)
 
 with k1:
-    render_kpi_card("Airframe Models", f"{kpis['unique_models']}")
+    render_kpi_card("Airframe Models", fmt_integer(kpis.get('unique_models', 0)))
 
 with k2:
-    render_kpi_card("Carriers", f"{kpis['operating_carriers']}")
+    render_kpi_card("Carriers", fmt_integer(kpis.get('operating_carriers', 0)))
 
 with k3:
-    deps_val = f"{kpis['total_departures']/1e3:.1f}K" if kpis.get('total_departures') and kpis['total_departures'] >= 1000 else f"{kpis.get('total_departures', 0):,}"
-    render_kpi_card("Total Departures", deps_val)
+    render_kpi_card("Total Departures", fmt_volume(kpis.get('total_departures', 0)))
 
 with k4:
-    gauge_val = f"{kpis['avg_gauge_seats']:.0f} seats" if kpis.get('avg_gauge_seats') else "—"
+    gauge_val = f"{fmt_integer(kpis['avg_gauge_seats'])} seats" if kpis.get('avg_gauge_seats') else "—"
     render_kpi_card("Avg Gauge", gauge_val)
 
 with k5:
-    fare_val = f"${kpis['avg_segment_fare']:.0f}" if kpis.get('avg_segment_fare') else "—"
+    fare_val = fmt_currency(kpis.get('avg_segment_fare'), decimals=0) if kpis.get('avg_segment_fare') else "—"
     render_kpi_card("Avg Segment Fare", fare_val)
 
 with k6:
@@ -288,12 +295,12 @@ if not df_ops.empty:
         with cols[i]:
             c_code = row["unique_carrier"]
             c_logo = get_carrier_logo_url(c_code)
-            seats_k = f"{row['total_seats']/1e6:.1f}M" if row['total_seats'] >= 1e6 else f"{row['total_seats']/1e3:.0f}K"
+            seats_k = fmt_volume(row['total_seats'])
             carrier_raw = row.get("carrier_name")
             carrier_str = str(carrier_raw) if pd.notna(carrier_raw) and carrier_raw else c_code
             carrier_disp = carrier_str.split(" ")[0]
-            lf_str = f"LF: {row['load_factor_pct']:.1f}%" if pd.notna(row.get("load_factor_pct")) else "LF: N/A"
-            fare_str = f"Fare: ${row['avg_segment_fare']:.0f}" if pd.notna(row.get("avg_segment_fare")) else "Fare: N/A"
+            lf_str = f"LF: {fmt_percent(row.get('load_factor_pct'))}" if pd.notna(row.get("load_factor_pct")) else "LF: N/A"
+            fare_str = f"Fare: {fmt_currency(row.get('avg_segment_fare'), decimals=0)}" if pd.notna(row.get("avg_segment_fare")) else "Fare: N/A"
             render_kpi_card(
                 label=f"{c_code} — {carrier_disp}",
                 value=f"{seats_k} seats",
@@ -305,11 +312,20 @@ if not df_ops.empty:
     st.markdown("<div style='margin-top: 14px;'></div>", unsafe_allow_html=True)
     fig_ops = go.Figure()
     op_labels = df_ops["unique_carrier"] + " — " + df_ops["carrier_name"].fillna(df_ops["unique_carrier"])
+    max_op_seats = df_ops["total_seats"].max() if not df_ops.empty else 1
     fig_ops.add_trace(go.Bar(
         y=op_labels,
         x=df_ops["total_seats"],
         orientation="h",
-        marker=dict(color="#FF6B00", opacity=0.85),
+        cliponaxis=False,
+        marker=dict(
+            color="#0A84FF",
+            opacity=0.88,
+            line=dict(color="rgba(255,255,255,0.12)", width=1)
+        ),
+        text=[fmt_volume(v) for v in df_ops["total_seats"]],
+        textposition="outside",
+        textfont=dict(color="#CBD5E1", size=10, family="JetBrains Mono"),
         customdata=df_ops[["departures_performed", "load_factor_pct", "avg_segment_fare"]],
         hovertemplate=(
             "<b>%{y}</b><br>"
@@ -324,8 +340,14 @@ if not df_ops.empty:
         paper_bgcolor="rgba(0,0,0,0)",
         plot_bgcolor="rgba(0,0,0,0)",
         height=320,
-        margin=dict(l=10, r=10, t=10, b=10),
-        xaxis=dict(showgrid=True, gridcolor="rgba(255,255,255,0.06)", tickfont=dict(color="#8E8E93")),
+        margin=dict(l=10, r=80, t=10, b=10),
+        xaxis=dict(
+            range=[0, max_op_seats * 1.30],
+            showgrid=True,
+            gridcolor="rgba(255,255,255,0.06)",
+            tickfont=dict(color="#8E8E93"),
+            showticklabels=False
+        ),
         yaxis=dict(showgrid=False, autorange="reversed", tickfont=dict(color="#F5F5F7", size=11))
     )
     st.plotly_chart(fig_ops, width="stretch", config={"displayModeBar": False})

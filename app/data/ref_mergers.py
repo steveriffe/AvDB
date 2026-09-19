@@ -188,6 +188,7 @@ AIRLINE_MERGERS: List[Dict[str, Any]] = [
     },
     {
         "merger_id": "PA_DL_1991",
+        "transaction_type": "route_acquisition",
         "predecessor_code": "PA",
         "predecessor_name": "Pan American World Airways (Pan Am)",
         "predecessor_logo": "https://upload.wikimedia.org/wikipedia/commons/2/26/Pan_Am_Logo.svg",
@@ -199,9 +200,9 @@ AIRLINE_MERGERS: List[Dict[str, Any]] = [
         "soc_date": "1991-11-01",
         "final_flight_date": "1991-12-04",
         "cutover_year": 1991,
-        "hubs_absorbed": ["JFK", "FRA"],
+        "hubs_absorbed": ["FRA (European Hub)"],
         "fleet_types_inherited": ["Airbus A310-200/300", "Boeing 727-200"],
-        "summary": "Delta acquired Pan Am's transatlantic route authorities, European hub operations in Frankfurt (FRA), and the Pan Am Shuttle (LGA/BOS/DCA) out of bankruptcy for $416M, transforming Delta into a major global transatlantic player.",
+        "summary": "Delta did not merge with Pan Am; rather, Delta acquired Pan Am's transatlantic route authorities, European hub operations in Frankfurt (FRA), and the Pan Am Shuttle out of Chapter 11 bankruptcy for $416M, while Pan Am's remaining Latin American routes were sold to United.",
         "source_url": "https://en.wikipedia.org/wiki/Pan_American_World_Airways"
     }
 ]

@@ -10,8 +10,9 @@ import os
 import streamlit as st
 import pandas as pd
 from app.config import settings
-from app.utils.styling import apply_apple_style, render_kpi_card, render_portal_nav_link
+from app.utils.styling import apply_apple_style, render_kpi_card, render_portal_nav_link, fmt_integer, fmt_volume, fmt_currency, fmt_percent
 from app.utils.auth import require_auth
+from app.data.ref_logos_svg import get_vector_logo_data_uri
 
 st.set_page_config(
     page_title="Airlines Explorer | AvDB",
@@ -124,8 +125,14 @@ with col_f3:
     alliance_badge = ""
     if alliance_info:
         a_name = alliance_info["alliance_name"]
-        a_logo = alliance_info.get("alliance_logo_url", "")
-        alliance_badge = f"<span style='background: rgba(10, 132, 255, 0.18); border: 1px solid #0A84FF; color: #64D2FF; padding: 2px 8px; border-radius: 6px; font-weight: 600; font-size: 11px; margin-left: 8px;'>🌐 {a_name}</span>"
+        a_vector = get_vector_logo_data_uri(a_name)
+        alliance_badge = (
+            f"<span style='display: inline-flex; align-items: center; gap: 6px; background: rgba(255, 255, 255, 0.06); "
+            f"border: 1px solid rgba(255, 255, 255, 0.15); padding: 2px 8px; border-radius: 6px; font-weight: 600; font-size: 11px; margin-left: 8px;'>"
+            f"<img src='{a_vector}' style='height: 14px; width: 32px; object-fit: contain; vertical-align: middle;'/>"
+            f"<span style='color: #F5F5F7;'>{a_name}</span>"
+            f"</span>"
+        )
     else:
         alliance_badge = "<span style='background: rgba(255, 255, 255, 0.08); color: #8E8E93; padding: 2px 8px; border-radius: 6px; font-size: 11px; margin-left: 8px;'>Independent / Unaligned</span>"
     
@@ -171,15 +178,16 @@ if timeline or pred_merger or absorbed_mergers:
             )
             st.markdown("---")
         elif absorbed_mergers:
-            st.markdown(f"#### 🏛️ Historical Predecessor Airlines Absorbed")
+            st.markdown(f"#### 🏛️ Historical Predecessor Airlines Absorbed & Asset Acquisitions")
             for am in absorbed_mergers:
                 p_code = am['predecessor_code']
                 p_logo = get_carrier_logo_url(p_code) or ""
                 p_logo_html = f"<img src='{p_logo}' style='height: 20px; width: 20px; object-fit: contain; vertical-align: middle; margin-right: 6px; border-radius: 3px;'/>" if p_logo else ""
+                tx_type = "Asset & Route Acquisition" if am.get("transaction_type") == "route_acquisition" else "Merged"
                 st.markdown(
-                    f"##### {p_logo_html} {am['predecessor_name']} ({p_code}) — Merged in {am.get('cutover_year', '')}\n"
+                    f"##### {p_logo_html} {am['predecessor_name']} ({p_code}) — {tx_type} in {am.get('cutover_year', '')}\n"
                     f"- **Closing / Single Certificate**: `{am['closing_date']}` (SOC: `{am['soc_date']}`, Final Flight: `{am['final_flight_date']}`)\n"
-                    f"- **Hubs Added**: `{', '.join(am['hubs_absorbed'])}`\n"
+                    f"- **Hubs / Bases Added**: `{', '.join(am['hubs_absorbed'])}`\n"
                     f"- **Fleet Added**: {', '.join(am['fleet_types_inherited'])}\n"
                     f"- **Summary**: {am['summary']} [Source Citation ↗]({am['source_url']})",
                     unsafe_allow_html=True
@@ -216,25 +224,20 @@ if not df_airline_ts.empty and selected_year in df_airline_ts["year"].values:
 
 k1, k2, k3, k4, k5 = st.columns(5)
 
-tot_deps = kpis.get('total_departures') or 0
 with k1:
-    render_kpi_card("Active Routes", f"{kpis.get('active_routes', 0):,}")
+    render_kpi_card("Active Routes", fmt_integer(kpis.get('active_routes')))
 
 with k2:
-    deps_val = f"{tot_deps/1e3:.1f}K" if tot_deps >= 1000 else f"{tot_deps:,}"
-    render_kpi_card("Total Departures", deps_val, delta=yoy_deps_delta)
+    render_kpi_card("Total Departures", fmt_volume(kpis.get('total_departures')), delta=yoy_deps_delta)
 
 with k3:
-    lf_str = f"{kpis['system_load_factor']:.1f}%" if kpis.get('system_load_factor') and not pd.isna(kpis['system_load_factor']) else "—"
-    render_kpi_card("System Load Factor", lf_str)
+    render_kpi_card("System Load Factor", fmt_percent(kpis.get('system_load_factor')))
 
 with k4:
-    yield_str = f"${kpis['avg_yield_per_mile']:.4f}" if kpis.get('avg_yield_per_mile') and not pd.isna(kpis['avg_yield_per_mile']) else "—"
-    render_kpi_card("Yield / Passenger-Mile", yield_str)
+    render_kpi_card("Yield / Passenger-Mile", fmt_currency(kpis.get('avg_yield_per_mile'), decimals=4))
 
 with k5:
-    fare_str = f"${kpis['avg_network_fare']:.0f}" if kpis.get('avg_network_fare') and not pd.isna(kpis['avg_network_fare']) else "—"
-    render_kpi_card("Avg Network Fare", fare_str)
+    render_kpi_card("Avg Network Fare", fmt_currency(kpis.get('avg_network_fare'), decimals=0))
 
 # Multi-Year Trajectory Expander
 if not df_airline_ts.empty:

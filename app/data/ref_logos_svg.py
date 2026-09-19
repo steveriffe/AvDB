@@ -222,36 +222,51 @@ CARRIER_VECTOR_SVGS: Dict[str, str] = {
   <text x="108" y="43" font-family="'Plus Jakarta Sans', sans-serif" font-size="22" font-weight="800" fill="#FFFFFF" letter-spacing="1">LH</text>
 </svg>""",
 
-    # Alliances
+    # Alliances (Authentic High-Fidelity Vector Insignias)
     "Star Alliance": """<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 70" width="160" height="70">
-  <rect width="160" height="70" rx="12" fill="#1C1C1E" stroke="rgba(255,255,255,0.2)"/>
-  <!-- 5-pointed star constellation -->
-  <polygon points="36,18 41,30 54,30 43,38 47,50 36,42 25,50 29,38 18,30 31,30" fill="#C5A059"/>
-  <text x="108" y="43" font-family="'Plus Jakarta Sans', sans-serif" font-size="18" font-weight="700" fill="#F5F5F7">STAR</text>
+  <rect width="160" height="70" rx="12" fill="#0D0E12" stroke="rgba(197,160,89,0.3)" stroke-width="1.2"/>
+  <!-- Star Alliance 5-point pinwheel starburst -->
+  <g transform="translate(34, 35)">
+    <polygon points="0,-16 3,-5 0,0 -3,-5" fill="#C5A059"/>
+    <polygon points="15,-5 6,-2 0,0 6,-8" fill="#C5A059"/>
+    <polygon points="9,13 4,4 0,0 8,3" fill="#C5A059"/>
+    <polygon points="-9,13 -8,3 0,0 -4,4" fill="#C5A059"/>
+    <polygon points="-15,-5 -6,-8 0,0 -6,-2" fill="#C5A059"/>
+  </g>
+  <text x="60" y="33" font-family="'Plus Jakarta Sans', sans-serif" font-size="11.5" font-weight="800" fill="#FFFFFF" letter-spacing="1.2">STAR ALLIANCE</text>
+  <text x="60" y="47" font-family="'JetBrains Mono', monospace" font-size="7.5" font-weight="600" fill="#C5A059" letter-spacing="1">GLOBAL NETWORK</text>
 </svg>""",
 
     "SkyTeam": """<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 70" width="160" height="70">
-  <rect width="160" height="70" rx="12" fill="#002244" stroke="rgba(255,255,255,0.2)"/>
-  <path d="M20 44 Q36 16 52 44 Q36 28 20 44 Z" fill="#0090DA"/>
-  <text x="108" y="43" font-family="'Plus Jakarta Sans', sans-serif" font-size="18" font-weight="700" fill="#FFFFFF">SkyTeam</text>
+  <rect width="160" height="70" rx="12" fill="#001833" stroke="rgba(0,144,218,0.35)" stroke-width="1.2"/>
+  <!-- SkyTeam aerodynamic vortex loop -->
+  <g transform="translate(32, 35)">
+    <path d="M-15 8 C-10 -12 10 -18 20 -4 C 8 -11 -4 -7 -8 6 Z" fill="#0090DA"/>
+    <path d="M20 -4 C 15 16 -5 20 -15 8 C -3 15 9 11 13 -2 Z" fill="#D1D5DB"/>
+  </g>
+  <text x="63" y="37" font-family="'Plus Jakarta Sans', sans-serif" font-size="18" font-weight="800" fill="#FFFFFF" letter-spacing="-0.5">SkyTeam</text>
+  <text x="63" y="49" font-family="'JetBrains Mono', monospace" font-size="7.5" font-weight="600" fill="#38BDF8" letter-spacing="1.2">GLOBAL ALLIANCE</text>
 </svg>""",
 
     "oneworld": """<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 70" width="160" height="70">
-  <rect width="160" height="70" rx="12" fill="#1A2C80" stroke="rgba(255,255,255,0.2)"/>
-  <circle cx="36" cy="35" r="16" fill="#0099FF"/>
-  <text x="36" y="41" font-family="'Plus Jakarta Sans', sans-serif" font-size="12" font-weight="800" fill="#FFFFFF" text-anchor="middle">1</text>
-  <text x="108" y="43" font-family="'Plus Jakarta Sans', sans-serif" font-size="18" font-weight="700" fill="#FFFFFF">oneworld</text>
+  <rect width="160" height="70" rx="12" fill="#0C1433" stroke="rgba(0,151,215,0.35)" stroke-width="1.2"/>
+  <!-- oneworld cyan ring and radiant globe -->
+  <circle cx="32" cy="35" r="16" fill="none" stroke="#0097D7" stroke-width="2.5"/>
+  <circle cx="32" cy="35" r="12" fill="#00A9E0"/>
+  <path d="M24 28 A 9 9 0 0 1 34 24 A 11 11 0 0 0 24 28 Z" fill="#FFFFFF" opacity="0.65"/>
+  <text x="60" y="38" font-family="'Plus Jakarta Sans', sans-serif" font-size="19" font-weight="800" fill="#FFFFFF" letter-spacing="-0.6">oneworld</text>
+  <text x="60" y="49" font-family="'JetBrains Mono', monospace" font-size="7.5" font-weight="600" fill="#64D2FF" letter-spacing="1.2">MEMBER ALLIANCE</text>
 </svg>""",
 
     "Wings Alliance": """<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 70" width="160" height="70">
-  <rect width="160" height="70" rx="12" fill="#0A2540" stroke="rgba(255,255,255,0.2)"/>
-  <!-- NW red compass / KL crown cyan motif -->
-  <circle cx="28" cy="35" r="14" fill="#D62828"/>
-  <path d="M28 26 L31 35 L28 44 L25 35 Z" fill="#FFFFFF"/>
-  <circle cx="48" cy="35" r="14" fill="#00A1DE"/>
-  <path d="M42 38 L48 28 L54 38 Z" fill="#FFFFFF"/>
-  <text x="108" y="38" font-family="'Plus Jakarta Sans', sans-serif" font-size="13" font-weight="800" fill="#FFFFFF" letter-spacing="0.5">NW / KL</text>
-  <text x="108" y="52" font-family="'JetBrains Mono', monospace" font-size="9" font-weight="700" fill="#38BDF8" letter-spacing="1">ALLIANCE</text>
+  <rect width="160" height="70" rx="12" fill="#0B1E36" stroke="rgba(214,40,40,0.35)" stroke-width="1.2"/>
+  <!-- NW Red compass and KL Crown Cyan -->
+  <circle cx="24" cy="35" r="12" fill="#D62828"/>
+  <polygon points="24,26 27,35 24,44 21,35" fill="#FFFFFF"/>
+  <circle cx="43" cy="35" r="12" fill="#00A1DE"/>
+  <path d="M38 39 L40 31 L43 34 L46 31 L48 39 Z" fill="#FFFFFF"/>
+  <text x="65" y="34" font-family="'Plus Jakarta Sans', sans-serif" font-size="11.5" font-weight="800" fill="#FFFFFF" letter-spacing="0.8">WINGS ALLIANCE</text>
+  <text x="65" y="47" font-family="'JetBrains Mono', monospace" font-size="7.5" font-weight="600" fill="#94A3B8" letter-spacing="1">NW · KL TRANSATLANTIC</text>
 </svg>"""
 }
 

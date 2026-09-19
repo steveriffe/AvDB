@@ -9,6 +9,7 @@ import plotly.graph_objects as go
 import pandas as pd
 from typing import Optional, Dict, Any
 from app.config import settings
+from app.utils.formatting import fmt_volume
 
 
 # Clean luxury color palette
@@ -670,17 +671,19 @@ def build_carrier_market_share_donut(df_carriers: pd.DataFrame) -> go.Figure:
     total_system_seats = df_carriers["total_seats"].sum() if "total_seats" in df_carriers.columns else df_plot["total_seats"].sum()
     df_plot["share_pct"] = (df_plot["total_seats"] / max(total_system_seats, 1)) * 100
     df_plot["label"] = df_plot["unique_carrier"] + " — " + df_plot["carrier_name"]
+    max_seats = df_plot["total_seats"].max() if not df_plot.empty else 1
 
     fig = go.Figure(data=[go.Bar(
         x=df_plot["total_seats"],
         y=df_plot["label"],
         orientation="h",
+        cliponaxis=False,
         marker=dict(
             color="#0A84FF",
             opacity=0.88,
             line=dict(color="rgba(255,255,255,0.12)", width=1)
         ),
-        text=[f"{s:.1f}% ({v/1e3:.0f}K)" if v >= 1e3 else f"{s:.1f}%" for s, v in zip(df_plot["share_pct"], df_plot["total_seats"])],
+        text=[f"{s:.1f}% ({fmt_volume(v)})" for s, v in zip(df_plot["share_pct"], df_plot["total_seats"])],
         textposition="outside",
         textfont=dict(color="#CBD5E1", size=10, family="JetBrains Mono"),
         hovertemplate="<b>%{y}</b><br>Seats: %{x:,.0f}<br>Capacity Share: %{text}<extra></extra>"
@@ -688,11 +691,12 @@ def build_carrier_market_share_donut(df_carriers: pd.DataFrame) -> go.Figure:
 
     fig.update_layout(
         title=dict(text="Carrier Capacity Share (Seats Available)", font=dict(size=13, color="#F5F5F7")),
-        margin=dict(l=10, r=60, t=32, b=10),
+        margin=dict(l=10, r=85, t=32, b=10),
         paper_bgcolor="rgba(0,0,0,0)",
         plot_bgcolor="rgba(0,0,0,0)",
         height=290,
         xaxis=dict(
+            range=[0, max_seats * 1.35],
             showgrid=True,
             gridcolor="rgba(255,255,255,0.06)",
             tickfont=dict(color="#8E8E93", size=10),
@@ -727,17 +731,19 @@ def build_airport_alliance_share_donut(df_alliance: pd.DataFrame) -> go.Figure:
     total_seats = df_plot["total_seats"].sum()
     df_plot["share_pct"] = (df_plot["total_seats"] / max(total_seats, 1)) * 100
     colors = [alliance_colors_map.get(name, "#38BDF8") for name in df_plot["alliance_name"]]
+    max_seats = df_plot["total_seats"].max() if not df_plot.empty else 1
 
     fig = go.Figure(data=[go.Bar(
         x=df_plot["total_seats"],
         y=df_plot["alliance_name"],
         orientation="h",
+        cliponaxis=False,
         marker=dict(
             color=colors,
             opacity=0.85,
             line=dict(color="rgba(255,255,255,0.12)", width=1)
         ),
-        text=[f"{s:.1f}% ({v/1e3:.0f}K)" if v >= 1e3 else f"{s:.1f}%" for s, v in zip(df_plot["share_pct"], df_plot["total_seats"])],
+        text=[f"{s:.1f}% ({fmt_volume(v)})" for s, v in zip(df_plot["share_pct"], df_plot["total_seats"])],
         textposition="outside",
         textfont=dict(color="#CBD5E1", size=10, family="JetBrains Mono"),
         hovertemplate="<b>%{y}</b><br>Seats: %{x:,.0f}<br>Share: %{text}<extra></extra>"
@@ -745,11 +751,12 @@ def build_airport_alliance_share_donut(df_alliance: pd.DataFrame) -> go.Figure:
 
     fig.update_layout(
         title=dict(text="Global Alliance Capacity Share", font=dict(size=13, color="#F5F5F7")),
-        margin=dict(l=10, r=50, t=32, b=10),
+        margin=dict(l=10, r=85, t=32, b=10),
         paper_bgcolor="rgba(0,0,0,0)",
         plot_bgcolor="rgba(0,0,0,0)",
         height=290,
         xaxis=dict(
+            range=[0, max_seats * 1.35],
             showgrid=True,
             gridcolor="rgba(255,255,255,0.06)",
             tickfont=dict(color="#8E8E93", size=10),
@@ -1152,21 +1159,27 @@ def build_airline_trajectory_chart(df_ts: pd.DataFrame, carrier_name: str) -> go
 
     fig = go.Figure()
 
-    # ASM
+    # ASM (Capacity)
     fig.add_trace(go.Bar(
         x=df_ts["year"],
         y=df_ts["total_asm"] / 1e9,
         name="Capacity (Billion ASM)",
-        marker_color="rgba(56, 189, 248, 0.4)",
+        marker=dict(
+            color="rgba(10, 132, 255, 0.28)",
+            line=dict(color="#38BDF8", width=1)
+        ),
         hovertemplate="<b>%{x}</b><br>ASM: %{y:.2f}B<extra></extra>"
     ))
 
-    # RPM
+    # RPM (Traffic)
     fig.add_trace(go.Bar(
         x=df_ts["year"],
         y=df_ts["total_rpm"] / 1e9,
         name="Traffic (Billion RPM)",
-        marker_color="#2563EB",
+        marker=dict(
+            color="#0A84FF",
+            line=dict(color="rgba(255,255,255,0.12)", width=1)
+        ),
         hovertemplate="<b>%{x}</b><br>RPM: %{y:.2f}B<extra></extra>"
     ))
 
@@ -1177,24 +1190,41 @@ def build_airline_trajectory_chart(df_ts: pd.DataFrame, carrier_name: str) -> go
         name="System Load Factor %",
         mode="lines+markers",
         yaxis="y2",
-        line=dict(color="#FF6B00", width=2.5),
-        marker=dict(size=6, color="#FF6B00"),
+        line=dict(color="#F59E0B", width=2.5),
+        marker=dict(size=6, color="#F59E0B", line=dict(color="#1E293B", width=1.5)),
         hovertemplate="<b>%{x}</b><br>Load Factor: %{y:.1f}%<extra></extra>"
     ))
 
     fig.update_layout(
         barmode="group",
         title=dict(
-            text=f"🌐 Historical Capacity & Yield Trajectory: {carrier_name} (1990–2025)",
-            font=dict(family="Plus Jakarta Sans", size=15, color="#FFFFFF")
+            text=f"Historical Capacity & Yield Trajectory: {carrier_name} (1990–2025)",
+            font=dict(family="Plus Jakarta Sans", size=14, color="#F5F5F7"),
+            x=0.01,
+            y=0.96,
+            xanchor="left"
         ),
         xaxis=dict(title="", tickmode="linear", dtick=5, gridcolor="rgba(255,255,255,0.05)", color="#94A3B8"),
         yaxis=dict(title="Billion Miles (ASM / RPM)", gridcolor="rgba(255,255,255,0.05)", color="#94A3B8"),
-        yaxis2=dict(title="System Load Factor %", overlaying="y", side="right", range=[35, 95], color="#FF6B00"),
-        legend=dict(orientation="h", yanchor="bottom", y=1.06, xanchor="center", x=0.5, font=dict(color="#CBD5E1", size=11)),
+        yaxis2=dict(
+            title="Load Factor %",
+            overlaying="y",
+            side="right",
+            range=[35, 95],
+            color="#F59E0B",
+            showgrid=False
+        ),
+        legend=dict(
+            orientation="h",
+            yanchor="bottom",
+            y=1.04,
+            xanchor="right",
+            x=0.99,
+            font=dict(color="#CBD5E1", size=10.5)
+        ),
         paper_bgcolor="rgba(0,0,0,0)",
         plot_bgcolor="rgba(0,0,0,0)",
-        margin=dict(l=40, r=40, t=60, b=30),
+        margin=dict(l=40, r=45, t=75, b=30),
         height=360,
     )
     return fig

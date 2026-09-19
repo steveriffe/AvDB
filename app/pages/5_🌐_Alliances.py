@@ -11,8 +11,15 @@ import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
 
-from app.config import settings
-from app.utils.styling import apply_apple_style, render_kpi_card, render_portal_nav_link
+from app.utils.styling import (
+    apply_apple_style,
+    render_kpi_card,
+    render_portal_nav_link,
+    fmt_integer,
+    fmt_volume,
+    fmt_currency,
+    fmt_percent,
+)
 from app.utils.auth import require_auth
 from app.utils.queries import (
     get_alliance_performance_metrics,
@@ -79,13 +86,13 @@ lead_pax_share = df_perf.iloc[0]["passenger_share_pct"]
 
 k1, k2, k3, k4, k5 = st.columns(5)
 with k1:
-    render_kpi_card("Total US Passengers", f"{total_pax/1e6:.1f}M", subtitle="Reported T-100 traffic")
+    render_kpi_card("Total US Passengers", fmt_volume(total_pax), subtitle="Reported T-100 traffic")
 with k2:
-    render_kpi_card("Total Departures", f"{total_deps:,}", subtitle="Commercial departures")
+    render_kpi_card("Total Departures", fmt_integer(total_deps), subtitle="Commercial departures")
 with k3:
-    render_kpi_card("Avg System Load Factor", f"{weighted_load_factor:.1f}%", subtitle="Pax / Seats")
+    render_kpi_card("Avg System Load Factor", fmt_percent(weighted_load_factor), subtitle="Pax / Seats")
 with k4:
-    rev_str = f"${total_est_revenue/1e9:.2f}B" if total_est_revenue > 0 else "N/A"
+    rev_str = fmt_currency(total_est_revenue, compact=True) if total_est_revenue > 0 else "N/A"
     render_kpi_card("Est. O&D Revenue", rev_str, subtitle="US-originating sample")
 with k5:
     render_kpi_card("Market Leader", lead_alliance, subtitle=f"{lead_pax_share}% passenger share")
@@ -109,10 +116,12 @@ COLOR_MAP = {
 with vcol1:
     st.markdown("### Passenger Volume by Alliance")
     df_perf_sorted = df_perf.sort_values("passengers", ascending=True)
+    max_pax = (df_perf_sorted["passengers"] / 1e6).max() if not df_perf_sorted.empty else 1
     fig_hbar = go.Figure(go.Bar(
         x=df_perf_sorted["passengers"] / 1e6,
         y=df_perf_sorted["alliance_name"],
         orientation="h",
+        cliponaxis=False,
         marker=dict(
             color=[COLOR_MAP.get(a, "#64748B") for a in df_perf_sorted["alliance_name"]],
             opacity=0.88,
@@ -124,12 +133,13 @@ with vcol1:
     ))
     fig_hbar.update_layout(
         showlegend=False,
-        margin=dict(t=10, b=10, l=10, r=60),
+        margin=dict(t=10, b=10, l=170, r=80),
         paper_bgcolor="rgba(0,0,0,0)",
         plot_bgcolor="rgba(0,0,0,0)",
         font=dict(color="#CBD5E1", family="Plus Jakarta Sans"),
         height=330,
         xaxis=dict(
+            range=[0, max_pax * 1.25],
             title="Passengers (M)",
             showgrid=True,
             gridcolor="rgba(255,255,255,0.06)",
@@ -254,7 +264,7 @@ for _, a_row in df_perf.iterrows():
         for item in top_carriers:
             c_code = item["code"]
             pax = item["passengers"]
-            pax_str = f"{pax/1e6:.1f}M" if pax >= 1e6 else f"{pax/1e3:.0f}K"
+            pax_str = fmt_volume(pax)
             c_name = get_carrier_name(c_code)
             c_logo = get_carrier_logo_url(c_code) or ""
             logo_tag = f"<img src='{c_logo}' style='height: 22px; width: 22px; object-fit: contain; border-radius: 4px; flex-shrink: 0;' alt='{c_code}'/>" if c_logo else ""
@@ -294,15 +304,15 @@ for _, a_row in df_perf.iterrows():
         f"{a_name}"
         f"</div>"
         f"<div style='color: #94A3B8; font-size: 0.88rem; font-family: \"JetBrains Mono\", monospace; margin-top: 2px;'>"
-        f"US Network Share: <span style='color: #FF6B00; font-weight: 700;'>{a_row['passenger_share_pct']}%</span> Pax · {a_row['seat_share_pct']}% Seats · {a_row['load_factor_pct']}% Avg LF"
+        f"US Network Share: <span style='color: #38BDF8; font-weight: 700;'>{a_row['passenger_share_pct']}%</span> Pax · {a_row['seat_share_pct']}% Seats · {a_row['load_factor_pct']}% Avg LF"
         f"</div>"
         f"</div>"
         f"</div>"
         f"<div style='text-align: right;'>"
         f"<div style='font-family: \"JetBrains Mono\", monospace; font-size: 1.45rem; font-weight: 800; color: #38BDF8;'>"
-        f"{a_row['passengers']/1e6:.1f}M Pax"
+        f"{fmt_volume(a_row['passengers'])} Pax"
         f"</div>"
-        f"<div style='font-size: 0.78rem; color: #94A3B8; font-family: \"JetBrains Mono\", monospace;'>{a_row['departures']:,} Departures</div>"
+        f"<div style='font-size: 0.78rem; color: #94A3B8; font-family: \"JetBrains Mono\", monospace;'>{fmt_integer(a_row['departures'])} Departures</div>"
         f"</div>"
         f"</div>"
         f"{members_block}"
@@ -323,7 +333,7 @@ if not df_fleet.empty:
         y="departures",
         color="aircraft_family",
         barmode="stack",
-        color_discrete_sequence=["#2563EB", "#38BDF8", "#FF6B00", "#10B981", "#8B5CF6", "#64748B"],
+        color_discrete_sequence=["#2563EB", "#38BDF8", "#F59E0B", "#10B981", "#8B5CF6", "#64748B"],
     )
     fig_fleet.update_layout(
         xaxis=dict(title=""),

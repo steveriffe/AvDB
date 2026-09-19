@@ -133,8 +133,14 @@ def capture_screenshots(scope: str = "all") -> list:
                 print(f"📸 Capturing [{name}] from {url}...")
                 
                 try:
-                    page.goto(url, wait_until="networkidle", timeout=25000)
-                    page.wait_for_timeout(3500)  # Wait for Plotly / PyDeck rendering animations
+                    page.goto(url, timeout=45000)
+                    page.wait_for_selector("div[data-testid='stAppViewContainer']", timeout=30000)
+                    if name != "landing":
+                        try:
+                            page.wait_for_selector(".stPlotlyChart, div[data-testid='stMetric']", timeout=35000)
+                        except Exception:
+                            pass
+                    page.wait_for_timeout(6000)  # Wait for Plotly / PyDeck rendering animations
                     
                     out_path = OUTPUT_DIR / f"{name}.png"
                     page.screenshot(path=str(out_path), full_page=True)

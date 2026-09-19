@@ -5,6 +5,7 @@ vibrant orange & electric sky accents, JetBrains Mono metrics, and seamless port
 """
 import textwrap
 import streamlit as st
+from app.utils.formatting import fmt_integer, fmt_volume, fmt_currency, fmt_percent
 
 def render_html(html_str: str, unsafe_allow_html: bool = True, **kwargs):
     """Renders HTML cleanly using st.html or st.markdown without Markdown code-block indentation escaping."""

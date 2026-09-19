@@ -10,8 +10,9 @@ import os
 import streamlit as st
 import pandas as pd
 from app.config import settings
-from app.utils.styling import apply_apple_style, render_kpi_card, render_html, render_portal_nav_link
+from app.utils.styling import apply_apple_style, render_kpi_card, render_html, render_portal_nav_link, fmt_integer, fmt_volume, fmt_currency, fmt_percent
 from app.utils.auth import require_auth
+from app.data.ref_logos_svg import get_vector_logo_data_uri
 
 st.set_page_config(
     page_title="Airports Explorer | AvDB",
@@ -138,19 +139,16 @@ kpi1, kpi2, kpi3, kpi4, kpi5 = st.columns(5)
 
 tot_pax = kpi_data.get('total_passengers') or 0
 with kpi1:
-    pax_val = f"{tot_pax / 1e6:.2f}M" if tot_pax >= 1e6 else f"{tot_pax:,}"
-    render_kpi_card("Total Passengers", pax_val, delta=yoy_pax_delta)
+    render_kpi_card("Total Passengers", fmt_volume(tot_pax), delta=yoy_pax_delta)
 
 with kpi2:
-    render_kpi_card("Direct Destinations", f"{kpi_data.get('direct_destinations', 0):,}")
+    render_kpi_card("Direct Destinations", fmt_integer(kpi_data.get('direct_destinations')))
 
 with kpi3:
-    lf_val = f"{kpi_data['load_factor_pct']:.1f}%" if kpi_data.get('load_factor_pct') is not None and not pd.isna(kpi_data['load_factor_pct']) else "—"
-    render_kpi_card("Avg Load Factor", lf_val)
+    render_kpi_card("Avg Load Factor", fmt_percent(kpi_data.get('load_factor_pct')))
 
 with kpi4:
-    fare_val = f"${kpi_data['avg_od_fare']:.0f}" if kpi_data.get('avg_od_fare') is not None and not pd.isna(kpi_data['avg_od_fare']) else "—"
-    render_kpi_card("Inferred Avg Fare", fare_val)
+    render_kpi_card("Inferred Avg Fare", fmt_currency(kpi_data.get('avg_od_fare'), decimals=0))
 
 with kpi5:
     leading_c = kpi_data.get('leading_carrier') or '—'
@@ -159,7 +157,12 @@ with kpi5:
         leading_code = leading_c.split("(")[-1].split(")")[0].strip()
     leading_logo = get_carrier_logo_url(leading_code) if leading_code != "—" else ""
     leading_alliance = get_carrier_alliance(leading_code, selected_year) if leading_code != "—" else None
-    leading_sub = f"🌐 {leading_alliance['alliance_name']}" if leading_alliance else "Independent / Unaligned"
+    if leading_alliance:
+        a_name = leading_alliance["alliance_name"]
+        a_vec = get_vector_logo_data_uri(a_name)
+        leading_sub = f"<img src='{a_vec}' style='height: 12px; width: 26px; object-fit: contain; vertical-align: middle; margin-right: 4px;'/> {a_name}"
+    else:
+        leading_sub = "Independent / Unaligned"
     render_kpi_card("Leading Carrier", leading_c, subtitle=leading_sub, logo_url=leading_logo)
 
 # Multi-Year Trend Expander / Chart
