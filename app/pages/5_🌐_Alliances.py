@@ -205,7 +205,7 @@ with vcol2:
             x=0.5,
             font=dict(color="#CBD5E1", size=10)
         ),
-        margin=dict(t=30, b=30, l=40, r=45),
+        margin=dict(t=30, b=30, l=55, r=55),
         paper_bgcolor="rgba(0,0,0,0)",
         plot_bgcolor="rgba(0,0,0,0)",
         font=dict(color="#CBD5E1", family="Plus Jakarta Sans"),

@@ -177,11 +177,23 @@ try:
     st.pydeck_chart(deck, height=520, width="stretch")
 except (KeyError, Exception) as _map_err:
     st.markdown(
-        "<div style='background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); "
-        "border-radius: 12px; padding: 32px; text-align: center; color: #8E8E93; font-size: 0.92rem;'>"
-        "✈️ Route map unavailable — coordinate data not resolved for this log.<br/>"
-        "<span style='font-size:0.8rem;'>Upload a fresh CSV to regenerate geodesic arcs.</span>"
-        "</div>",
+        """
+        <div style="background: radial-gradient(circle at 50% 35%, rgba(56, 189, 248, 0.06) 0%, rgba(11, 25, 44, 0.65) 75%); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 16px; padding: 48px 24px; text-align: center; backdrop-filter: blur(12px); box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);">
+            <div style="display: inline-flex; align-items: center; justify-content: center; width: 60px; height: 60px; border-radius: 50%; background: rgba(56, 189, 248, 0.08); border: 1px solid rgba(56, 189, 248, 0.25); margin-bottom: 16px;">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#38BDF8" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <line x1="2" y1="12" x2="22" y2="12"></line>
+                    <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+                </svg>
+            </div>
+            <div style="font-family: 'Plus Jakarta Sans', sans-serif; font-size: 1.05rem; font-weight: 700; color: #FFFFFF; margin-bottom: 6px;">
+                Geodesic Route Cartography Offline
+            </div>
+            <div style="font-family: 'JetBrains Mono', monospace; font-size: 0.82rem; color: #94A3B8; max-width: 440px; margin: 0 auto; line-height: 1.5;">
+                Airport waypoint coordinates could not be resolved for this segment log. Re-import your flight log CSV to reconstruct 3D great-circle arcs.
+            </div>
+        </div>
+        """,
         unsafe_allow_html=True,
     )
 
