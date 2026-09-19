@@ -200,6 +200,27 @@ CARRIER_VECTOR_SVGS: Dict[str, str] = {
   <text x="108" y="44" font-family="'Plus Jakarta Sans', sans-serif" font-size="22" font-weight="900" fill="#FFFFFF" letter-spacing="1">PAN AM</text>
 </svg>""",
 
+    # Eastern Air Lines (EA - Historical)
+    "EA": """<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 70" width="160" height="70">
+  <rect width="160" height="70" rx="12" fill="#0D2C54" stroke="rgba(255,255,255,0.2)"/>
+  <!-- Eastern Hockey Stick / Falcon Swoosh -->
+  <path d="M16 48 L46 20 L54 20 L30 52 L16 52 Z" fill="#FFFFFF"/>
+  <path d="M22 52 L48 28 L56 28 L36 52 Z" fill="#00A3E0"/>
+  <text x="108" y="44" font-family="'Plus Jakarta Sans', sans-serif" font-size="20" font-weight="900" fill="#FFFFFF" letter-spacing="1">EASTERN</text>
+</svg>""",
+
+    # KLM Royal Dutch Airlines (KL)
+    "KL": """<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 70" width="160" height="70">
+  <rect width="160" height="70" rx="12" fill="#00A1DE" stroke="rgba(255,255,255,0.2)"/>
+  <!-- KLM Crown -->
+  <circle cx="26" cy="28" r="2.5" fill="#FFFFFF"/>
+  <circle cx="33" cy="25" r="2.5" fill="#FFFFFF"/>
+  <circle cx="40" cy="25" r="2.5" fill="#FFFFFF"/>
+  <circle cx="47" cy="28" r="2.5" fill="#FFFFFF"/>
+  <path d="M26 31 L30 42 L43 42 L47 31 L40 35 L36.5 31 L33 35 Z" fill="#FFFFFF"/>
+  <text x="108" y="44" font-family="'Plus Jakarta Sans', sans-serif" font-size="24" font-weight="900" fill="#FFFFFF" letter-spacing="1">KLM</text>
+</svg>""",
+
     # British Airways (BA)
     "BA": """<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 70" width="160" height="70">
   <rect width="160" height="70" rx="12" fill="#075AAA" stroke="rgba(255,255,255,0.2)"/>

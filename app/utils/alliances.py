@@ -111,6 +111,8 @@ CARRIER_NAMES: Dict[str, str] = {
     "TZ": "ATA Airlines",
     "HP": "America West Airlines",
     "QQ": "Reno Air",
+    "OZ": "Ozark Air Lines",
+    "RC": "Republic Airlines",
     # International Alliances & Partners
     "BA": "British Airways",
     "AF": "Air France",
@@ -131,6 +133,7 @@ CARRIER_NAMES: Dict[str, str] = {
     "AV": "Avianca",
     "NH": "All Nippon Airways (ANA)",
     "LX": "Swiss International Air Lines",
+    "SR": "Swissair",
     "SK": "Scandinavian Airlines (SAS)",
     "TP": "TAP Air Portugal",
     "AZ": "ITA Airways / Alitalia",
@@ -142,6 +145,7 @@ CARRIER_NAMES: Dict[str, str] = {
     # Cargo
     "FX": "FedEx Express",
     "5X": "UPS Airlines",
+    "K4": "Kalitta Air",
 }
 
 

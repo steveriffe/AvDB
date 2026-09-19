@@ -67,9 +67,9 @@ def main():
     st.markdown("---")
 
     st.markdown("### 🧭 Analytical Lenses")
-    lcol1, lcol2, lcol3, lcol4, lcol5 = st.columns(5)
+    r1_col1, r1_col2, r1_col3 = st.columns(3)
 
-    with lcol1:
+    with r1_col1:
         render_feature_card(
             "✈️ Airport Explorer",
             "Explore direct destinations, carrier seat share, O&D fare yields, and interactive great-circle route maps.",
@@ -78,7 +78,7 @@ def main():
             icon="✈️"
         )
 
-    with lcol2:
+    with r1_col2:
         render_feature_card(
             "🏢 Airline Explorer",
             "Inspect route networks, hub concentration, passenger market share, and revenue passenger mile (RPM) yields.",
@@ -87,7 +87,7 @@ def main():
             icon="🏢"
         )
 
-    with lcol3:
+    with r1_col3:
         render_feature_card(
             "💺 Fleet & Routes",
             "Analyze aircraft type allocation, up-gauging / down-gauging trends, and stage-length economics.",
@@ -96,7 +96,9 @@ def main():
             icon="💺"
         )
 
-    with lcol4:
+    r2_col1, r2_col2, r2_col3 = st.columns(3)
+
+    with r2_col1:
         render_feature_card(
             "🌐 Alliances Lens",
             "Compare Star Alliance, SkyTeam, oneworld, and NW/KL Wings Alliance loads, revenue, and fleet mix.",
@@ -105,7 +107,16 @@ def main():
             icon="🌐"
         )
 
-    with lcol5:
+    with r2_col2:
+        render_feature_card(
+            "💳 Loyalty & Partnerships",
+            "Analyze 46 years of frequent flyer programs, tier qualification, elite upgrades, and bilateral partnership webs.",
+            page_path="pages/6_💳_Loyalty_Partnerships.py",
+            link_text="Open Loyalty Partnerships →",
+            icon="💳"
+        )
+
+    with r2_col3:
         render_feature_card(
             "📱 Personal Traveler",
             "Upload Flighty logs, persist in BigQuery cloud vault, analyze subfleets, and plot personal route maps.",

@@ -87,8 +87,10 @@ def run_existing_tests():
     """Run all existing unit test files."""
     test_files = [
         "tests/test_aircraft_specs.py",
+        "tests/test_fleet_specs.py",
         "tests/test_alliances.py",
         "tests/test_mergers.py",
+        "tests/test_ffp_partnerships.py",
         "tests/test_flighty.py",
         "tests/test_api.py",
     ]
@@ -120,6 +122,7 @@ def test_all_module_imports():
         "app.data.ref_aircraft_specs",
         "app.data.ref_alliances",
         "app.data.ref_mergers",
+        "app.data.ref_ffp_partnerships",
         "app.data.ref_demo_peeks",
         "app.components.landing",
         "api.config",
@@ -142,7 +145,8 @@ def test_all_module_imports():
         "app/pages/3_💺_Fleet_Routes.py",
         "app/pages/4_📱_Flighty_Traveler.py",
         "app/pages/5_🌐_Alliances.py",
-        "app/pages/6_🔒_Privacy_Policy.py",
+        "app/pages/6_💳_Loyalty_Partnerships.py",
+        "app/pages/7_🔒_Privacy_Policy.py",
     ]
     for pf in page_files:
         py_compile.compile(str(REPO_ROOT / pf), doraise=True)

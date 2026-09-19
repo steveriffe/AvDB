@@ -548,6 +548,27 @@ AIRCRAFT_SPECS: Dict[str, Dict[str, Any]] = {
     # -------------------------------------------------------------
     # McDonnell Douglas & Boeing Classics
     # -------------------------------------------------------------
+    "McDonnell Douglas DC-9 Family": {
+        "family": "McDonnell Douglas Series",
+        "category": "Mainline Narrowbody",
+        "seats_typical": "90 - 135 seats",
+        "range_miles": 1670,
+        "wingspan_ft": 93.4,
+        "length_ft": 119.3,
+        "height_ft": 27.5,
+        "mtow_lbs": 108000,
+        "cruise_speed": "Mach 0.76 (504 mph)",
+        "engines": "Pratt & Whitney JT8D series",
+        "first_flight": 1965,
+        "status": "Historic Fleet (Retired)",
+        "key_operators": ["NW", "DL", "EA", "CO", "OZ", "RC", "FL"],
+        "summary": "The pioneer of modern US short-haul jet aviation. Engineered with aft-mounted twin turbofans and a high T-tail, the DC-9 family (DC-9-10/30/40/50) served as the indispensable regional mainline backbone for Northwest, Eastern, Delta, and AirTran for over four decades.",
+        "photo_url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/d/d3/Northwest_Airlines_McDonnell_Douglas_DC-9-50_N775NC_%282586379220%29.jpg/1280px-Northwest_Airlines_McDonnell_Douglas_DC-9-50_N775NC_%282586379220%29.jpg",
+        "photo_caption": "Northwest Airlines McDonnell Douglas DC-9-50 (N775NC) taxiing on the ramp.",
+        "photo_credit": "Cory W. Watts / Wikimedia Commons",
+        "photo_license": "CC BY-SA 2.0",
+        "photo_source_url": "https://commons.wikimedia.org/wiki/File:Northwest_Airlines_McDonnell_Douglas_DC-9-50_N775NC_(2586379220).jpg"
+    },
     "McDonnell Douglas MD-80 Series": {
         "family": "McDonnell Douglas Series",
         "category": "Mainline Narrowbody",
@@ -568,6 +589,69 @@ AIRCRAFT_SPECS: Dict[str, Dict[str, Any]] = {
         "photo_credit": "Wikimedia Commons / Aviation Photography",
         "photo_license": "CC BY-SA 2.0",
         "photo_source_url": "https://commons.wikimedia.org/wiki/File:AMERICAN_AIRLINES_MD_80_(2484854187).jpg"
+    },
+    "McDonnell Douglas MD-90": {
+        "family": "McDonnell Douglas Series",
+        "category": "Mainline Narrowbody",
+        "seats_typical": "150 - 172 seats",
+        "range_miles": 2450,
+        "wingspan_ft": 107.8,
+        "length_ft": 152.6,
+        "height_ft": 30.5,
+        "mtow_lbs": 156000,
+        "cruise_speed": "Mach 0.76 (504 mph)",
+        "engines": "IAE V2500-D5",
+        "first_flight": 1993,
+        "status": "Historic Fleet (Retired 2020)",
+        "key_operators": ["DL", "QQ", "SK"],
+        "summary": "Advanced stretched derivative of the MD-80 featuring ultra-quiet, high-bypass International Aero Engines V2500-D5 powerplants and an upgraded electronic flight instrument system. Delta Air Lines was the world's preeminent operator, flying 65 MD-90s across domestic trunk routes until retirement in June 2020.",
+        "photo_url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/f/f8/Delta_MD-90_N910DN.jpg/1280px-Delta_MD-90_N910DN.jpg",
+        "photo_caption": "Delta Air Lines McDonnell Douglas MD-90 (N910DN) taxiing at Salt Lake City.",
+        "photo_credit": "Wikimedia Commons / Aviation Photography",
+        "photo_license": "CC BY-SA 2.0",
+        "photo_source_url": "https://commons.wikimedia.org/wiki/File:Delta_MD-90_N910DN.jpg"
+    },
+    "McDonnell Douglas DC-10": {
+        "family": "McDonnell Douglas Series",
+        "category": "Mainline Widebody Trijet",
+        "seats_typical": "250 - 380 seats",
+        "range_miles": 5350,
+        "wingspan_ft": 165.3,
+        "length_ft": 182.2,
+        "height_ft": 58.1,
+        "mtow_lbs": 572000,
+        "cruise_speed": "Mach 0.82 (542 mph)",
+        "engines": "GE CF6-6D / CF6-50C2 / PW JT9D",
+        "first_flight": 1970,
+        "status": "Historic Passenger / Cargo Active",
+        "key_operators": ["AA", "UA", "NW", "CO", "FX"],
+        "summary": "First-generation widebody commercial trijet distinguished by its two underwing turbofans and an iconic third engine integrated into the vertical fin. Anchored cross-country and intercontinental trunk routes for American, United, Northwest, and Continental before transitioning into heavy global air cargo operations with FedEx Express.",
+        "photo_url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/7/75/American_Airlines_DC-10_Landing.jpg/1280px-American_Airlines_DC-10_Landing.jpg",
+        "photo_caption": "American Airlines McDonnell Douglas DC-10 on final approach.",
+        "photo_credit": "Aero Icarus / Wikimedia Commons",
+        "photo_license": "CC BY-SA 2.0",
+        "photo_source_url": "https://commons.wikimedia.org/wiki/File:American_Airlines_DC-10_Landing.jpg"
+    },
+    "McDonnell Douglas MD-11": {
+        "family": "McDonnell Douglas Series",
+        "category": "Mainline Widebody Trijet",
+        "seats_typical": "285 - 410 seats / Freighter",
+        "range_miles": 6725,
+        "wingspan_ft": 169.8,
+        "length_ft": 202.2,
+        "height_ft": 57.9,
+        "mtow_lbs": 602500,
+        "cruise_speed": "Mach 0.83 (548 mph)",
+        "engines": "GE CF6-80C2 / PW4460",
+        "first_flight": 1990,
+        "status": "Active Cargo Fleet / Historic Passenger",
+        "key_operators": ["DL", "AA", "FX", "K4", "KL", "SR"],
+        "summary": "Second-generation widebody trijet engineered with distinctive blended winglets, an advanced two-crew digital glass cockpit, and extended intercontinental range. Flown by Delta, American, Swissair, and KLM on flagship international passenger routes, and widely recognized as one of the world's most prolific heavy cargo aircraft with FedEx Express and Kalitta Air.",
+        "photo_url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/1/10/FedEx_Express_McDonnell_Douglas_MD-11%28F%29_N584FE_%22Jeffery_Wellington%22_%287613748772%29.jpg/1280px-FedEx_Express_McDonnell_Douglas_MD-11%28F%29_N584FE_%22Jeffery_Wellington%22_%287613748772%29.jpg",
+        "photo_caption": "FedEx Express McDonnell Douglas MD-11F (N584FE) on final approach.",
+        "photo_credit": "Lord of the Wings / Wikimedia Commons",
+        "photo_license": "CC BY-SA 2.0",
+        "photo_source_url": "https://commons.wikimedia.org/wiki/File:FedEx_Express_McDonnell_Douglas_MD-11(F)_N584FE_%22Jeffery_Wellington%22_(7613748772).jpg"
     },
     "Boeing 717-200": {
         "family": "Boeing 717 Family",
@@ -806,9 +890,27 @@ def get_aircraft_spec(description: str) -> Optional[Dict[str, Any]]:
     
     d_upper = d.upper()
 
-    # 2. MD-80 Series & DC-9 Family
-    if any(k in d_upper for k in ["MD80", "MD-80", "MD81", "MD82", "MD83", "MD88", "SUPER 80", "DC9 SUPER"]):
+    # 2. McDonnell Douglas & Douglas Classics
+    # MD-11 trijets (checked before DC-10/MD-90/DC-9)
+    if re.search(r'\b(MD-?11[A-Z0-9-]*|M11)\b', d_upper) or "MD-11" in d_upper or "MD11" in d_upper:
+        return AIRCRAFT_SPECS["McDonnell Douglas MD-11"]
+
+    # DC-10 widebody trijets (checked BEFORE DC-9 to prevent substring collision)
+    if re.search(r'\b(DC-?10[A-Z0-9-]*|D10)\b', d_upper) or "DC-10" in d_upper or "DC10" in d_upper:
+        return AIRCRAFT_SPECS["McDonnell Douglas DC-10"]
+
+    # MD-90 narrowbody (checked before MD-80)
+    if re.search(r'\b(MD-?90[A-Z0-9-]*)\b', d_upper) or "MD-90" in d_upper or "MD90" in d_upper:
+        return AIRCRAFT_SPECS["McDonnell Douglas MD-90"]
+
+    # MD-80 Series & Super 80 (including DC-9 Super 80)
+    if any(k in d_upper for k in ["MD80", "MD-80", "MD81", "MD-81", "MD82", "MD-82", "MD83", "MD-83", "MD87", "MD-87", "MD88", "MD-88", "SUPER 80", "DC9 SUPER", "DC-9 SUPER"]):
         return AIRCRAFT_SPECS["McDonnell Douglas MD-80 Series"]
+
+    # DC-9 Classic Family (DC-9-10/30/40/50, D9S, D91-D95)
+    if re.search(r'\b(DC-?9[A-Z0-9-]*|D9S|D9[1-5])\b', d_upper) or "DC-9" in d_upper or "DC9" in d_upper:
+        return AIRCRAFT_SPECS["McDonnell Douglas DC-9 Family"]
+
     if "717" in d_upper:
         return AIRCRAFT_SPECS["Boeing 717-200"]
     if "727-200" in d_upper or "727" in d_upper:

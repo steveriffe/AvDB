@@ -225,10 +225,10 @@ flowchart LR
   - [x] Added telemetry for total user flights and registered travelers in the cloud vault.
 - [x] **12.3 Complete External Backlink Removal**:
   - [x] Removed all portfolio backlink banners from AvDB landing page, sidebars, and styling components for a clean, standalone platform experience.
-- [x] **12.4 User Privacy Policy & Data Disclosures (`app/pages/6_🔒_Privacy_Policy.py`)**:
-  - [x] Full transparency on Google OAuth identity, BigQuery cloud vault storage, zero ad trackers, and self-service purge rights.
-- [x] **12.5 Site Preview & Explainer Update**:
-  - [x] Updated portfolio explainer (`public/avdb.html`) and showcase card (`public/index.html`) to 93.9M+ records.
+- [x] **12.4 User Privacy Policy & Data Disclosures (`app/pages/7_🔒_Privacy_Policy.py`)**:
+  - [x] Transparent disclosures covering Google OAuth authentication, isolated BigQuery user flight persistence, and zero third-party tracking.
+  - [x] Fail-safe purge rights with two-factor intent verification (explicit `DELETE` confirmation).
+  - [x] Real-time platform governance telemetry monitor. (`public/avdb.html`) and showcase card (`public/index.html`) to 93.9M+ records.
 - [x] **12.6 Extant Historical Route Data & FFP Partner Research**:
   - [x] Audited CAB Form 41 (1970–1989), TranStats T-9, and OAG timetables in `docs/ffp_partnerships_research.md`.
   - [x] Formulated architectural plan and schema design for a future Frequent Flyer Program (FFP) Historical Partners page.
@@ -278,5 +278,29 @@ flowchart LR
   - [ ] Stream and aggregate route-carrier passenger and fare totals (`year`, `quarter`, `origin`, `dest`, `carrier`, `estimated_pax`, `avg_fare`).
   - [ ] Load aggregated summaries into BigQuery `DB1B_RAW.db1b_market_historical`.
   - [ ] Backfill `avg_od_fare` into `reporting.mart_airport_network_summary` and `mart_airline_network_performance`.
+
+---
+
+### Phase 16: Frequent Flyer Program (FFP) Historical Partnerships Lens (1980–2026)
+- [x] **16.1 FFP Reference Database (`app/data/ref_ffp_partnerships.py`)**:
+  - [x] Cataloged 11 major US programs and historical predecessors: Alaska *Mileage Plan* (AS), Northwest *WorldPerks* (NW), Continental *OnePass* (CO), America West *FlightFund* (HP), US Airways *Dividend Miles* (US), TWA *Aviators* (TW), Delta *SkyMiles* (DL), American *AAdvantage* (AA), United *MileagePlus* (UA), Eastern *OnePass/Ionosphere* (EA), Pan Am *WorldPass* (PA).
+  - [x] Structured complete status tier hierarchies with qualification requirements (EQM/EQS/Spend), upgrade clearance windows, bonus miles multipliers, baggage allowances, lounge access, and priority services.
+  - [x] Structured 20 comprehensive bilateral partnerships capturing historical web noise (Alaska free agency, America West-Continental equity alliance, Wings Alliance, Delta-Alaska Seattle hub war, US Airways alliance hopscotch, Texas Air OnePass, Pan Am liquidations).
+- [x] **16.2 Vector Branded Assets (`app/data/ref_logos_svg.py`)**:
+  - [x] Added Eastern Air Lines (EA) and KLM (KL) vector SVG logos to vector insignia database.
+- [x] **16.3 Page Renumbering**:
+  - [x] Renamed `app/pages/6_🔒_Privacy_Policy.py` to `app/pages/7_🔒_Privacy_Policy.py`.
+- [x] **16.4 Interactive Loyalty Partnerships Page (`app/pages/6_💳_Loyalty_Partnerships.py`)**:
+  - [x] Implemented AvDB Apple dark mode design system (`#0B192C` canvas, `#111D33` cards, `#0A84FF` / `#F59E0B` / `#30D158` accents).
+  - [x] Built interactive Carrier/Program selector with vector logo hero card, lineage narrative, and operational lifespan badges.
+  - [x] Built dynamic Historical Year Slider (1985–2026) filtering active bilateral partners and operational status for selected calendar year.
+  - [x] Built Active Partners Grid showing partner carriers, relationship depth, upgrade/lounge reciprocity badges, and historical context.
+  - [x] Built Status Tier Requirements & Perks Table with color-coded tier levels (Silver, Gold, Platinum, Executive, Concierge/VIP).
+  - [x] Built 7 Curated Deep-Dive Expanders detailing historical alliances, corporate takeovers, and hub rivalries.
+- [x] **16.5 Main Navigation Integration (`app/main.py`)**:
+  - [x] Added Loyalty & Partnerships card to analytical lenses grid on main landing page.
+- [x] **16.6 Regression & End-to-End Verification (`tests/test_ffp_partnerships.py`, `tests/run_all_tests.py`)**:
+  - [x] Unit test verified all 11 programs, tier hierarchies, bilateral agreements, and vector logos.
+  - [x] Full test suite passed 100% with zero regressions.
 
 

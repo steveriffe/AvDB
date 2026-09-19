@@ -474,12 +474,16 @@ def classify_aircraft(raw_str: Any) -> Dict[str, str]:
             return {"family": fam, "generation": "Classic Series", "subfleet": "Dash 8-100/200/300", "category": cat}
 
     # McDonnell Douglas / Douglas
-    if "MD-80" in s or "MD80" in s or "MD-88" in s or "MD-82" in s or "MD-83" in s:
-        return {"family": "McDonnell Douglas MD-80", "generation": "MD-80 Series", "subfleet": "MD-80 Series", "category": "Mainline Narrowbody"}
+    if "MD-11" in s or "MD11" in s or "M11" in s:
+        return {"family": "McDonnell Douglas MD-11", "generation": "MD-11 Trijet", "subfleet": "McDonnell Douglas MD-11", "category": "Widebody"}
+    elif "DC-10" in s or "DC10" in s or "D10" in s:
+        return {"family": "McDonnell Douglas DC-10", "generation": "DC-10 Classic", "subfleet": "McDonnell Douglas DC-10", "category": "Widebody"}
     elif "MD-90" in s or "MD90" in s:
         return {"family": "McDonnell Douglas MD-90", "generation": "MD-90 Series", "subfleet": "McDonnell Douglas MD-90", "category": "Mainline Narrowbody"}
-    elif "DC-10" in s or "DC10" in s:
-        return {"family": "McDonnell Douglas DC-10", "generation": "DC-10 Classic", "subfleet": "McDonnell Douglas DC-10", "category": "Widebody"}
+    elif "MD-80" in s or "MD80" in s or "MD-88" in s or "MD-82" in s or "MD-83" in s:
+        return {"family": "McDonnell Douglas MD-80", "generation": "MD-80 Series", "subfleet": "MD-80 Series", "category": "Mainline Narrowbody"}
+    elif "DC-9" in s or "DC9" in s or "D9S" in s:
+        return {"family": "McDonnell Douglas DC-9", "generation": "DC-9 Classic", "subfleet": "DC-9 Family", "category": "Mainline Narrowbody"}
 
     # Lockheed L-1011 TriStar
     if "L-1011" in s or "TRISTAR" in s:

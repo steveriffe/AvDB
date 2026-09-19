@@ -110,7 +110,7 @@ def download_and_aggregate_quarter(year: int, quarter: int) -> pd.DataFrame:
 
 
 def ensure_destination_table_exists(client: bigquery.Client):
-    """Creates the aggregated DB1B market destination table if not present."""
+    """Creates or verifies the aggregated DB1B market destination table."""
     schema = [
         bigquery.SchemaField("quarter_date", "DATE", mode="REQUIRED"),
         bigquery.SchemaField("Year", "INTEGER", mode="REQUIRED"),
@@ -134,7 +134,16 @@ def ensure_destination_table_exists(client: bigquery.Client):
     
     try:
         client.create_table(table, exists_ok=True)
-        print(f"✅ Ensured destination table exists: {DEST_TABLE} (Partitioned by YEAR, Clustered by Origin, Dest, Carrier)")
+        tbl_info = client.get_table(DEST_TABLE)
+        existing_cols = {f.name: f.field_type for f in tbl_info.schema}
+        expected_cols = {f.name: f.field_type for f in schema}
+        missing_cols = set(expected_cols.keys()) - set(existing_cols.keys())
+        if missing_cols:
+            print(f"⚠️ Destination table {DEST_TABLE} missing columns: {missing_cols}")
+        else:
+            partition_str = f"Partitioned by {tbl_info.time_partitioning.field}" if tbl_info.time_partitioning else "No partition"
+            cluster_str = f"Clustered by {', '.join(tbl_info.clustering_fields)}" if tbl_info.clustering_fields else "No cluster"
+            print(f"✅ Verified destination table: {DEST_TABLE} ({tbl_info.num_rows:,} rows, {partition_str}, {cluster_str})")
     except Exception as e:
         print(f"Table verification notice: {e}")
 
@@ -153,7 +162,10 @@ def load_quarter_to_bigquery(df_agg: pd.DataFrame, client: bigquery.Client):
     WHERE Year = {year} AND Quarter = {quarter};
     """
     try:
-        client.query(delete_dml).result()
+        del_job = client.query(delete_dml)
+        del_job.result()
+        if del_job.num_dml_affected_rows and del_job.num_dml_affected_rows > 0:
+            print(f"🧹 Purged {del_job.num_dml_affected_rows:,} existing rows for {year} Q{quarter} from `{DEST_TABLE}`.")
     except Exception:
         pass
         
@@ -168,12 +180,14 @@ def load_quarter_to_bigquery(df_agg: pd.DataFrame, client: bigquery.Client):
 
 
 def backfill_mart_fares(client: bigquery.Client, year: int, quarter: int):
-    """Updates reporting.mart_airport_network_summary with average fares from agg_db1b_market_summary."""
+    """Updates reporting.mart_airport_network_summary and reporting.mart_airline_network_performance
+    with average fares and yields from agg_db1b_market_summary."""
     month_start = (quarter - 1) * 3 + 1
     months = [month_start, month_start + 1, month_start + 2]
     months_str = ", ".join(str(m) for m in months)
     
-    update_sql = f"""
+    # 1. Backfill mart_airport_network_summary
+    update_airports_sql = f"""
     UPDATE `db1b-1.reporting.mart_airport_network_summary` m
     SET 
         m.avg_od_fare = f.avg_od_fare,
@@ -194,18 +208,59 @@ def backfill_mart_fares(client: bigquery.Client, year: int, quarter: int):
       AND m.month IN ({months_str})
       AND m.avg_od_fare IS NULL;
     """
+    
+    # 2. Backfill mart_airline_network_performance
+    update_airlines_sql = f"""
+    UPDATE `db1b-1.reporting.mart_airline_network_performance` m
+    SET 
+        m.avg_od_fare = f.avg_od_fare,
+        m.yield_per_mile = COALESCE(
+            ROUND(SAFE_DIVIDE(f.avg_od_fare, NULLIF(m.avg_stage_length_miles, 0)), 4),
+            f.yield_per_mile
+        )
+    FROM (
+        SELECT 
+            Year, Origin, Dest, carrier,
+            ROUND(SAFE_DIVIDE(SUM(total_revenue), SUM(estimated_od_passengers)), 2) AS avg_od_fare,
+            ROUND(SAFE_DIVIDE(SUM(total_revenue), NULLIF(SUM(estimated_od_passengers * avg_distance_miles), 0)), 4) AS yield_per_mile
+        FROM `{DEST_TABLE}`
+        WHERE Year = {year} AND Quarter = {quarter}
+        GROUP BY 1, 2, 3, 4
+    ) f
+    WHERE m.year = f.Year
+      AND m.origin = f.Origin
+      AND m.dest = f.Dest
+      AND m.unique_carrier = f.carrier
+      AND m.month IN ({months_str})
+      AND (m.avg_od_fare IS NULL OR m.yield_per_mile IS NULL);
+    """
+    
     try:
-        job = client.query(update_sql)
-        job.result()
-        print(f"✨ Backfilled fares into `mart_airport_network_summary` for {year} Q{quarter} ({job.num_dml_affected_rows or 0:,} rows updated).")
+        job_airports = client.query(update_airports_sql)
+        job_airports.result()
+        airports_affected = job_airports.num_dml_affected_rows or 0
+        print(f"✨ Backfilled fares into `mart_airport_network_summary` for {year} Q{quarter} ({airports_affected:,} rows updated).")
     except Exception as e:
-        print(f"Notice: Failed to backfill mart fares for {year} Q{quarter}: {e}")
+        print(f"Notice: Failed to backfill airport mart fares for {year} Q{quarter}: {e}")
+        airports_affected = 0
+
+    try:
+        job_airlines = client.query(update_airlines_sql)
+        job_airlines.result()
+        airlines_affected = job_airlines.num_dml_affected_rows or 0
+        print(f"✨ Backfilled fares/yields into `mart_airline_network_performance` for {year} Q{quarter} ({airlines_affected:,} rows updated).")
+    except Exception as e:
+        print(f"Notice: Failed to backfill airline mart fares for {year} Q{quarter}: {e}")
+        airlines_affected = 0
+        
+    return airports_affected, airlines_affected
 
 
 def main():
     parser = argparse.ArgumentParser(description="BTS DB1B Market Historical Ingestion")
     parser.add_argument("--years", nargs="+", type=int, default=[2024], help="Years to ingest (e.g. 2024 2023)")
     parser.add_argument("--quarters", nargs="+", type=int, default=[1, 2, 3, 4], help="Quarters to ingest (1 2 3 4)")
+    parser.add_argument("--backfill-only", action="store_true", help="Only run backfill against existing agg_db1b_market_summary data")
     args = parser.parse_args()
     
     client = get_bigquery_client()
@@ -213,6 +268,11 @@ def main():
     
     for y in args.years:
         for q in args.quarters:
+            if args.backfill_only:
+                print(f"\n🔄 [{y} Q{q}] Running backfill-only mode...")
+                backfill_mart_fares(client, y, q)
+                continue
+                
             try:
                 df_quarter = download_and_aggregate_quarter(y, q)
                 load_quarter_to_bigquery(df_quarter, client)
