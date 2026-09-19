@@ -47,13 +47,6 @@ require_auth()
 # 1. Header & Title Section
 # -------------------------------------------------------------
 st.title("💳 Frequent Flyer Programs & Bilateral Partnerships (1980–2026)")
-st.markdown(
-    "<p style='color: #94A3B8; font-size: 1.05rem; margin-top: -10px; margin-bottom: 24px; font-family: \"Inter\", sans-serif;'>"
-    "Explore 46 years of US airline loyalty architecture: elite tier hierarchies, qualification criteria, upgrade windows, "
-    "reciprocal club access, and the intricate, shifting web of bilateral alliance partnerships across deregulation history."
-    "</p>",
-    unsafe_allow_html=True,
-)
 
 # -------------------------------------------------------------
 # 2. Interactive Control Bar: Carrier / Program & Timeline Year
@@ -205,13 +198,6 @@ st.markdown("<div style='margin-top: 20px;'></div>", unsafe_allow_html=True)
 # -------------------------------------------------------------
 if tiers:
     st.markdown(f"### 🏆 {c_name} {p_name} Status Tier Hierarchy & Perks")
-    st.markdown(
-        "<p style='color: #94A3B8; font-size: 0.9rem; margin-top: -8px; margin-bottom: 16px;'>"
-        "Detailed qualification thresholds, domestic upgrade clearance prioritization windows, "
-        "bonus mile multipliers, and premium reciprocal privileges."
-        "</p>",
-        unsafe_allow_html=True,
-    )
 
     tier_cards_html = []
     level_colors = {
@@ -295,18 +281,21 @@ scope_title = (
 st.markdown(f"### 🤝 {scope_title}")
 
 if not partners_in_year:
-    st.info(
-        f"No bilateral partnerships recorded for {c_name if network_scope == 'Selected Airline' else 'any airline'} "
-        f"in calendar year {selected_year}. Slide the timeline or switch to 'All US Carriers' to explore other eras."
-    )
-else:
     st.markdown(
-        f"<p style='color: #94A3B8; font-size: 0.9rem; margin-top: -8px; margin-bottom: 18px;'>"
-        f"Displaying <b>{len(partners_in_year)} active bilateral agreements</b> in <b>{selected_year}</b>. "
-        f"Notice how airlines maintained complex multi-partner ties prior to rigid multilateral global alliances."
-        f"</p>",
+        f"""
+        <div style="background: rgba(17, 29, 51, 0.6); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 12px; padding: 24px; text-align: center; margin: 16px 0;">
+            <div style="font-size: 1.5rem; margin-bottom: 8px;">🤝</div>
+            <div style="font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 700; color: #FFFFFF; font-size: 1.05rem;">
+                No Bilateral Partnerships Active in {selected_year}
+            </div>
+            <div style="color: #94A3B8; font-size: 0.85rem; margin-top: 6px; font-family: 'JetBrains Mono', monospace;">
+                {c_name} ({selected_carrier}) operated independently or under global multilateral alliances during this period.
+            </div>
+        </div>
+        """,
         unsafe_allow_html=True,
     )
+else:
 
     p_cols = st.columns(2)
     for p_idx, p in enumerate(partners_in_year):
@@ -414,13 +403,6 @@ else:
 # -------------------------------------------------------------
 st.markdown("---")
 st.markdown("### 🏛️ Historical Loyalty Alliances & Rivalries: Curated Deep Dives")
-st.markdown(
-    "<p style='color: #94A3B8; font-size: 0.95rem; margin-top: -8px; margin-bottom: 20px;'>"
-    "Behind the scenes of deregulation: how airline executives forged and severed loyalty treaties, "
-    "traded equity stakes, and used frequent flyer points as strategic weapons."
-    "</p>",
-    unsafe_allow_html=True,
-)
 
 case_studies = get_curated_case_studies()
 for cs in case_studies:
