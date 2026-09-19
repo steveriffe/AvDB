@@ -91,7 +91,6 @@ with k5:
     render_kpi_card("Market Leader", lead_alliance, subtitle=f"{lead_pax_share}% passenger share")
 
 st.markdown("<div style='margin-top: 24px;'></div>", unsafe_allow_html=True)
-st.caption("ℹ️ Scope: US domestic + US gateway international sectors (BTS T-100 & DB1B). Foreign-to-foreign intra-continental sectors not reported to US DOT are excluded.")
 
 # -------------------------------------------------------------
 # 4. Comparative Market Share & Efficiency Visualizers

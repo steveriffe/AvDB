@@ -191,13 +191,6 @@ st.markdown("<div style='margin-top: 28px;'></div>", unsafe_allow_html=True)
 # Granular Subfleet Breakdown & Grouping Hierarchy
 # ----------------------------------------------------------------------
 st.subheader("✈️ Aircraft Subfleet & Equipment Analytics")
-st.markdown(
-    "<p style='color: #8E8E93; font-size: 0.92rem; margin-top: -6px; margin-bottom: 18px;'>"
-    "Toggle between granular subfleet variants (e.g. distinguishing <b>Boeing 737-900ER</b> from <b>737-800</b> and <b>MAX 9</b>), "
-    "broader aircraft generations (NextGen vs MAX), or high-level airframe families."
-    "</p>",
-    unsafe_allow_html=True
-)
 
 grouping_mode = st.radio(
     "Subfleet Hierarchy Level",
@@ -248,22 +241,32 @@ with fcol1:
     st.plotly_chart(fig_bar, width="stretch")
 
 with fcol2:
-    fig_donut = px.pie(
-        fleet_summary.head(7),
-        names=col_target,
-        values="total_miles",
-        hole=0.6,
-        color_discrete_sequence=["#0A84FF", "#30D158", "#FF9F0A", "#BF5AF2", "#FF375F", "#64D2FF", "#FFD60A"]
-    )
-    fig_donut.update_layout(
-        title=dict(text="Distance Flown Share (Miles)", font=dict(size=14, color="#F5F5F7")),
+    # Horizontal bar for distance share — perceptually cleaner than multi-slice donut
+    dist_sorted = fleet_summary.sort_values("total_miles", ascending=True).head(8)
+    fig_dist_bar = go.Figure(go.Bar(
+        x=dist_sorted["total_miles"],
+        y=dist_sorted[col_target],
+        orientation="h",
+        marker=dict(
+            color=["#0A84FF", "#30D158", "#FF9F0A", "#BF5AF2", "#FF375F", "#64D2FF", "#FFD60A", "#FF6B00"][:len(dist_sorted)],
+            opacity=0.85,
+        ),
+        text=[f"{v:,.0f} mi" for v in dist_sorted["total_miles"]],
+        textposition="outside",
+        textfont=dict(color="#CBD5E1", size=10),
+        hovertemplate="<b>%{y}</b><br>Miles: %{x:,.0f}<extra></extra>",
+    ))
+    fig_dist_bar.update_layout(
+        title=dict(text="Distance Flown (Miles)", font=dict(size=14, color="#F5F5F7")),
         paper_bgcolor="rgba(0,0,0,0)",
         plot_bgcolor="rgba(0,0,0,0)",
         height=320,
-        margin=dict(l=10, r=10, t=35, b=10),
-        legend=dict(orientation="v", font=dict(color="#F5F5F7", size=11))
+        margin=dict(l=10, r=70, t=35, b=10),
+        xaxis=dict(showgrid=True, gridcolor="rgba(255,255,255,0.06)", tickfont=dict(color="#8E8E93"), showticklabels=False),
+        yaxis=dict(showgrid=False, tickfont=dict(color="#F5F5F7", size=11)),
+        showlegend=False,
     )
-    st.plotly_chart(fig_donut, width="stretch")
+    st.plotly_chart(fig_dist_bar, width="stretch")
 
 # ----------------------------------------------------------------------
 # Year-over-Year Travel Dynamics & Alliance Loyalty
