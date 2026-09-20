@@ -19,10 +19,10 @@ Delivered major architectural milestone: Scaffolded and built the fresh native A
      - **Flighty Vault / Passport**: Native `.fileImporter` document picker for Flighty CSV files, personal flight stats, airport passport.
      - **Settings & API Bridge**: Environment switcher (Cloud Run production `https://avdb.riffe.co.uk/api`, local dev `localhost:8000`, offline demo mode), connection health testing, cache purge.
    - Authored comprehensive device & TestFlight installation guide in `ios/README.md`.
-2. **BTS DB1B Historical Ingestion (2015–2019) (`pipeline/ingest_db1b_market.py`)**:
-   - 2019 Q1–Q4 completed: **28.5M raw ticket records** compressed into **598,154 route-carrier summaries** in `agg_db1b_market_summary`.
-   - Backfilled **141,007 rows** each into `mart_airport_network_summary` and `mart_airline_network_performance`.
-   - Remaining quarters (2018 down through 2015) actively progressing in background.
+2. **BTS DB1B Historical Ingestion (2015–2019) Completed (`pipeline/ingest_db1b_market.py`)**:
+   - Processed all 20 historical quarters (2015 Q1 through 2019 Q4): **130M+ raw survey tickets** compressed into **2,867,407 route-carrier summaries** in `agg_db1b_market_summary`.
+   - Backfilled **663,168 route-carrier-months** each into `mart_airport_network_summary` and `mart_airline_network_performance`.
+   - **Combined 10-Year Coverage**: AvDB now holds **10 consecutive years of BTS DB1B market fare data** (2015–2024; 40 total quarters), with **5,702,336 summaries** in `agg_db1b_market_summary` and **1,318,933 rows** backfilled into both BigQuery analytical marts.
 
 **Design Critique Score: 9.8 / 10.0 🟢 PASSED** (Threshold: 8.0, Target: 8.5)
 | Dimension | Score | Status |
@@ -57,7 +57,7 @@ Delivered major architectural milestone: Scaffolded and built the fresh native A
 | :--- | :--- | :--- | :--- | :--- |
 | `mart_airport_network_summary` | **8,532,624** | `flight_date` (MONTH) | `origin`, `dest`, `unique_carrier` | 99.95% GPS coordinate completeness, 218M+ pax recovered for PBI/Bonespurs, load factors, historical fares backfilled (2020–2024). |
 | `mart_airline_network_performance` | **8,532,624** | `flight_date` (MONTH) | `unique_carrier`, `origin`, `dest` | Available Seat Miles (ASM), RPM, load factors, route market share %, fares & yield per mile backfilled (2020–2024). |
-| `agg_db1b_market_summary` | **2,834,929** | `quarter_date` (YEAR) | `Origin`, `Dest`, `carrier` | Pre-aggregated BTS DB1B Market survey metrics ($20–$2,500 ticket bounds, 10x survey pax, revenue, avg fare, yields). |
+| `agg_db1b_market_summary` | **5,702,336** | `quarter_date` (YEAR) | `Origin`, `Dest`, `carrier` | Pre-aggregated BTS DB1B Market survey metrics ($20–$2,500 ticket bounds, 10x survey pax, revenue, avg fare, yields, 2015–2024). |
 | `mart_fleet_route_dynamics` | **13,604,268** | `flight_date` (MONTH) | `aircraft_family`, `unique_carrier`, `origin` | Equipment types (A320/A321, B738, E175, Widebodies), avg gauge (seats/dep), stage length economics. |
 | `ref_regional_route_attribution` | **7,024** | — | `origin`, `dest`, `op_carrier` | Route-specific empirical marketing carrier shares from 79.8M DB1B ticket survey coupons. |
 | `user_travel.user_flight_logs` | **User Vault** | `created_at` (DAY) | `user_email`, `origin`, `dest`, `carrier_code` | User Flighty segments, subfleet variants, seat positions, CO2 emissions, fail-safe purge controls. |
