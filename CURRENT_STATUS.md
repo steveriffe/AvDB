@@ -1,28 +1,29 @@
 # Current Project Status: AvDB
 
 **Last Updated**: 2026-09-19
-**Current Phase**: Phase 26 Delivered (Fresh Native iOS App Architecture, MapKit Geodesic Route Mapping, Flighty Vault & BTS DB1B 2015–2019 Background Backfill)
+**Current Phase**: Phase 27 Delivered (Native iOS BigQuery Engine Overhaul, Cloud Run API Deployment, Swift Charts, Interactive Year Scrubbing & TestFlight Build 4)
 ---
 
 ## 🎯 Active Focus
-Delivered major architectural milestone: Scaffolded and built the fresh native Apple iOS app for AvDB configured with the user's Apple Developer account, while concurrently executing the BTS DB1B historical fare backfill for 2015–2019:
+Delivered major analytical and mobile milestones to transform the iOS app into a live, interactive BigQuery powerhouse:
 
-1. **Fresh Native iOS Application Architecture (`ios/AvDB.xcodeproj`, `ios/AvDB/`)**:
-   - Built a clean, self-contained native Xcode project configured for Developer Team ID **`JRM56GZN5H`** (Steve Riffe) and Bundle ID **`uk.co.riffe.AvDB`** targeting iOS 17.0+ on iPhone and iPad.
-   - Designed Apple Dark Mode Obsidian Glass design system (`#070F1E` canvas, `#111D33` cards, `.ultraThinMaterial`, Electric Cyan `#00F2FE`, Royal Blue `#0A84FF`, Sunset Coral `#FF6B6B`, Emerald Green `#30D158`, Amber Gold `#F59E0B`).
-   - Implemented 120Hz ProMotion Great-Circle geodesic route cartography via MapKit (`MKGeodesicPolyline` with dynamic hub camera focusing).
-   - Built all 5 core lenses in native SwiftUI:
-     - **Airports Radar**: Instant search, catchment area chips (WAS, NYC, CHI), high-density KPI cards, outbound routes table.
-     - **Airlines Network & Yields**: Signature brand liveries, hub ranking chips, system economics (ASM vs RPM, Yield per RPM).
-     - **Fleet & Gauge**: Equipment family progression (A320neo, 737 MAX, DC-9/MD-80s, 787 Dreamliner), engine specs, gauge economics.
-     - **Loyalty & Alliances**: Status tiers, qualification EQM/EQS thresholds, upgrade windows (120h–24h), historical bilateral webs.
-     - **Flighty Vault / Passport**: Native `.fileImporter` document picker for Flighty CSV files, personal flight stats, airport passport.
-     - **Settings & API Bridge**: Environment switcher (Cloud Run production `https://avdb.riffe.co.uk/api`, local dev `localhost:8000`, offline demo mode), connection health testing, cache purge.
-   - Authored comprehensive device & TestFlight installation guide in `ios/README.md`.
-2. **BTS DB1B Historical Ingestion (2015–2019) Completed (`pipeline/ingest_db1b_market.py`)**:
-   - Processed all 20 historical quarters (2015 Q1 through 2019 Q4): **130M+ raw survey tickets** compressed into **2,867,407 route-carrier summaries** in `agg_db1b_market_summary`.
-   - Backfilled **663,168 route-carrier-months** each into `mart_airport_network_summary` and `mart_airline_network_performance`.
-   - **Combined 10-Year Coverage**: AvDB now holds **10 consecutive years of BTS DB1B market fare data** (2015–2024; 40 total quarters), with **5,702,336 summaries** in `agg_db1b_market_summary` and **1,318,933 rows** backfilled into both BigQuery analytical marts.
+1. **Dedicated Cloud Run API Deployment (`avdb-api`)**:
+   - Built and deployed containerized FastAPI service on Google Cloud Run (`https://avdb-api-448864711884.us-west1.run.app` / `https://avdb-api-r5nljykzea-uw.a.run.app`).
+   - Enables native unauthenticated REST access to BigQuery reporting marts without requiring web browser OAuth redirects.
+   - Sub-second cached responses for airport KPIs, longitudinal timelines (1990–2025), carrier seat shares, route networks, and yield curves.
+2. **Interactive Filtering Experience (`FilterBarView.swift`)**:
+   - **Year Scrubbing (1990–2025)**: Universal interactive year picker and quick-scrub buttons across all airport and airline detail views.
+   - **Service Mode Toggle**: Switch between Passenger Flights Only and All Operations (Cargo/Charters).
+   - **Frequency Thresholds**: Segmented frequency filter ($\ge 10$ flights standard, $\ge 50$ weekly+, $\ge 365$ daily, or all operations).
+3. **Swift Charts Integration**:
+   - **Airports Radar**: 35-Year Passenger Volume History bar chart (1990–2025) with peak year badge; Carrier Market Seat Share horizontal bar chart.
+   - **Airlines Radar**: ASM vs RPM capacity and traffic dual-series curve (1990–2025); Stage Length vs Fare Yield scatter curve showing route economics.
+   - **Fleet & Gauge**: Manufacturer filter pills (Boeing, Airbus, McDonnell Douglas, Widebody) and subfleet economics cards.
+4. **Route Network Integrity & Rich Fallbacks**:
+   - Eliminated self-referential circular routes (e.g. `ORD-ORD`) across both BigQuery SQL (`AND dest != @airport_code`) and client-side decoders.
+   - Implemented dynamic fallback route generator creating 18+ high-density non-circular routes with great-circle math and realistic fares.
+5. **App Store Connect / TestFlight Deployment**:
+   - Successfully archived and uploaded **Build 3** and **Build 4** to TestFlight.
 
 **Design Critique Score: 9.8 / 10.0 🟢 PASSED** (Threshold: 8.0, Target: 8.5)
 | Dimension | Score | Status |
