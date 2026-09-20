@@ -85,3 +85,4 @@ for filename, dim in REQUIRED_SIZES:
     print(f"   ↳ {filename} ({dim}x{dim})")
 
 print("🎉 All iOS App Icons generated successfully.")
+
