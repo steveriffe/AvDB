@@ -263,9 +263,9 @@ flowchart LR
 - [ ] **14.2 Chart Typology Refactoring (Donuts $\rightarrow$ Clean Bar Charts)**:
   - [ ] Replace donut charts with horizontal bar charts where percent-of-whole comparisons are unhelpful or visual noise.
   - [ ] Retain donut / pie representations strictly where direct 100% part-to-whole decomposition adds analytical clarity.
-- [ ] **14.3 McDonnell Douglas Fleet Integration**:
-  - [ ] Add McDonnell Douglas / Douglas airframe families (`DC-9`, `MD-80`/`MD-88`/`MD-90`, `DC-10`, `MD-11`, `B717`) to `app/data/ref_aircraft_specs.py`.
-  - [ ] Integrate specs, historical gauge economics, and key legacy operators (Delta, American, Northwest, TWA, Continental).
+- [x] **14.3 McDonnell Douglas Fleet Integration**:
+  - [x] Add McDonnell Douglas / Douglas airframe families (`DC-9`, `MD-80`/`MD-88`/`MD-90`, `DC-10`, `MD-11`, `B717`) to `app/data/ref_aircraft_specs.py`.
+  - [x] Integrate specs, historical gauge economics, and key legacy operators (Delta, American, Northwest, TWA, Continental).
 
 ---
 
