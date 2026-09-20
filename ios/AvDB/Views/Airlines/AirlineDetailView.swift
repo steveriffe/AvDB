@@ -94,21 +94,21 @@ public struct AirlineDetailView: View {
                             )
                             KPICardView(
                                 title: "Load Factor",
-                                value: "\(kpi.loadFactor * 100, specifier: "%.1f")%",
-                                subtitle: "\(Double(kpi.totalPassengers) / 1_000_000.0, specifier: "%.1f")M passengers",
+                                value: String(format: "%.1f%%", kpi.loadFactor * 100),
+                                subtitle: "\(String(format: "%.1f", Double(kpi.totalPassengers) / 1_000_000.0))M passengers",
                                 icon: "gauge.with.needle.fill",
                                 accentColor: AvDBTheme.accentGreen
                             )
                             KPICardView(
                                 title: "Avg Network Fare",
-                                value: kpi.avgOdFare != nil ? "$\(kpi.avgOdFare!, specifier: "%.0f")" : "—",
+                                value: kpi.avgOdFare != nil ? String(format: "$%.0f", kpi.avgOdFare!) : "—",
                                 subtitle: "DB1B Survey",
                                 icon: "dollarsign.circle.fill",
                                 accentColor: AvDBTheme.accentAmber
                             )
                             KPICardView(
                                 title: "Yield / RPM",
-                                value: kpi.yieldPerMile != nil ? "¢\((kpi.yieldPerMile! * 100), specifier: "%.1f")" : "—",
+                                value: kpi.yieldPerMile != nil ? String(format: "¢%.1f", kpi.yieldPerMile! * 100) : "—",
                                 subtitle: "Per passenger-mile",
                                 icon: "chart.line.uptrend.xyaxis",
                                 accentColor: AvDBTheme.accentCoral
@@ -127,7 +127,7 @@ public struct AirlineDetailView: View {
                                 }
                                 HStack(spacing: 20) {
                                     VStack(alignment: .leading) {
-                                        Text("\(kpi.asmBillions, specifier: "%.1f")B")
+                                        Text("\(String(format: "%.1f", kpi.asmBillions))B")
                                             .font(.system(size: 18, weight: .bold, design: .rounded))
                                             .foregroundColor(AvDBTheme.accentBlue)
                                         Text("Available Seat Miles")
@@ -136,7 +136,7 @@ public struct AirlineDetailView: View {
                                     }
                                     Spacer()
                                     VStack(alignment: .trailing) {
-                                        Text("\(kpi.rpmBillions, specifier: "%.1f")B")
+                                        Text("\(String(format: "%.1f", kpi.rpmBillions))B")
                                             .font(.system(size: 18, weight: .bold, design: .rounded))
                                             .foregroundColor(AvDBTheme.accentGreen)
                                         Text("Revenue Pax Miles")

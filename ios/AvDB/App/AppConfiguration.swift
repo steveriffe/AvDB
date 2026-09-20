@@ -13,7 +13,7 @@ public final class AppConfiguration: ObservableObject {
     public let developer = "Steve Riffe"
 
     // MARK: - Endpoints
-    public enum Environment: String, CaseIterable, Identifiable {
+    public enum Environment: String, CaseIterable, Identifiable, Sendable {
         case cloudRun = "Cloud Run (Production)"
         case localHost = "Localhost (Development)"
         case offlineDemo = "Offline Demo Mode"
@@ -30,6 +30,11 @@ public final class AppConfiguration: ObservableObject {
                 return URL(string: "https://demo.avdb.local")!
             }
         }
+    }
+
+    public static var currentEnvironment: Environment {
+        let savedEnv = UserDefaults.standard.string(forKey: "avdb_environment")
+        return Environment(rawValue: savedEnv ?? "") ?? .cloudRun
     }
 
     @Published public var selectedEnvironment: Environment {

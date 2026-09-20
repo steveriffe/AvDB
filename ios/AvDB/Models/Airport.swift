@@ -1,7 +1,7 @@
 import Foundation
 import CoreLocation
 
-public struct Airport: Identifiable, Codable, Hashable {
+public struct Airport: Identifiable, Codable, Hashable, Sendable {
     public var id: String { iata }
     public let iata: String
     public let name: String
@@ -41,7 +41,7 @@ public struct Airport: Identifiable, Codable, Hashable {
     }
 }
 
-public struct AirportKPIs: Codable {
+public struct AirportKPIs: Codable, Sendable {
     public let totalDepartures: Int
     public let totalSeats: Int
     public let totalPassengers: Int
@@ -72,7 +72,7 @@ public struct AirportKPIs: Codable {
     }
 }
 
-public struct OutboundRoute: Identifiable, Codable, Hashable {
+public struct OutboundRoute: Identifiable, Codable, Hashable, Sendable {
     public var id: String { "\(origin)-\(destination)-\(carrier)" }
     public let origin: String
     public let destination: String

@@ -16,8 +16,8 @@ public actor APIService {
     }
 
     // MARK: - Generic Fetch with Cache & Mock Fallback
-    public func fetch<T: Decodable>(_ endpoint: String, fallback: () -> T) async -> T {
-        let env = AppConfiguration.shared.selectedEnvironment
+    public func fetch<T: Decodable & Sendable>(_ endpoint: String, fallback: @Sendable () -> T) async -> T {
+        let env = AppConfiguration.currentEnvironment
         if env == .offlineDemo {
             return fallback()
         }

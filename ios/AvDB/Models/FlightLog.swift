@@ -1,6 +1,6 @@
 import Foundation
 
-public struct FlightLog: Identifiable, Codable, Hashable {
+public struct FlightLog: Identifiable, Codable, Hashable, Sendable {
     public var id: String { flightIdentifier }
     public let flightIdentifier: String
     public let date: String

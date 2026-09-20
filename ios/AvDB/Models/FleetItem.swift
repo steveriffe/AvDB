@@ -1,6 +1,6 @@
 import Foundation
 
-public struct FleetFamily: Identifiable, Codable, Hashable {
+public struct FleetFamily: Identifiable, Codable, Hashable, Sendable {
     public var id: String { familyName }
     public let familyName: String
     public let manufacturer: String
@@ -29,7 +29,7 @@ public struct FleetFamily: Identifiable, Codable, Hashable {
     }
 }
 
-public struct Subfleet: Identifiable, Codable, Hashable {
+public struct Subfleet: Identifiable, Codable, Hashable, Sendable {
     public var id: String { aircraftType }
     public let aircraftType: String
     public let typicalSeats: Int

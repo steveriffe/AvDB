@@ -52,7 +52,7 @@ public struct FleetView: View {
 
                     // Gauge badge
                     VStack(alignment: .trailing, spacing: 2) {
-                        Text("\(family.avgGauge, specifier: "%.0f") seats")
+                        Text("\(String(format: "%.0f", family.avgGauge)) seats")
                             .font(.system(size: 14, weight: .bold, design: .rounded))
                             .foregroundColor(AvDBTheme.accentCyan)
                         Text("avg gauge")

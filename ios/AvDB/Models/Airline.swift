@@ -1,6 +1,6 @@
 import SwiftUI
 
-public struct Airline: Identifiable, Codable, Hashable {
+public struct Airline: Identifiable, Codable, Hashable, Sendable {
     public var id: String { code }
     public let code: String
     public let name: String
@@ -30,7 +30,7 @@ public struct Airline: Identifiable, Codable, Hashable {
     }
 }
 
-public struct AirlineKPIs: Codable {
+public struct AirlineKPIs: Codable, Sendable {
     public let activeRoutes: Int
     public let departures: Int
     public let totalSeats: Int

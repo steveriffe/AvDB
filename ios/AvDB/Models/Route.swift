@@ -1,7 +1,7 @@
 import Foundation
 import CoreLocation
 
-public struct CoordinatePoint: Codable, Hashable {
+public struct CoordinatePoint: Codable, Hashable, Sendable {
     public let latitude: Double
     public let longitude: Double
 
@@ -15,7 +15,7 @@ public struct CoordinatePoint: Codable, Hashable {
     }
 }
 
-public struct GeodesicRoute: Identifiable, Hashable {
+public struct GeodesicRoute: Identifiable, Hashable, Sendable {
     public var id: String { "\(originIATA)-\(destIATA)-\(carrier)" }
     public let originIATA: String
     public let destIATA: String

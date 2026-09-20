@@ -1,6 +1,6 @@
 import Foundation
 
-public struct LoyaltyProgram: Identifiable, Codable, Hashable {
+public struct LoyaltyProgram: Identifiable, Codable, Hashable, Sendable {
     public var id: String { carrierCode }
     public let carrierCode: String
     public let carrierName: String
@@ -26,7 +26,7 @@ public struct LoyaltyProgram: Identifiable, Codable, Hashable {
     }
 }
 
-public struct LoyaltyTier: Identifiable, Codable, Hashable {
+public struct LoyaltyTier: Identifiable, Codable, Hashable, Sendable {
     public var id: String { name }
     public let name: String
     public let eqmRequired: Int
@@ -55,7 +55,7 @@ public struct LoyaltyTier: Identifiable, Codable, Hashable {
     }
 }
 
-public struct LoyaltyPartnership: Identifiable, Codable, Hashable {
+public struct LoyaltyPartnership: Identifiable, Codable, Hashable, Sendable {
     public var id: String { "\(partnerCarrierCode)-\(relationshipDepth)" }
     public let partnerCarrierCode: String
     public let partnerCarrierName: String

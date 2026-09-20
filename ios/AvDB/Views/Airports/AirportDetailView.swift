@@ -48,21 +48,21 @@ public struct AirportDetailView: View {
                         LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
                             KPICardView(
                                 title: "Passengers",
-                                value: "\(Double(kpi.totalPassengers) / 1_000_000.0, specifier: "%.1f")M",
+                                value: "\(String(format: "%.1f", Double(kpi.totalPassengers) / 1_000_000.0))M",
                                 subtitle: "\(kpi.totalDepartures.formatted()) departures",
                                 icon: "person.2.fill",
                                 accentColor: AvDBTheme.accentCyan
                             )
                             KPICardView(
                                 title: "Load Factor",
-                                value: "\(kpi.loadFactor * 100, specifier: "%.1f")%",
+                                value: String(format: "%.1f%%", kpi.loadFactor * 100),
                                 subtitle: "\(kpi.totalSeats.formatted()) seats",
                                 icon: "gauge.with.needle.fill",
                                 accentColor: AvDBTheme.accentGreen
                             )
                             KPICardView(
                                 title: "Avg O&D Fare",
-                                value: kpi.avgOdFare != nil ? "$\(kpi.avgOdFare!, specifier: "%.0f")" : "—",
+                                value: kpi.avgOdFare != nil ? String(format: "$%.0f", kpi.avgOdFare!) : "—",
                                 subtitle: "BTS DB1B Survey",
                                 icon: "dollarsign.circle.fill",
                                 accentColor: AvDBTheme.accentAmber
@@ -70,7 +70,7 @@ public struct AirportDetailView: View {
                             KPICardView(
                                 title: "Lead Carrier",
                                 value: kpi.leadingCarrier,
-                                subtitle: "\(kpi.leadingCarrierShare * 100, specifier: "%.1f")% seat share",
+                                subtitle: String(format: "%.1f%% seat share", kpi.leadingCarrierShare * 100),
                                 icon: "airplane.circle.fill",
                                 accentColor: AvDBTheme.accentBlue
                             )
@@ -111,7 +111,7 @@ public struct AirportDetailView: View {
                                                 .clipShape(RoundedRectangle(cornerRadius: 4))
                                         }
 
-                                        Text("\(r.distanceMiles, specifier: "%.0f") mi • \(r.departures.formatted()) departures")
+                                        Text(String(format: "%.0f mi • %d departures", r.distanceMiles, r.departures))
                                             .font(.system(size: 12))
                                             .foregroundColor(AvDBTheme.secondaryText)
                                     }
@@ -120,11 +120,11 @@ public struct AirportDetailView: View {
 
                                     VStack(alignment: .trailing, spacing: 2) {
                                         if let fare = r.avgOdFare {
-                                            Text("$\(fare, specifier: "%.0f")")
+                                            Text(String(format: "$%.0f", fare))
                                                 .font(.system(size: 14, weight: .bold, design: .rounded))
                                                 .foregroundColor(AvDBTheme.accentAmber)
                                         }
-                                        Text("\(r.loadFactor * 100, specifier: "%.0f")% LF")
+                                        Text(String(format: "%.0f%% LF", r.loadFactor * 100))
                                             .font(.system(size: 11, weight: .semibold))
                                             .foregroundColor(AvDBTheme.accentGreen)
                                     }
