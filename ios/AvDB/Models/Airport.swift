@@ -106,3 +106,4 @@ public struct OutboundRoute: Identifiable, Codable, Hashable {
         self.avgOdFare = avgOdFare
     }
 }
+

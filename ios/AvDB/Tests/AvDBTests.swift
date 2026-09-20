@@ -47,3 +47,4 @@ final class AvDBTests: XCTestCase {
         XCTAssertNotNil(color)
     }
 }
+

@@ -86,3 +86,4 @@ public struct LoyaltyPartnership: Identifiable, Codable, Hashable {
         self.historicalNote = historicalNote
     }
 }
+

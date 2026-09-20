@@ -170,3 +170,4 @@ public struct AirportDetailView: View {
         }
     }
 }
+

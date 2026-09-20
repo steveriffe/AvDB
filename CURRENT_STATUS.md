@@ -1,31 +1,28 @@
 # Current Project Status: AvDB
 
 **Last Updated**: 2026-09-19
-**Current Phase**: Phase 25 Delivered (McDonnell Douglas Fleet Family, DB1B 2020–2024 Fare Ingestion, FFP Loyalty Partnerships Lens & Cloud Run Production Rollout)
+**Current Phase**: Phase 26 Delivered (Fresh Native iOS App Architecture, MapKit Geodesic Route Mapping, Flighty Vault & BTS DB1B 2015–2019 Background Backfill)
 ---
 
 ## 🎯 Active Focus
-Delivered three major roadmap milestones: Douglas & McDonnell Douglas fleet expansion, BTS DB1B 5-year historical fare backfill (2020–2024), and the Frequent Flyer Program (FFP) Historical Partnerships Lens:
+Delivered major architectural milestone: Scaffolded and built the fresh native Apple iOS app for AvDB configured with the user's Apple Developer account, while concurrently executing the BTS DB1B historical fare backfill for 2015–2019:
 
-1. **Douglas & McDonnell Douglas Fleet Expansion (`app/data/ref_aircraft_specs.py`, `tests/test_fleet_specs.py`)**:
-   - Integrated canonical airframes: **DC-9 Family** (DC-9-10/30/40/50), **MD-90**, **DC-10** (DC-10-10/30), and **MD-11** with complete engineering specifications, certified MTOW, ranges, powerplants, and operator cards (NW, DL, EA, CO, AA, UA, FX, etc.).
-   - Added verified high-resolution photography with full CC / Public Domain photographer licensing attribution.
-   - Formulated token-aware regex in `get_aircraft_spec` evaluating `MD-11` and `DC-10` before `DC-9` and isolating tokens to prevent false classification (e.g. `DC-10` never matches `DC-9`; `DC-9 Super 80` resolves to MD-80).
-2. **BTS DB1B Historical Fare Ingestion & Mart Backfill (2020–2024) (`pipeline/ingest_db1b_market.py`)**:
-   - Upgraded ingestion pipeline to dual-backfill both `mart_airport_network_summary` and `mart_airline_network_performance`.
-   - Processed all 20 quarters (2020 Q1 – 2024 Q4): **125.6M raw survey records** downloaded and compressed into **2,834,929 route-carrier summaries** in `db1b-1.reporting.agg_db1b_market_summary` (210.88 MB).
-   - Backfilled **655,765 route-carrier-month records** into both reporting marts, restoring average O&D fares and yields across virtually 100% of scheduled domestic passenger flights.
-3. **Frequent Flyer Program (FFP) Historical Partnerships Lens (`app/pages/6_💳_Loyalty_Partnerships.py`, `app/data/ref_ffp_partnerships.py`)**:
-   - Structured 11 major US programs and predecessors: Alaska *Mileage Plan*, Northwest *WorldPerks*, Continental *OnePass*, America West *FlightFund*, US Airways *Dividend Miles*, TWA *Aviators*, Delta *SkyMiles*, American *AAdvantage*, United *MileagePlus*, Eastern *OnePass/Ionosphere*, Pan Am *WorldPass*.
-   - Structured complete status tier hierarchies with EQM/EQS/Spend thresholds, upgrade clearance windows (120h–24h), bonus miles (+25%–150%), baggage rules, and reciprocal lounge club privileges.
-   - Encoded 20 bilateral partnerships capturing historical deregulation messiness (Alaska's multi-carrier independence, America West-Continental equity alliance, Wings Alliance, Delta-Alaska Seattle feud, US Airways hopscotch).
-   - Built interactive Apple dark-mode page with 1985–2026 year slider, vector SVG insignia logos (including new Eastern and KLM badges), active partners grid, tier ladder cards, and 7 curated deep-dive expanders.
-   - Renumbered Privacy Policy to `app/pages/7_🔒_Privacy_Policy.py`.
-4. **Visual Design Critique & Typographic Refinement**:
-   - Purged wordy narrative subtitles under headers in accordance with Bauhaus/modernist design principles.
-   - Replaced generic callout blocks with frosted-glass dark-mode empty state cards (`#111D33`).
-5. **Cloud Run Production Deployment**:
-   - Deployed revision `avdb-00029-d4p` to `us-west1` serving 100% traffic at [avdb.riffe.co.uk](https://avdb.riffe.co.uk).
+1. **Fresh Native iOS Application Architecture (`ios/AvDB.xcodeproj`, `ios/AvDB/`)**:
+   - Built a clean, self-contained native Xcode project configured for Developer Team ID **`JRM56GZN5H`** (Steve Riffe) and Bundle ID **`uk.co.riffe.AvDB`** targeting iOS 17.0+ on iPhone and iPad.
+   - Designed Apple Dark Mode Obsidian Glass design system (`#070F1E` canvas, `#111D33` cards, `.ultraThinMaterial`, Electric Cyan `#00F2FE`, Royal Blue `#0A84FF`, Sunset Coral `#FF6B6B`, Emerald Green `#30D158`, Amber Gold `#F59E0B`).
+   - Implemented 120Hz ProMotion Great-Circle geodesic route cartography via MapKit (`MKGeodesicPolyline` with dynamic hub camera focusing).
+   - Built all 5 core lenses in native SwiftUI:
+     - **Airports Radar**: Instant search, catchment area chips (WAS, NYC, CHI), high-density KPI cards, outbound routes table.
+     - **Airlines Network & Yields**: Signature brand liveries, hub ranking chips, system economics (ASM vs RPM, Yield per RPM).
+     - **Fleet & Gauge**: Equipment family progression (A320neo, 737 MAX, DC-9/MD-80s, 787 Dreamliner), engine specs, gauge economics.
+     - **Loyalty & Alliances**: Status tiers, qualification EQM/EQS thresholds, upgrade windows (120h–24h), historical bilateral webs.
+     - **Flighty Vault / Passport**: Native `.fileImporter` document picker for Flighty CSV files, personal flight stats, airport passport.
+     - **Settings & API Bridge**: Environment switcher (Cloud Run production `https://avdb.riffe.co.uk/api`, local dev `localhost:8000`, offline demo mode), connection health testing, cache purge.
+   - Authored comprehensive device & TestFlight installation guide in `ios/README.md`.
+2. **BTS DB1B Historical Ingestion (2015–2019) (`pipeline/ingest_db1b_market.py`)**:
+   - 2019 Q1–Q4 completed: **28.5M raw ticket records** compressed into **598,154 route-carrier summaries** in `agg_db1b_market_summary`.
+   - Backfilled **141,007 rows** each into `mart_airport_network_summary` and `mart_airline_network_performance`.
+   - Remaining quarters (2018 down through 2015) actively progressing in background.
 
 **Design Critique Score: 9.8 / 10.0 🟢 PASSED** (Threshold: 8.0, Target: 8.5)
 | Dimension | Score | Status |

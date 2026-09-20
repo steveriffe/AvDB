@@ -40,3 +40,4 @@ public struct FlightLog: Identifiable, Codable, Hashable {
         self.distanceMiles = distanceMiles
     }
 }
+

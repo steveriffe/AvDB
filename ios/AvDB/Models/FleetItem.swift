@@ -54,3 +54,4 @@ public struct Subfleet: Identifiable, Codable, Hashable {
         self.avgStageLength = avgStageLength
     }
 }
+

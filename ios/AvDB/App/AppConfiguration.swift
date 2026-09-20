@@ -8,7 +8,7 @@ public final class AppConfiguration: ObservableObject {
     // MARK: - App Identity
     public let appName = "AvDB"
     public let appVersion = "1.0.0"
-    public let bundleID = "uk.co.riffe.AvDB"
+    public let bundleID = "steveriffe.AvDB"
     public let teamID = "JRM56GZN5H"
     public let developer = "Steve Riffe"
 
@@ -52,3 +52,4 @@ public final class AppConfiguration: ObservableObject {
         self.enableHaptics = UserDefaults.standard.object(forKey: "avdb_enable_haptics") as? Bool ?? true
     }
 }
+

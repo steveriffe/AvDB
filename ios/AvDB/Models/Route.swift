@@ -43,3 +43,4 @@ public struct GeodesicRoute: Identifiable, Hashable {
         self.avgFare = avgFare
     }
 }
+

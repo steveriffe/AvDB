@@ -48,6 +48,7 @@ FlightyExport*.csv
 .build/
 .swiftpm/
 DerivedData/
+*.xcdistributionlogs/
 
 # Scratch
 scratch/
