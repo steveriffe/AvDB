@@ -71,12 +71,34 @@ class AirportCarrierShare(BaseModel):
     total_seats: int
     operational_passengers: int
     load_factor_pct: float
+    seat_share_pct: Optional[float] = None
     avg_fare: Optional[float] = None
+
+
+class AirportTimelinePoint(BaseModel):
+    year: int
+    total_passengers: int
+    total_departures: int
+    total_seats: int
+    load_factor_pct: float
+    direct_destinations: int
+    avg_od_fare: Optional[float] = None
 
 
 # -------------------------------------------------------------
 # AIRLINE MODELS
 # -------------------------------------------------------------
+
+class AirlineItem(BaseModel):
+    carrier_code: str
+    carrier_name: str
+    brand_color: str = "#0078D2"
+    alliance: Optional[str] = None
+    primary_hubs: List[str] = []
+    headquarters: Optional[str] = None
+    is_active: bool = True
+    merger_note: Optional[str] = None
+
 
 class AirlineKPIs(BaseModel):
     carrier_code: str
@@ -90,6 +112,17 @@ class AirlineKPIs(BaseModel):
     system_load_factor: float
     avg_network_fare: float
     avg_yield_per_mile: float
+
+
+class AirlineTimelinePoint(BaseModel):
+    year: int
+    total_asm: int
+    total_rpm: int
+    system_load_factor: float
+    total_passengers: int
+    total_departures: int
+    avg_network_fare: Optional[float] = None
+    avg_yield_per_mile: Optional[float] = None
 
 
 class AirlineHub(BaseModel):

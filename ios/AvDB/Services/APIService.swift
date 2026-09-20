@@ -16,29 +16,47 @@ public actor APIService {
     }
 
     // MARK: - Generic Fetch with Cache & Mock Fallback
-    public func fetch<T: Decodable & Sendable>(_ endpoint: String, fallback: @Sendable () -> T) async -> T {
+    public func fetch<T: Decodable & Sendable>(
+        _ endpoint: String,
+        queryItems: [URLQueryItem] = [],
+        fallback: @Sendable () -> T
+    ) async -> T {
         let env = AppConfiguration.currentEnvironment
         if env == .offlineDemo {
             return fallback()
         }
 
-        let fullURL = env.baseURL.appendingPathComponent(endpoint)
+        var url = env.baseURL
+        for comp in endpoint.split(separator: "/") {
+            url.appendPathComponent(String(comp))
+        }
+
+        var components = URLComponents(url: url, resolvingAgainstBaseURL: true)
+        if !queryItems.isEmpty {
+            components?.queryItems = queryItems
+        }
+
+        guard let requestURL = components?.url else {
+            return fallback()
+        }
 
         // Check in-memory cache
-        if let cached = cache[fullURL.absoluteString],
+        if let cached = cache[requestURL.absoluteString],
            Date().timeIntervalSince(cached.timestamp) < ttl,
            let decoded = try? JSONDecoder().decode(T.self, from: cached.data) {
             return decoded
         }
 
         do {
-            let (data, response) = try await session.data(from: fullURL)
+            let (data, response) = try await session.data(from: requestURL)
             guard let httpResp = response as? HTTPURLResponse, (200...299).contains(httpResp.statusCode) else {
                 return fallback()
             }
-            cache[fullURL.absoluteString] = (data, Date())
-            return try JSONDecoder().decode(T.self, from: data)
+            let decoded = try JSONDecoder().decode(T.self, from: data)
+            cache[requestURL.absoluteString] = (data, Date())
+            return decoded
         } catch {
+            print("AvDB API fetch fallback for \(requestURL.absoluteString): \(error.localizedDescription)")
             return fallback()
         }
     }
@@ -76,8 +94,18 @@ public actor APIService {
     }
 
     // MARK: - Airport KPIs
-    public func getAirportKPIs(iata: String) async -> AirportKPIs {
-        await fetch("airports/\(iata)/kpis") {
+    public func getAirportKPIs(
+        iata: String,
+        year: Int = 2024,
+        passengerOnly: Bool = true,
+        minDepartures: Int = 10
+    ) async -> AirportKPIs {
+        let qItems = [
+            URLQueryItem(name: "year", value: String(year)),
+            URLQueryItem(name: "passenger_only", value: String(passengerOnly)),
+            URLQueryItem(name: "min_departures", value: String(minDepartures))
+        ]
+        return await fetch("airports/\(iata)/kpis", queryItems: qItems) {
             AirportKPIs(
                 totalDepartures: 28410,
                 totalSeats: 4890200,
@@ -91,15 +119,76 @@ public actor APIService {
         }
     }
 
-    // MARK: - Outbound Routes
-    public func getOutboundRoutes(iata: String) async -> [OutboundRoute] {
-        await fetch("airports/\(iata)/routes") {
+    // MARK: - Airport Longitudinal Timeline
+    public func getAirportTimeline(
+        iata: String,
+        passengerOnly: Bool = true,
+        minDepartures: Int = 10
+    ) async -> [AirportTimelinePoint] {
+        let qItems = [
+            URLQueryItem(name: "passenger_only", value: String(passengerOnly)),
+            URLQueryItem(name: "min_departures", value: String(minDepartures))
+        ]
+        return await fetch("airports/\(iata)/timeline", queryItems: qItems) {
+            var mock: [AirportTimelinePoint] = []
+            for yr in 2000...2024 {
+                let factor = 1.0 + Double(yr - 2000) * 0.03
+                let pax = Int(Double(32_000_000) * factor * (yr == 2020 ? 0.45 : (yr == 2021 ? 0.75 : 1.0)))
+                let deps = Int(Double(pax) / 142.0)
+                let seats = Int(Double(pax) / 0.84)
+                mock.append(AirportTimelinePoint(
+                    year: yr,
+                    totalPassengers: pax,
+                    totalDepartures: deps,
+                    totalSeats: seats,
+                    loadFactorPct: 84.2,
+                    directDestinations: 125,
+                    avgOdFare: 185.0 + Double(yr - 2000) * 2.8
+                ))
+            }
+            return mock
+        }
+    }
+
+    // MARK: - Airport Carrier Market Share
+    public func getAirportCarriers(
+        iata: String,
+        year: Int = 2024,
+        passengerOnly: Bool = true
+    ) async -> [AirportCarrierShare] {
+        let qItems = [
+            URLQueryItem(name: "year", value: String(year)),
+            URLQueryItem(name: "passenger_only", value: String(passengerOnly))
+        ]
+        return await fetch("airports/\(iata)/carriers", queryItems: qItems) {
             [
-                OutboundRoute(origin: iata, destination: "ORD", carrier: "UA", departures: 1240, seats: 198400, passengers: 168640, loadFactor: 0.85, distanceMiles: 606, avgOdFare: 192.40),
-                OutboundRoute(origin: iata, destination: "DFW", carrier: "AA", departures: 1120, seats: 179200, passengers: 154112, loadFactor: 0.86, distanceMiles: 731, avgOdFare: 215.10),
-                OutboundRoute(origin: iata, destination: "LAX", carrier: "DL", departures: 980, seats: 186200, passengers: 161994, loadFactor: 0.87, distanceMiles: 1946, avgOdFare: 284.90),
-                OutboundRoute(origin: iata, destination: "DEN", carrier: "UA", departures: 890, seats: 151300, passengers: 128605, loadFactor: 0.85, distanceMiles: 1199, avgOdFare: 185.00),
-                OutboundRoute(origin: iata, destination: "SEA", carrier: "AS", departures: 760, seats: 121600, passengers: 104576, loadFactor: 0.86, distanceMiles: 2182, avgOdFare: 298.50)
+                AirportCarrierShare(uniqueCarrier: "DL", carrierName: "Delta Air Lines", departuresPerformed: 45000, totalSeats: 7500000, operationalPassengers: 6400000, loadFactorPct: 85.3, seatSharePct: 48.5, avgFare: 224.0),
+                AirportCarrierShare(uniqueCarrier: "UA", carrierName: "United Airlines", departuresPerformed: 22000, totalSeats: 3600000, operationalPassengers: 3050000, loadFactorPct: 84.7, seatSharePct: 23.3, avgFare: 218.0),
+                AirportCarrierShare(uniqueCarrier: "AA", carrierName: "American Airlines", departuresPerformed: 15000, totalSeats: 2400000, operationalPassengers: 2020000, loadFactorPct: 84.2, seatSharePct: 15.5, avgFare: 235.0),
+                AirportCarrierShare(uniqueCarrier: "WN", carrierName: "Southwest Airlines", departuresPerformed: 12000, totalSeats: 1900000, operationalPassengers: 1610000, loadFactorPct: 84.7, seatSharePct: 12.3, avgFare: 195.0),
+            ]
+        }
+    }
+
+    // MARK: - Outbound Routes
+    public func getOutboundRoutes(
+        iata: String,
+        year: Int = 2024,
+        passengerOnly: Bool = true,
+        minDepartures: Int = 10
+    ) async -> [OutboundRoute] {
+        let qItems = [
+            URLQueryItem(name: "year", value: String(year)),
+            URLQueryItem(name: "passenger_only", value: String(passengerOnly)),
+            URLQueryItem(name: "min_departures", value: String(minDepartures))
+        ]
+        return await fetch("airports/\(iata)/routes", queryItems: qItems) {
+            [
+                OutboundRoute(origin: iata, destination: "ORD", carrier: "UA", departures: 1240, seats: 198400, passengers: 168640, loadFactor: 0.85, distanceMiles: 606, avgOdFare: 192.40, originLat: 33.6407, originLon: -84.4277, destLat: 41.9742, destLon: -87.9073),
+                OutboundRoute(origin: iata, destination: "DFW", carrier: "AA", departures: 1120, seats: 179200, passengers: 154112, loadFactor: 0.86, distanceMiles: 731, avgOdFare: 215.10, originLat: 33.6407, originLon: -84.4277, destLat: 32.8998, destLon: -97.0403),
+                OutboundRoute(origin: iata, destination: "LAX", carrier: "DL", departures: 980, seats: 186200, passengers: 161994, loadFactor: 0.87, distanceMiles: 1946, avgOdFare: 284.90, originLat: 33.6407, originLon: -84.4277, destLat: 33.9416, destLon: -118.4085),
+                OutboundRoute(origin: iata, destination: "DEN", carrier: "UA", departures: 890, seats: 151300, passengers: 128605, loadFactor: 0.85, distanceMiles: 1199, avgOdFare: 185.00, originLat: 33.6407, originLon: -84.4277, destLat: 39.8561, destLon: -104.6737),
+                OutboundRoute(origin: iata, destination: "SEA", carrier: "AS", departures: 760, seats: 121600, passengers: 104576, loadFactor: 0.86, distanceMiles: 2182, avgOdFare: 298.50, originLat: 33.6407, originLon: -84.4277, destLat: 47.4502, destLon: -122.3088)
             ]
         }
     }
@@ -108,19 +197,30 @@ public actor APIService {
     public func getAirlines() async -> [Airline] {
         await fetch("airlines") {
             [
+                Airline(code: "AS", name: "Alaska Airlines", hexColor: "#01426A", alliance: "oneworld", primaryHubs: ["SEA", "PDX", "ANC", "SFO", "LAX", "HNL"], headquarters: "Seattle, WA"),
                 Airline(code: "DL", name: "Delta Air Lines", hexColor: "#E51937", alliance: "SkyTeam", primaryHubs: ["ATL", "DTW", "MSP", "SLC", "SEA", "JFK", "BOS", "LAX"], headquarters: "Atlanta, GA"),
                 Airline(code: "UA", name: "United Airlines", hexColor: "#005DAA", alliance: "Star Alliance", primaryHubs: ["ORD", "DEN", "IAH", "EWR", "SFO", "IAD", "LAX"], headquarters: "Chicago, IL"),
                 Airline(code: "AA", name: "American Airlines", hexColor: "#0078D2", alliance: "oneworld", primaryHubs: ["DFW", "CLT", "MIA", "ORD", "PHX", "PHL", "LGA", "DCA"], headquarters: "Fort Worth, TX"),
-                Airline(code: "AS", name: "Alaska Airlines", hexColor: "#01426A", alliance: "oneworld", primaryHubs: ["SEA", "PDX", "SFO", "LAX", "ANC", "HNL"], headquarters: "Seattle, WA"),
                 Airline(code: "WN", name: "Southwest Airlines", hexColor: "#304CB2", alliance: nil, primaryHubs: ["MDW", "DAL", "DEN", "LAS", "BWI", "PHX", "HOU"], headquarters: "Dallas, TX"),
-                Airline(code: "B6", name: "JetBlue Airways", hexColor: "#00205B", alliance: nil, primaryHubs: ["JFK", "BOS", "FLL", "MCO"], headquarters: "Long Island City, NY")
+                Airline(code: "B6", name: "JetBlue Airways", hexColor: "#00205B", alliance: nil, primaryHubs: ["JFK", "BOS", "FLL", "MCO"], headquarters: "Long Island City, NY"),
+                Airline(code: "NK", name: "Spirit Airlines", hexColor: "#F3C300", alliance: nil, primaryHubs: ["FLL", "MCO", "DTW", "LAS", "DFW"], headquarters: "Dania Beach, FL"),
+                Airline(code: "F9", name: "Frontier Airlines", hexColor: "#006643", alliance: nil, primaryHubs: ["DEN", "MCO", "LAS", "PHX", "ATL"], headquarters: "Denver, CO"),
+                Airline(code: "G4", name: "Allegiant Air", hexColor: "#00529B", alliance: nil, primaryHubs: ["SFB", "PIE", "PGD", "LAS", "AZA"], headquarters: "Las Vegas, NV"),
+                Airline(code: "HA", name: "Hawaiian Airlines", hexColor: "#5D2A68", alliance: "oneworld", primaryHubs: ["HNL", "OGG"], headquarters: "Honolulu, HI", isActive: true, mergerNote: "Acquired by Alaska Airlines in 2024"),
+                Airline(code: "CO", name: "Continental Airlines", hexColor: "#0A3161", alliance: "Star Alliance", primaryHubs: ["IAH", "EWR", "CLE"], headquarters: "Houston, TX", isActive: false, mergerNote: "Merged with United Airlines in 2010"),
+                Airline(code: "NW", name: "Northwest Airlines", hexColor: "#C00000", alliance: "SkyTeam", primaryHubs: ["MSP", "DTW", "MEM"], headquarters: "Eagan, MN", isActive: false, mergerNote: "Merged with Delta Air Lines in 2008"),
+                Airline(code: "US", name: "US Airways", hexColor: "#1E2A38", alliance: "Star Alliance", primaryHubs: ["CLT", "PHL", "PHX"], headquarters: "Tempe, AZ", isActive: false, mergerNote: "Merged with American Airlines in 2013"),
+                Airline(code: "HP", name: "America West Airlines", hexColor: "#2E7D32", alliance: nil, primaryHubs: ["PHX", "LAS"], headquarters: "Tempe, AZ", isActive: false, mergerNote: "Merged with US Airways in 2005 / American 2013"),
+                Airline(code: "TW", name: "Trans World Airlines (TWA)", hexColor: "#B30838", alliance: nil, primaryHubs: ["STL", "JFK"], headquarters: "St. Louis, MO", isActive: false, mergerNote: "Acquired by American Airlines in 2001"),
+                Airline(code: "VX", name: "Virgin America", hexColor: "#D81B60", alliance: nil, primaryHubs: ["SFO", "LAX"], headquarters: "Burlingame, CA", isActive: false, mergerNote: "Acquired by Alaska Airlines in 2016")
             ]
         }
     }
 
     // MARK: - Airline KPIs
-    public func getAirlineKPIs(code: String) async -> AirlineKPIs {
-        await fetch("airlines/\(code)/kpis") {
+    public func getAirlineKPIs(code: String, year: Int = 2024) async -> AirlineKPIs {
+        let qItems = [URLQueryItem(name: "year", value: String(year))]
+        return await fetch("airlines/\(code)/kpis", queryItems: qItems) {
             AirlineKPIs(
                 activeRoutes: 842,
                 departures: 87400,
@@ -132,6 +232,43 @@ public actor APIService {
                 avgOdFare: 242.80,
                 yieldPerMile: 0.184
             )
+        }
+    }
+
+    // MARK: - Airline Timeline
+    public func getAirlineTimeline(code: String) async -> [AirlineTimelinePoint] {
+        await fetch("airlines/\(code)/timeline") {
+            var mock: [AirlineTimelinePoint] = []
+            for yr in 2000...2024 {
+                let factor = 1.0 + Double(yr - 2000) * 0.04
+                let asm = (yr == 2020 ? 12.0 : (yr == 2021 ? 18.0 : 25.0 * factor))
+                let rpm = asm * 0.84
+                mock.append(AirlineTimelinePoint(
+                    year: yr,
+                    asmBillions: asm,
+                    rpmBillions: rpm,
+                    systemLoadFactor: 84.5,
+                    totalPassengers: Int(rpm * 1_000_000_000 / 1100),
+                    totalDepartures: Int(asm * 1_000_000_000 / 160_000),
+                    avgNetworkFare: 195.0 + Double(yr - 2000) * 2.2,
+                    avgYieldPerMile: 0.175 + Double(yr - 2000) * 0.001
+                ))
+            }
+            return mock
+        }
+    }
+
+    // MARK: - Airline Yield Curve
+    public func getAirlineYieldCurve(code: String, year: Int = 2024) async -> [YieldCurvePoint] {
+        let qItems = [URLQueryItem(name: "year", value: String(year))]
+        return await fetch("airlines/\(code)/yield-curve", queryItems: qItems) {
+            [
+                YieldCurvePoint(origin: "SEA", dest: "PDX", routeLabel: "SEA-PDX", stageLengthMiles: 129, avgOdFare: 115, yieldPerMile: 0.8915, operationalPassengers: 450000, loadFactorPct: 82.4),
+                YieldCurvePoint(origin: "SEA", dest: "SFO", routeLabel: "SEA-SFO", stageLengthMiles: 679, avgOdFare: 168, yieldPerMile: 0.2474, operationalPassengers: 580000, loadFactorPct: 85.1),
+                YieldCurvePoint(origin: "ORD", dest: "LGA", routeLabel: "ORD-LGA", stageLengthMiles: 733, avgOdFare: 215, yieldPerMile: 0.2933, operationalPassengers: 720000, loadFactorPct: 86.3),
+                YieldCurvePoint(origin: "ORD", dest: "LAX", routeLabel: "ORD-LAX", stageLengthMiles: 1745, avgOdFare: 285, yieldPerMile: 0.1633, operationalPassengers: 810000, loadFactorPct: 87.4),
+                YieldCurvePoint(origin: "SFO", dest: "JFK", routeLabel: "SFO-JFK", stageLengthMiles: 2586, avgOdFare: 345, yieldPerMile: 0.1334, operationalPassengers: 690000, loadFactorPct: 88.0)
+            ]
         }
     }
 
@@ -214,24 +351,8 @@ public actor APIService {
                         LoyaltyPartnership(partnerCarrierCode: "DL", partnerCarrierName: "Delta Air Lines", relationshipDepth: "Codeshare & Reciprocal", startYear: 2004, endYear: 2017, eliteReciprocal: true, loungeReciprocal: true, historicalNote: "Longterm codeshare that disintegrated into the bitter 'Battle for Seattle' hub rivalry."),
                         LoyaltyPartnership(partnerCarrierCode: "BA", partnerCarrierName: "British Airways", relationshipDepth: "Full Alliance / oneworld", startYear: 2021, endYear: nil, eliteReciprocal: true, loungeReciprocal: true, historicalNote: "oneworld alliance member with seamless tier reciprocity.")
                     ]
-                ),
-                LoyaltyProgram(
-                    carrierCode: "UA",
-                    carrierName: "United Airlines",
-                    programName: "MileagePlus",
-                    activeAlliance: "Star Alliance",
-                    tiers: [
-                        LoyaltyTier(name: "Premier Silver", eqmRequired: 25000, eqsRequired: 24, upgradeWindowHours: 24, bonusMilesPercent: 40, loungeAccess: false, keyPerks: "Complimentary Economy Plus at check-in, 1 free checked bag"),
-                        LoyaltyTier(name: "Premier Gold", eqmRequired: 50000, eqsRequired: 48, upgradeWindowHours: 48, bonusMilesPercent: 60, loungeAccess: true, keyPerks: "Star Alliance Gold, Economy Plus at booking, lounge access on intl"),
-                        LoyaltyTier(name: "Premier Platinum", eqmRequired: 75000, eqsRequired: 72, upgradeWindowHours: 72, bonusMilesPercent: 80, loungeAccess: true, keyPerks: "40 PlusPoints for upgrades, 3 free checked bags"),
-                        LoyaltyTier(name: "Premier 1K", eqmRequired: 100000, eqsRequired: 96, upgradeWindowHours: 96, bonusMilesPercent: 100, loungeAccess: true, keyPerks: "280 PlusPoints, pre-boarding, dedicated 1K support line")
-                    ],
-                    partnerships: [
-                        LoyaltyPartnership(partnerCarrierCode: "LH", partnerCarrierName: "Lufthansa", relationshipDepth: "Full Alliance / Star Alliance", startYear: 1997, endYear: nil, eliteReciprocal: true, loungeReciprocal: true, historicalNote: "Founding members of the Star Alliance transatlantic joint venture.")
-                    ]
                 )
             ]
         }
     }
 }
-

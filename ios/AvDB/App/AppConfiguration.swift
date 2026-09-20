@@ -24,7 +24,7 @@ public final class AppConfiguration: ObservableObject {
         public var baseURL: URL {
             switch self {
             case .cloudRun:
-                return URL(string: "https://avdb.riffe.co.uk/api")!
+                return URL(string: "https://avdb-api-448864711884.us-west1.run.app/api")!
             case .localHost:
                 return URL(string: "http://localhost:8000/api")!
             case .offlineDemo:

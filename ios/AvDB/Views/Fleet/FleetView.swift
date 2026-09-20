@@ -2,27 +2,74 @@ import SwiftUI
 
 public struct FleetView: View {
     @State private var fleetFamilies: [FleetFamily] = []
+    @State private var selectedManufacturer: String = "All"
+    @State private var searchText: String = ""
     @State private var isLoading: Bool = true
 
+    private let manufacturers = ["All", "Boeing", "Airbus", "McDonnell Douglas"]
+
     public init() {}
+
+    private var filteredFamilies: [FleetFamily] {
+        var list = fleetFamilies
+        if selectedManufacturer != "All" {
+            list = list.filter { $0.manufacturer.localizedCaseInsensitiveContains(selectedManufacturer) }
+        }
+        if !searchText.trimmingCharacters(in: .whitespaces).isEmpty {
+            let q = searchText.lowercased().trimmingCharacters(in: .whitespaces)
+            list = list.filter {
+                $0.familyName.lowercased().contains(q) ||
+                $0.subfleets.contains { $0.aircraftType.lowercased().contains(q) || $0.engineType.lowercased().contains(q) }
+            }
+        }
+        return list
+    }
 
     public var body: some View {
         NavigationStack {
             ScrollView {
-                LazyVStack(spacing: 16) {
-                    if isLoading {
-                        ProgressView()
-                            .tint(AvDBTheme.accentCyan)
-                            .padding(.top, 40)
-                    } else {
-                        ForEach(fleetFamilies) { family in
-                            familyCard(family)
+                VStack(spacing: 14) {
+                    // Manufacturer Selector Pills
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        HStack(spacing: 8) {
+                            ForEach(manufacturers, id: \.self) { m in
+                                Button {
+                                    selectedManufacturer = m
+                                } label: {
+                                    Text(m)
+                                        .font(.system(size: 13, weight: selectedManufacturer == m ? .bold : .medium))
+                                        .padding(.horizontal, 14)
+                                        .padding(.vertical, 7)
+                                        .background(selectedManufacturer == m ? AvDBTheme.accentCyan.opacity(0.2) : Color.white.opacity(0.05))
+                                        .foregroundColor(selectedManufacturer == m ? AvDBTheme.accentCyan : AvDBTheme.secondaryText)
+                                        .clipShape(Capsule())
+                                        .overlay(
+                                            Capsule().stroke(selectedManufacturer == m ? AvDBTheme.accentCyan.opacity(0.4) : AvDBTheme.borderStroke, lineWidth: 1)
+                                        )
+                                }
+                                .buttonStyle(.plain)
+                            }
+                        }
+                        .padding(.horizontal, 16)
+                    }
+                    .padding(.top, 4)
+
+                    LazyVStack(spacing: 16) {
+                        if isLoading {
+                            ProgressView()
+                                .tint(AvDBTheme.accentCyan)
+                                .padding(.top, 40)
+                        } else {
+                            ForEach(filteredFamilies) { family in
+                                familyCard(family)
+                            }
                         }
                     }
+                    .padding(.horizontal, 16)
                 }
-                .padding(.horizontal, 16)
-                .padding(.top, 8)
+                .padding(.top, 4)
             }
+            .searchable(text: $searchText, prompt: "Search aircraft type or engine...")
             .navigationTitle("Fleet & Gauge")
             .navigationBarTitleDisplayMode(.large)
             .avdbCanvas()
@@ -117,4 +164,3 @@ public struct FleetView: View {
         }
     }
 }
-

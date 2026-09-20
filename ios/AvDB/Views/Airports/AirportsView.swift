@@ -3,43 +3,68 @@ import SwiftUI
 public struct AirportsView: View {
     @State private var searchText: String = ""
     @State private var airports: [Airport] = []
-    @State private var selectedAirport: Airport?
+    @State private var filterMode: AirportFilterMode = .majorHubs
     @State private var isLoading: Bool = true
+
+    public enum AirportFilterMode: String, CaseIterable, Identifiable {
+        case majorHubs = "Primary & Hubs"
+        case all = "All Commercial"
+        public var id: String { rawValue }
+    }
 
     public init() {}
 
     private var filteredAirports: [Airport] {
-        if searchText.trimmingCharacters(in: .whitespaces).isEmpty {
-            return airports
-        }
-        let query = searchText.lowercased().trimmingCharacters(in: .whitespaces)
-        return airports.filter {
-            $0.iata.lowercased().contains(query) ||
-            $0.name.lowercased().contains(query) ||
-            $0.city.lowercased().contains(query) ||
-            ($0.catchmentMarket?.lowercased().contains(query) ?? false)
+        let baseList: [Airport]
+        if !searchText.trimmingCharacters(in: .whitespaces).isEmpty {
+            let query = searchText.lowercased().trimmingCharacters(in: .whitespaces)
+            return airports.filter {
+                $0.iata.lowercased().contains(query) ||
+                $0.name.lowercased().contains(query) ||
+                $0.city.lowercased().contains(query) ||
+                ($0.catchmentMarket?.lowercased().contains(query) ?? false)
+            }
+        } else {
+            switch filterMode {
+            case .majorHubs:
+                baseList = airports.filter { $0.isMajorHub }
+            case .all:
+                baseList = airports
+            }
+            return Array(baseList.prefix(150))
         }
     }
 
     public var body: some View {
         NavigationStack {
             ScrollView {
-                LazyVStack(spacing: 12) {
-                    if isLoading {
-                        ProgressView()
-                            .tint(AvDBTheme.accentCyan)
-                            .padding(.top, 40)
-                    } else {
-                        ForEach(filteredAirports) { airport in
-                            NavigationLink(destination: AirportDetailView(airport: airport)) {
-                                airportRow(airport)
-                            }
-                            .buttonStyle(.plain)
+                VStack(spacing: 12) {
+                    Picker("Airport Scope", selection: $filterMode) {
+                        ForEach(AirportFilterMode.allCases) { mode in
+                            Text(mode.rawValue).tag(mode)
                         }
                     }
+                    .pickerStyle(.segmented)
+                    .padding(.horizontal, 16)
+                    .padding(.top, 4)
+
+                    LazyVStack(spacing: 12) {
+                        if isLoading {
+                            ProgressView()
+                                .tint(AvDBTheme.accentCyan)
+                                .padding(.top, 40)
+                        } else {
+                            ForEach(filteredAirports) { airport in
+                                NavigationLink(destination: AirportDetailView(airport: airport)) {
+                                    airportRow(airport)
+                                }
+                                .buttonStyle(.plain)
+                            }
+                        }
+                    }
+                    .padding(.horizontal, 16)
                 }
-                .padding(.horizontal, 16)
-                .padding(.top, 8)
+                .padding(.top, 4)
             }
             .searchable(text: $searchText, prompt: "Search airport code, city, catchment (e.g. ATL, NYC)...")
             .navigationTitle("Airports Radar")
@@ -107,4 +132,3 @@ public struct AirportsView: View {
         }
     }
 }
-
