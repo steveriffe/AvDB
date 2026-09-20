@@ -1,161 +1,135 @@
 # AvDB Native iOS Application (SwiftUI & MapKit)
 
-Welcome to the native Apple iOS implementation of **AvDB** — the aviation analytics platform designed specifically for iPhone with Apple Human Interface Guidelines (HIG), SwiftUI, and 120Hz ProMotion great-circle geodesic route mapping.
+Welcome to the native Apple iOS implementation of **AvDB** — the aviation analytics platform designed specifically for iPhone and iPad with Apple Human Interface Guidelines (HIG), SwiftUI, and 120Hz ProMotion Great-Circle geodesic route mapping.
 
 ---
 
-## 📱 Architectural Blueprint
+## 📱 Project Specifications & Apple Developer Setup
+
+| Setting | Value |
+| :--- | :--- |
+| **Project Location** | `ios/AvDB.xcodeproj` |
+| **Bundle Identifier** | `uk.co.riffe.AvDB` |
+| **Apple Developer Team ID** | `JRM56GZN5H` (Steve Riffe) |
+| **Target Deployment** | iOS 17.0+ / iPadOS 17.0+ |
+| **Language & Concurrency** | Swift 5.0 / Swift 6 Strict Concurrency |
+| **UI Framework** | SwiftUI with `.ultraThinMaterial` Obsidian Glass |
+| **Geodesic Engine** | Apple MapKit (`MKGeodesicPolyline`) |
+| **Backend Sync** | AvDB FastAPI (`https://avdb.riffe.co.uk/api`) with offline caching |
+
+---
+
+## 🚀 How to Install & Run as a Beta App on Your iPhone
+
+There are two primary ways to run AvDB on your personal iPhone:
+
+### Method A: Direct Install from Xcode (Fastest, Immediate)
+
+1. **Open the Project in Xcode**:
+   In your terminal, run:
+   ```bash
+   open ios/AvDB.xcodeproj
+   ```
+2. **Connect Your iPhone**:
+   - Plug your iPhone into your Mac using a USB-C or Lightning cable (or connect via Wi-Fi once paired).
+   - If prompted on your iPhone, tap **Trust This Computer**.
+3. **Enable Developer Mode on Your iPhone** (One-time setup on iOS 16/17/18):
+   - On your iPhone, open **Settings** > **Privacy & Security**.
+   - Scroll down to the bottom and tap **Developer Mode**.
+   - Toggle **Developer Mode ON**.
+   - Your iPhone will prompt you to restart. Tap **Restart**.
+   - After restarting and unlocking, tap **Turn On** and enter your passcode.
+4. **Select Your Device & Run**:
+   - In the top toolbar of Xcode, click the device selector next to **AvDB** and select **Steve's iPhone**.
+   - Press **`Cmd + R`** (or click the **Play** button).
+   - Xcode will compile, code-sign with your Developer Team ID (`JRM56GZN5H`), and install AvDB directly onto your home screen!
+
+---
+
+### Method B: TestFlight Distribution (Wireless Beta Sharing)
+
+To distribute AvDB as an official TestFlight beta app that updates automatically over the air:
+
+1. **Verify Bundle ID in App Store Connect**:
+   - Go to [developer.apple.com/account/resources/identifiers](https://developer.apple.com/account/resources/identifiers)
+   - Ensure an App ID with identifier `uk.co.riffe.AvDB` exists (Xcode will automatically register it if you have automatic signing enabled).
+   - Go to [appstoreconnect.apple.com/apps](https://appstoreconnect.apple.com/apps) and click **+ New App**:
+     - **Platforms**: iOS
+     - **Name**: AvDB Aviation Analytics
+     - **Primary Language**: English (US)
+     - **Bundle ID**: `uk.co.riffe.AvDB`
+     - **SKU**: `avdb-ios-01`
+     - **User Access**: Full Access
+2. **Create an Archive in Xcode**:
+   - In Xcode, select **Any iOS Device (arm64)** as the destination.
+   - Go to menu bar: **Product** > **Archive**.
+   - When the Organizer window appears with your build, click **Distribute App**.
+   - Select **TestFlight & App Store** > **Distribute** > follow the on-screen upload wizard.
+3. **Install from TestFlight**:
+   - Once uploaded (usually 5–10 minutes for Apple processing), go to **App Store Connect** > **AvDB** > **TestFlight**.
+   - Under **Internal Testing**, add yourself (Steve Riffe).
+   - You will immediately receive an email / push notification in the **TestFlight app** on your iPhone. Tap **Install**!
+   - *Note: Internal testing does NOT require waiting for Apple App Store Review approval.*
+
+---
+
+## 🧭 Core Architectural Pillars
 
 ```text
 ios/
-├── README.md                           # This setup and pairing guide
+├── AvDB.xcodeproj/                      # Native Xcode project configured for JRM56GZN5H
+├── README.md                            # This guide
 └── AvDB/
-    ├── Package.swift                   # Swift Package manifest (iOS 17+)
-    ├── Sources/
-    │   └── AvDB/
-    │       ├── AvDBApp.swift           # @main application entry point
-    │       ├── Models/
-    │       │   ├── AirportModels.swift # Airport catalog, KPIs, catchment, routes
-    │       │   ├── AirlineModels.swift # Airline KPIs, primary hubs, yield curve
-    │       │   ├── FleetModels.swift   # Fleet utilization, subfleet economics
-    │       │   ├── FlightyModels.swift # Flighty passport records, subfleets
-    │       │   └── AppSettings.swift   # User preferences, environment, Mapbox styles
-    │       ├── Services/
-    │       │   ├── APIService.swift    # Swift async/await actor client + caching
-    │       │   ├── GeodesicMath.swift  # Haversine spherical great-circle interpolation
-    │       │   └── FlightyParser.swift # Native CSV parser for Flighty export logs
-    │       └── Views/
-    │           ├── MainTabView.swift   # 5-tab native navigation controller
-    │           ├── AirportsView.swift  # Catchment badges, KPI cards, route map
-    │           ├── AirlinesView.swift  # Carrier selector, network map, hubs, yield curve
-    │           ├── FleetView.swift     # Family picker, subfleet gauge economics
-    │           ├── FlightyView.swift   # .fileImporter picker, subfleet stats, personal map
-    │           ├── SettingsView.swift  # Backend switcher, Mapbox styles, cache controls
-    │           └── Components/
-    │               ├── RouteMapView.swift # Native MapKit 120Hz geodesic map
-    │               ├── GlassCard.swift    # Liquid Glass / ultraThinMaterial container
-    │               └── KPICardView.swift  # High-density rounded metric cards
+    ├── App/
+    │   ├── AvDBApp.swift                # @main app entry point & dark navigation styling
+    │   └── AppConfiguration.swift       # Environment switcher (Cloud Run vs Localhost vs Demo)
+    ├── DesignSystem/
+    │   ├── Theme.swift                  # Obsidian (#070F1E) glass color scheme & accents
+    │   ├── GlassCard.swift              # .ultraThinMaterial frosted container with hairline glow
+    │   └── KPICardView.swift            # Aviation KPI cards (SF Symbols, delta badges)
+    ├── Models/
+    │   ├── Airport.swift                # Airport catalog, catchment codes, and outbound routes
+    │   ├── Airline.swift                # Carrier metadata, brand colors, hubs, network stats
+    │   ├── Route.swift                  # Geodesic routes with start/destination coordinates
+    │   ├── FleetItem.swift              # Aircraft families, subfleets, gauge, and engine specs
+    │   ├── LoyaltyProgram.swift         # FFP status tiers, upgrade windows, bilateral alliances
+    │   └── FlightLog.swift              # Model for parsed Flighty logs
+    ├── Services/
+    │   ├── APIService.swift             # Thread-safe actor for FastAPI sync & offline cache
+    │   ├── GeodesicMath.swift           # Haversine distance & spherical waypoint interpolation
+    │   └── FlightyParser.swift          # Streaming CSV parser for personal Flighty exports
+    ├── Views/
+    │   ├── RootTabView.swift            # 5-tab floating navigation controller
+    │   ├── Map/
+    │   │   └── GreatCircleMapView.swift # MapKit MKGeodesicPolyline Great-Circle route renderer
+    │   ├── Airports/
+    │   │   ├── AirportsView.swift       # Search with instant IATA/City/Catchment filter
+    │   │   └── AirportDetailView.swift  # Geodesic map, KPI cards, outbound market tables
+    │   ├── Airlines/
+    │   │   ├── AirlinesView.swift       # Carrier grid with brand liveries
+    │   │   └── AirlineDetailView.swift  # Hub badges, system economics, ASM/RPM cards
+    │   ├── Fleet/
+    │   │   └── FleetView.swift          # Fleet families & gauge (DC-9, A320, 737, 787)
+    │   ├── Loyalty/
+    │   │   └── LoyaltyPartnershipsView.swift # Status tiers, upgrade windows, bilateral webs
+    │   ├── Flighty/
+    │   │   └── FlightyView.swift        # .fileImporter picker & personal flight passport
+    │   └── Settings/
+    │       └── SettingsView.swift       # Backend switcher, cache purge, developer info
+    ├── Assets.xcassets/                 # AppIcon and AccentColor
     └── Tests/
-        └── AvDBTests/
-            └── AvDBTests.swift         # Unit tests for geodesic math, parser, models
+        └── AvDBTests.swift              # Unit tests for geodesic math and Flighty parser
 ```
 
 ---
 
-## 🚀 Core Features
-
-1. **Airports Explorer (`AirportsView.swift`)**:
-   - Fast search across all commercial airports and metropolitan markets.
-   - Catchment market indicators (e.g. WAS, NYC, CHI).
-   - High-density KPI cards: Direct Nonstop Destinations, Load Factor, Departures, Seats, Passenger Volume, Average O&D Fare, and Leading Carrier.
-   - 120Hz ProMotion Great-Circle Route Map with interactive route selection.
-   - Outbound market table with stage lengths, seats per departure, and passenger volumes.
-
-2. **Airlines Explorer (`AirlinesView.swift`)**:
-   - Airline selector supporting all major carriers (AS, UA, DL, AA, WN, B6, NK, F9, G4) styled with signature airline brand palettes.
-   - Network KPIs: Active Routes, System Load Factor, Capacity (ASM), Traffic (RPM), Network Average Fare, and Yield per Passenger-Mile.
-   - Nationwide Route Network Map with primary hub concentric bullseye markers.
-   - Hub and focus city operational rankings.
-   - Stage length vs. Yield curve analysis.
-
-3. **Fleet & Aircraft Lens (`FleetView.swift`)**:
-   - Aircraft family allocation picker: All Mainline & Regional, Airbus A320 Family, Boeing 737 Family, Widebody, Embraer E-Jets, Bombardier CRJ.
-   - Utilization metrics: Average Gauge (seats/departure), Fleet Load Factor, Average Stage Length, and Yield.
-   - Subfleet economics breakdown (e.g., comparing Boeing 737-900ER vs. 737-800 vs. 737 MAX 8; Airbus A321neo vs. A320-200; Embraer E175 vs. CRJ-900).
-
-4. **Flighty Passport Integration (`FlightyView.swift`)**:
-   - Native iOS file picker using `.fileImporter` supporting Flighty CSV exports.
-   - Personal lifetime flight statistics: Total Flights, Total Miles Flown, Visited Airports, Flown Airlines, and Top Aircraft Model.
-   - Subfleet allocation analysis displaying your personal distribution across aircraft types.
-   - Personal Flight Map rendering great-circle arcs between all your flown routes.
-   - One-tap demo data loader for instant previewing without an export file.
-
-5. **Settings & Cartography Engine (`SettingsView.swift`)**:
-   - Live backend switcher: Google Cloud Run (`api.avdb.riffe.co.uk`), Local Simulator (`127.0.0.1:8000`), or Local Network LAN IP.
-   - Cartography style selector: Classic In-Flight Paper (1990s vintage), Midnight Navy, Minimal Slate, Standard Apple Map, or custom Mapbox Studio styles (Personal, Love, Mono).
-   - Mapbox Access Token and custom style URL fields.
-   - In-memory route and query cache clearing.
-
----
-
-## 🛠️ Opening and Running in Xcode
-
-### Method 1: Open Swift Package Directly
-1. Open the project in Xcode:
+## 🛠 Local Backend Pairing
+By default, the iOS app queries the production Cloud Run backend at `https://avdb.riffe.co.uk/api`.
+To test against a local API:
+1. Start your local FastAPI backend:
    ```bash
-   open ios/AvDB/Package.swift
+   ./.venv/bin/uvicorn api.main:app --reload --port 8000
    ```
-2. In Xcode, select an iOS Simulator (e.g., iPhone 16 Pro) or your connected physical iPhone in the scheme selector.
-3. Press **Cmd + R** to build and run.
-
-### Method 2: Create an iOS App Xcode Project (Recommended for Physical Device Signing)
-1. Open Xcode and select **File ➔ New ➔ Project ➔ iOS ➔ App**.
-2. Product Name: `AvDB`
-   - Interface: `SwiftUI`
-   - Language: `Swift`
-3. Add the package via **File ➔ Add Package Dependencies... ➔ Add Local...** and choose `ios/AvDB` (Module: `AvDBCore`), or drag `ios/AvDB/Sources/AvDB` into your target.
-4. In the target's **Signing & Capabilities** tab:
-   - Check **Automatically manage signing**.
-   - Team: Select your **Personal Team** (free Apple ID account, no \$99 developer subscription required for development on your own iPhone).
-   - Bundle Identifier: `com.yourname.avdb`
-5. Connect your iPhone via USB or Wi-Fi, select it from the device target menu, and click **Run (Cmd + R)**.
-   > **Note for Physical Devices**: On your iPhone, go to **Settings ➔ General ➔ VPN & Device Management**, tap your Apple ID under Developer App, and tap **Trust**. Enable Developer Mode under **Settings ➔ Privacy & Security ➔ Developer Mode** if prompted.
-
-### 🚨 Troubleshooting: "Multiple commands produce ... AvDB.swiftmodule"
-If Xcode reports:
-```text
-Multiple commands produce '.../Build/Products/Debug-iphoneos/AvDB.swiftmodule/Project/arm64-apple-ios.swiftsourceinfo'
-Multiple commands produce '.../Build/Products/Debug-iphoneos/AvDB.swiftmodule/arm64-apple-ios.swiftmodule'
-```
-**Why this happens**:
-Both your Xcode App target (`AvDB`) and the Swift Package were attempting to compile modules with the identical name `AvDB`, causing the build system to collide on output file paths.
-
-**How to resolve**:
-1. We have renamed the Swift package product/target to **`AvDBCore`**, eliminating module name collisions.
-2. In Terminal, wipe the cached conflicted build artifacts:
-   ```bash
-   rm -rf ~/Library/Developer/Xcode/DerivedData/AvDB-*
-   ```
-3. In Xcode:
-   - Choose **Product ➔ Clean Build Folder** (`Shift + Cmd + K`).
-   - If using `import AvDB`, update to `import AvDBCore`.
-   - Press **Cmd + R** to build and run on your iPhone 16 Pro Max (iOS 18 / iOS 27 Beta).
-
----
-
-## 🔗 Pairing with the Backend API
-
-The app connects to the AvDB REST API via `APIService.swift`.
-
-### 1. Connecting to Production Cloud Run (Default)
-Out of the box, the app defaults to:
-```text
-https://api.avdb.riffe.co.uk
-```
-No local server is needed; requests query pre-aggregated BigQuery marts hosted in GCP.
-
-### 2. Testing against Local FastAPI Backend
-To develop or debug locally:
-1. Start the FastAPI server on your Mac:
-   ```bash
-   ./.venv/bin/uvicorn api.main:app --host 0.0.0.0 --port 8000 --reload
-   ```
-2. Verify it is running by opening:
-   - API Root: `http://localhost:8000`
-   - Interactive Swagger Docs: `http://localhost:8000/docs`
-3. Configure the iOS App:
-   - **In iOS Simulator**: Open **Settings** tab in the app, set Environment to `Localhost (127.0.0.1:8000)`.
-   - **On Physical iPhone**: Ensure your iPhone and Mac are on the same Wi-Fi network. In the app's **Settings** tab, select `Local Network (Custom IP)` and enter your Mac's LAN IP (e.g. `http://192.168.1.145:8000`).
-   - Tap **Test API Connection** to verify sub-50ms latency.
-
----
-
-## ✈️ Flighty Export CSV Instructions
-
-To view your personal flight network:
-1. Open the **Flighty** app on your iPhone.
-2. Tap your profile icon in the top right.
-3. Tap **Settings (gear icon)** ➔ **Export Flights** ➔ **Export CSV**.
-4. Save the file to **Files** (iCloud Drive or On My iPhone).
-5. In AvDB, open the **Flighty** tab, tap **Import**, and select your exported CSV.
-6. Your personal flight map, subfleet allocation, and flight history will immediately generate.
+2. In the iOS app, tap the **Settings** gear in the top right.
+3. Switch **Environment** to **Localhost (Development)**.
+4. Tap **Test API Connection** to verify connectivity.
