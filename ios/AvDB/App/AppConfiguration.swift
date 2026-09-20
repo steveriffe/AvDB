@@ -2,6 +2,7 @@ import Foundation
 
 /// Central configuration for AvDB iOS client.
 /// Manages backend API endpoints, authentication, caching policies, and developer metadata.
+@MainActor
 public final class AppConfiguration: ObservableObject {
     public static let shared = AppConfiguration()
 
@@ -32,7 +33,7 @@ public final class AppConfiguration: ObservableObject {
         }
     }
 
-    public static var currentEnvironment: Environment {
+    nonisolated public static var currentEnvironment: Environment {
         let savedEnv = UserDefaults.standard.string(forKey: "avdb_environment")
         return Environment(rawValue: savedEnv ?? "") ?? .cloudRun
     }
