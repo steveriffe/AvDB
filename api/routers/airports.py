@@ -191,6 +191,7 @@ def get_airport_routes(
                 STRING_AGG(DISTINCT unique_carrier, ', ' ORDER BY unique_carrier) AS operating_carriers
             FROM `{settings.dataset_reporting}.mart_airport_network_summary`
             WHERE origin = @airport_code 
+              AND dest != @airport_code
               AND year = @year
               {'AND operational_passengers > 0 AND total_seats > 0' if passenger_only else ''}
               AND origin_lat IS NOT NULL 

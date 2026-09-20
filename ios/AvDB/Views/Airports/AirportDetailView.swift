@@ -306,7 +306,7 @@ public struct AirportDetailView: View {
         )
 
         self.kpis = await kpiTask
-        self.routes = await routeTask
+        self.routes = (await routeTask).filter { $0.destination != $0.origin }
         self.timeline = await timelineTask
         self.carrierShares = await carrierTask
 

@@ -183,14 +183,71 @@ public actor APIService {
             URLQueryItem(name: "min_departures", value: String(minDepartures))
         ]
         return await fetch("airports/\(iata)/routes", queryItems: qItems) {
-            [
-                OutboundRoute(origin: iata, destination: "ORD", carrier: "UA", departures: 1240, seats: 198400, passengers: 168640, loadFactor: 0.85, distanceMiles: 606, avgOdFare: 192.40, originLat: 33.6407, originLon: -84.4277, destLat: 41.9742, destLon: -87.9073),
-                OutboundRoute(origin: iata, destination: "DFW", carrier: "AA", departures: 1120, seats: 179200, passengers: 154112, loadFactor: 0.86, distanceMiles: 731, avgOdFare: 215.10, originLat: 33.6407, originLon: -84.4277, destLat: 32.8998, destLon: -97.0403),
-                OutboundRoute(origin: iata, destination: "LAX", carrier: "DL", departures: 980, seats: 186200, passengers: 161994, loadFactor: 0.87, distanceMiles: 1946, avgOdFare: 284.90, originLat: 33.6407, originLon: -84.4277, destLat: 33.9416, destLon: -118.4085),
-                OutboundRoute(origin: iata, destination: "DEN", carrier: "UA", departures: 890, seats: 151300, passengers: 128605, loadFactor: 0.85, distanceMiles: 1199, avgOdFare: 185.00, originLat: 33.6407, originLon: -84.4277, destLat: 39.8561, destLon: -104.6737),
-                OutboundRoute(origin: iata, destination: "SEA", carrier: "AS", departures: 760, seats: 121600, passengers: 104576, loadFactor: 0.86, distanceMiles: 2182, avgOdFare: 298.50, originLat: 33.6407, originLon: -84.4277, destLat: 47.4502, destLon: -122.3088)
-            ]
+            APIService.generateFallbackRoutes(for: iata)
         }
+    }
+
+    public static func generateFallbackRoutes(for origin: String) -> [OutboundRoute] {
+        struct DestMeta {
+            let code: String
+            let lat: Double
+            let lon: Double
+            let carrier: String
+            let baseFare: Double
+        }
+
+        let hubs: [DestMeta] = [
+            DestMeta(code: "LGA", lat: 40.7769, lon: -73.8740, carrier: "DL", baseFare: 215.0),
+            DestMeta(code: "LAX", lat: 33.9416, lon: -118.4085, carrier: "UA", baseFare: 285.0),
+            DestMeta(code: "DFW", lat: 32.8998, lon: -97.0403, carrier: "AA", baseFare: 210.0),
+            DestMeta(code: "DEN", lat: 39.8561, lon: -104.6737, carrier: "UA", baseFare: 185.0),
+            DestMeta(code: "SFO", lat: 37.6213, lon: -122.3790, carrier: "UA", baseFare: 295.0),
+            DestMeta(code: "SEA", lat: 47.4502, lon: -122.3088, carrier: "AS", baseFare: 298.0),
+            DestMeta(code: "ATL", lat: 33.6407, lon: -84.4277, carrier: "DL", baseFare: 195.0),
+            DestMeta(code: "ORD", lat: 41.9742, lon: -87.9073, carrier: "UA", baseFare: 220.0),
+            DestMeta(code: "BOS", lat: 42.3656, lon: -71.0096, carrier: "B6", baseFare: 225.0),
+            DestMeta(code: "MIA", lat: 25.7959, lon: -80.2870, carrier: "AA", baseFare: 245.0),
+            DestMeta(code: "PHX", lat: 33.4373, lon: -112.0078, carrier: "AA", baseFare: 215.0),
+            DestMeta(code: "MCO", lat: 28.4312, lon: -81.3081, carrier: "WN", baseFare: 175.0),
+            DestMeta(code: "LAS", lat: 36.0840, lon: -115.1537, carrier: "WN", baseFare: 190.0),
+            DestMeta(code: "MSP", lat: 44.8848, lon: -93.2223, carrier: "DL", baseFare: 165.0),
+            DestMeta(code: "DTW", lat: 42.2162, lon: -83.3554, carrier: "DL", baseFare: 170.0),
+            DestMeta(code: "CLT", lat: 35.2144, lon: -80.9473, carrier: "AA", baseFare: 198.0),
+            DestMeta(code: "SAN", lat: 32.7338, lon: -117.1933, carrier: "AS", baseFare: 260.0),
+            DestMeta(code: "HNL", lat: 21.3187, lon: -157.9224, carrier: "UA", baseFare: 420.0)
+        ]
+
+        let originCoord = hubs.first(where: { $0.code == origin }) ?? DestMeta(code: origin, lat: 41.9742, lon: -87.9073, carrier: "UA", baseFare: 200.0)
+
+        var results: [OutboundRoute] = []
+        for dest in hubs {
+            guard dest.code != origin else { continue } // Strictly prevent circular origin-origin routes
+
+            let dLat = dest.lat - originCoord.lat
+            let dLon = dest.lon - originCoord.lon
+            let approxMiles = max(120.0, sqrt(dLat * dLat + dLon * dLon) * 60.0)
+            let departures = Int.random(in: 600...2400)
+            let seats = departures * 160
+            let loadFactor = Double.random(in: 0.82...0.89)
+            let pax = Int(Double(seats) * loadFactor)
+
+            results.append(OutboundRoute(
+                origin: origin,
+                destination: dest.code,
+                carrier: dest.carrier,
+                departures: departures,
+                seats: seats,
+                passengers: pax,
+                loadFactor: loadFactor,
+                distanceMiles: round(approxMiles),
+                avgOdFare: dest.baseFare,
+                originLat: originCoord.lat,
+                originLon: originCoord.lon,
+                destLat: dest.lat,
+                destLon: dest.lon
+            ))
+        }
+        return results.sorted(by: { $0.passengers > $1.passengers })
     }
 
     // MARK: - Airlines
