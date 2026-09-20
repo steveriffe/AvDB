@@ -11,6 +11,33 @@ public struct SettingsView: View {
     public var body: some View {
         NavigationStack {
             Form {
+                Section(header: Text("Data Engine Status").foregroundColor(AvDBTheme.secondaryText)) {
+                    HStack {
+                        Label {
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text(config.selectedEnvironment == .offlineDemo ? "Offline Demo Mode" : "Live BigQuery Engine")
+                                    .font(.system(size: 15, weight: .bold))
+                                    .foregroundColor(AvDBTheme.primaryText)
+                                Text(config.selectedEnvironment == .offlineDemo ? "Using bundled static fallback records" : "Direct REST connection to Cloud Run BigQuery marts")
+                                    .font(.system(size: 12))
+                                    .foregroundColor(AvDBTheme.secondaryText)
+                            }
+                        } icon: {
+                            Image(systemName: config.selectedEnvironment == .offlineDemo ? "tray.fill" : "server.rack")
+                                .foregroundColor(config.selectedEnvironment == .offlineDemo ? AvDBTheme.accentAmber : AvDBTheme.accentGreen)
+                        }
+                        Spacer()
+                        Text(config.selectedEnvironment == .offlineDemo ? "DEMO" : "LIVE")
+                            .font(.system(size: 11, weight: .bold, design: .monospaced))
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 4)
+                            .background(config.selectedEnvironment == .offlineDemo ? AvDBTheme.accentAmber.opacity(0.2) : AvDBTheme.accentGreen.opacity(0.2))
+                            .foregroundColor(config.selectedEnvironment == .offlineDemo ? AvDBTheme.accentAmber : AvDBTheme.accentGreen)
+                            .clipShape(Capsule())
+                    }
+                    .padding(.vertical, 4)
+                }
+
                 Section(header: Text("Backend API Environment").foregroundColor(AvDBTheme.secondaryText)) {
                     Picker("Environment", selection: $config.selectedEnvironment) {
                         ForEach(AppConfiguration.Environment.allCases) { env in
@@ -116,12 +143,19 @@ public struct SettingsView: View {
                 return
             }
 
+            let start = Date()
             do {
                 let healthURL = env.baseURL.appendingPathComponent("health")
                 let (_, response) = try await URLSession.shared.data(from: healthURL)
+                let elapsedMs = Int(Date().timeIntervalSince(start) * 1000)
                 if let http = response as? HTTPURLResponse, http.statusCode == 200 {
                     await MainActor.run {
-                        self.connectionStatus = "200 OK"
+                        self.connectionStatus = "200 OK (\(elapsedMs)ms)"
+                        self.isTestingConnection = false
+                    }
+                } else if let http = response as? HTTPURLResponse {
+                    await MainActor.run {
+                        self.connectionStatus = "HTTP \(http.statusCode) (\(elapsedMs)ms)"
                         self.isTestingConnection = false
                     }
                 } else {
@@ -132,7 +166,7 @@ public struct SettingsView: View {
                 }
             } catch {
                 await MainActor.run {
-                    self.connectionStatus = "Offline (Cached)"
+                    self.connectionStatus = "Offline (Fallback)"
                     self.isTestingConnection = false
                 }
             }

@@ -37,21 +37,14 @@ public struct RootTabView: View {
                     Label("Flighty Log", systemImage: "book.closed.fill")
                 }
                 .tag(4)
+
+            SettingsView()
+                .tabItem {
+                    Label("Settings", systemImage: "gearshape.fill")
+                }
+                .tag(5)
         }
         .tint(AvDBTheme.accentCyan)
-        .toolbar {
-            ToolbarItem(placement: .navigationBarTrailing) {
-                Button {
-                    showSettings = true
-                } label: {
-                    Image(systemName: "gearshape.fill")
-                        .foregroundColor(AvDBTheme.secondaryText)
-                }
-            }
-        }
-        .sheet(isPresented: $showSettings) {
-            SettingsView()
-        }
     }
 }
 

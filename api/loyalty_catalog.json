@@ -1,0 +1,811 @@
+[
+  {
+    "carrierCode": "AS",
+    "carrierName": "Alaska Airlines",
+    "programName": "Mileage Plan",
+    "activeAlliance": "oneworld",
+    "tiers": [
+      {
+        "name": "MVP",
+        "eqmRequired": 20000,
+        "eqsRequired": 30,
+        "upgradeWindowHours": 48,
+        "bonusMilesPercent": 50,
+        "loungeAccess": true,
+        "keyPerks": "2 complimentary checked bags. Priority check-in, TSA security lane, and preferred Group B boarding"
+      },
+      {
+        "name": "MVP Gold",
+        "eqmRequired": 40000,
+        "eqsRequired": 60,
+        "upgradeWindowHours": 72,
+        "bonusMilesPercent": 100,
+        "loungeAccess": true,
+        "keyPerks": "2 complimentary checked bags for member + companion. First Class check-in, priority security, Group A boarding, fee waivers on changes"
+      },
+      {
+        "name": "MVP Gold 75K",
+        "eqmRequired": 75000,
+        "eqsRequired": 90,
+        "upgradeWindowHours": 120,
+        "bonusMilesPercent": 125,
+        "loungeAccess": true,
+        "keyPerks": "3 complimentary checked bags for member + companions. Highest domestic First upgrade priority, 50,000 bonus miles upon qualification, nominate an MVP companion"
+      },
+      {
+        "name": "MVP Gold 100K",
+        "eqmRequired": 100000,
+        "eqsRequired": 140,
+        "upgradeWindowHours": 120,
+        "bonusMilesPercent": 150,
+        "loungeAccess": true,
+        "keyPerks": "3 complimentary checked bags; international partner priority luggage handling. Choice benefit selection (75K miles, Alaska Lounge+ membership discount, or WiFi pass), dedicated elite concierge line"
+      }
+    ],
+    "partnerships": [
+      {
+        "partnerCarrierCode": "CO",
+        "partnerCarrierName": "Continental Airlines",
+        "relationshipDepth": "Codeshare & Reciprocal Earn/Burn",
+        "startYear": 1995,
+        "endYear": 2011,
+        "eliteReciprocal": true,
+        "loungeReciprocal": true,
+        "historicalNote": "Alaska and Continental established an extraordinarily close bilateral alliance in the 1990s. Mileage Plan members could earn and redeem miles seamlessly across Continental's Houston (IAH), Newark (EWR), and Cleveland (CLE) hubs, while Continental flyers gained deep access across the Pacific Northwest and Alaska. Terminated following Continental's merger into United Airlines."
+      },
+      {
+        "partnerCarrierCode": "NW",
+        "partnerCarrierName": "Northwest Airlines",
+        "relationshipDepth": "Codeshare & Reciprocal Earn/Burn",
+        "startYear": 1996,
+        "endYear": 2009,
+        "eliteReciprocal": true,
+        "loungeReciprocal": true,
+        "historicalNote": "Northwest utilized Alaska to feed its Minneapolis (MSP), Detroit (DTW), and Seattle-Tokyo transpacific flights. Alaska members could redeem WorldPerks awards across Northwest's expansive Asian route network. Folded into the Delta-Alaska alliance when Delta acquired Northwest in 2008\u20132009."
+      },
+      {
+        "partnerCarrierCode": "DL",
+        "partnerCarrierName": "Delta Air Lines",
+        "relationshipDepth": "Codeshare & Reciprocal Earn/Burn",
+        "startYear": 2004,
+        "endYear": 2017,
+        "eliteReciprocal": true,
+        "loungeReciprocal": true,
+        "historicalNote": "Initially a cozy codeshare where Alaska fed Delta's transpacific expansion from Seattle-Tacoma (SEA). However, around 2013 Delta decided to build Seattle into a massive global hub of its own, directly duplicating Alaska's most profitable West Coast routes. Tensions escalated into a full-scale corporate dogfight, resulting in Delta cutting all reciprocal elite benefits and terminating the partnership on April 30, 2017."
+      },
+      {
+        "partnerCarrierCode": "AA",
+        "partnerCarrierName": "American Airlines",
+        "relationshipDepth": "Full Alliance / Joint Venture",
+        "startYear": 1999,
+        "endYear": null,
+        "eliteReciprocal": true,
+        "loungeReciprocal": true,
+        "historicalNote": "Started in 1999 as a domestic bilateral codeshare that weathered multiple industry shakeups. When Delta launched its aggressive Seattle invasion, Alaska and American strengthened their West Coast Alliance in 2020. This culminated in Alaska Airlines formally joining the oneworld global alliance on March 31, 2021, cementing complete reciprocal loyalty integration."
+      },
+      {
+        "partnerCarrierCode": "BA",
+        "partnerCarrierName": "British Airways",
+        "relationshipDepth": "Full Alliance / Joint Venture",
+        "startYear": 2001,
+        "endYear": null,
+        "eliteReciprocal": true,
+        "loungeReciprocal": true,
+        "historicalNote": "Alaska's longest-standing transatlantic partnership, allowing West Coast members to reach London Heathrow and Europe. Persisted continuously throughout Alaska's independent years and deepened further with oneworld entry."
+      },
+      {
+        "partnerCarrierCode": "EK",
+        "partnerCarrierName": "Emirates",
+        "relationshipDepth": "Codeshare & Reciprocal Earn/Burn",
+        "startYear": 2012,
+        "endYear": 2021,
+        "eliteReciprocal": false,
+        "loungeReciprocal": false,
+        "historicalNote": "One of the most famous 'sweet spots' in frequent flyer history: Alaska Mileage Plan allowed flyers to redeem Emirates A380 First Class suites with onboard showers for just 100,000 miles. Terminated in 2021 when Alaska joined oneworld (aligning with Qatar Airways)."
+      }
+    ]
+  },
+  {
+    "carrierCode": "NW",
+    "carrierName": "Northwest Airlines",
+    "programName": "WorldPerks",
+    "activeAlliance": null,
+    "tiers": [
+      {
+        "name": "Silver Elite",
+        "eqmRequired": 25000,
+        "eqsRequired": 30,
+        "upgradeWindowHours": 24,
+        "bonusMilesPercent": 25,
+        "loungeAccess": false,
+        "keyPerks": "2 complimentary checked bags. Priority check-in, priority security screening, Zone 2 boarding"
+      },
+      {
+        "name": "Gold Elite",
+        "eqmRequired": 50000,
+        "eqsRequired": 60,
+        "upgradeWindowHours": 72,
+        "bonusMilesPercent": 100,
+        "loungeAccess": true,
+        "keyPerks": "3 complimentary checked bags. First Class check-in, priority baggage delivery, SkyTeam Elite Plus reciprocal privileges"
+      },
+      {
+        "name": "Platinum Elite",
+        "eqmRequired": 75000,
+        "eqsRequired": 90,
+        "upgradeWindowHours": 120,
+        "bonusMilesPercent": 125,
+        "loungeAccess": true,
+        "keyPerks": "3 complimentary checked bags (70 lbs each). Top upgrade priority on NW & Continental, guaranteed Y-class seat reservation 24h prior, dedicated phone line"
+      }
+    ],
+    "partnerships": [
+      {
+        "partnerCarrierCode": "AS",
+        "partnerCarrierName": "Alaska Airlines",
+        "relationshipDepth": "Codeshare & Reciprocal Earn/Burn",
+        "startYear": 1996,
+        "endYear": 2009,
+        "eliteReciprocal": true,
+        "loungeReciprocal": true,
+        "historicalNote": "Northwest utilized Alaska to feed its Minneapolis (MSP), Detroit (DTW), and Seattle-Tokyo transpacific flights. Alaska members could redeem WorldPerks awards across Northwest's expansive Asian route network. Folded into the Delta-Alaska alliance when Delta acquired Northwest in 2008\u20132009."
+      },
+      {
+        "partnerCarrierCode": "CO",
+        "partnerCarrierName": "Continental Airlines",
+        "relationshipDepth": "Full Alliance / Joint Venture",
+        "startYear": 1998,
+        "endYear": 2008,
+        "eliteReciprocal": true,
+        "loungeReciprocal": true,
+        "historicalNote": "In January 1998, Continental and Northwest announced a 14-year strategic alliance. Northwest acquired a controlling voting interest in Continental (later repurchased). Together with KLM, they created the domestic and transatlantic powerhouse known as the Wings Alliance. Flyers experienced indistinguishable elite treatment between OnePass and WorldPerks. Both carriers joined SkyTeam in 2004, dissolving only when Northwest merged with Delta in 2008 and Continental defected to Star Alliance."
+      },
+      {
+        "partnerCarrierCode": "KL",
+        "partnerCarrierName": "KLM Royal Dutch Airlines",
+        "relationshipDepth": "Full Alliance / Joint Venture",
+        "startYear": 1989,
+        "endYear": 2008,
+        "eliteReciprocal": true,
+        "loungeReciprocal": true,
+        "historicalNote": "The historic foundation of modern transatlantic joint ventures. In 1989, KLM invested $400 million for a 20% stake in Northwest. In 1993, the US Department of Transportation granted them the world's first antitrust immunity (ATI). WorldPerks and KLM's Flying Dutchman operated virtually as a single global program across North America and Europe."
+      }
+    ]
+  },
+  {
+    "carrierCode": "CO",
+    "carrierName": "Continental Airlines",
+    "programName": "OnePass",
+    "activeAlliance": "Star Alliance",
+    "tiers": [
+      {
+        "name": "Silver Elite",
+        "eqmRequired": 25000,
+        "eqsRequired": 30,
+        "upgradeWindowHours": 24,
+        "bonusMilesPercent": 25,
+        "loungeAccess": false,
+        "keyPerks": "2 complimentary checked bags. EliteAccess check-in, security lane, and priority boarding"
+      },
+      {
+        "name": "Gold Elite",
+        "eqmRequired": 50000,
+        "eqsRequired": 60,
+        "upgradeWindowHours": 72,
+        "bonusMilesPercent": 100,
+        "loungeAccess": false,
+        "keyPerks": "3 complimentary checked bags. Reciprocal elite upgrades on Northwest & Copa Airlines; priority baggage tags"
+      },
+      {
+        "name": "Platinum Elite",
+        "eqmRequired": 75000,
+        "eqsRequired": 90,
+        "upgradeWindowHours": 120,
+        "bonusMilesPercent": 125,
+        "loungeAccess": true,
+        "keyPerks": "3 complimentary checked bags (70 lbs). Highest complimentary upgrade priority; fee exemptions for ticket redeposits and close-in bookings"
+      },
+      {
+        "name": "PresidentialPlus / Infinite Elite",
+        "eqmRequired": 100000,
+        "eqsRequired": 120,
+        "upgradeWindowHours": 120,
+        "bonusMilesPercent": 150,
+        "loungeAccess": false,
+        "keyPerks": "3 complimentary checked bags with heavy allowance. Top priority waitlist standing, dedicated executive desk, Hertz President's Circle elite status"
+      }
+    ],
+    "partnerships": [
+      {
+        "partnerCarrierCode": "AS",
+        "partnerCarrierName": "Alaska Airlines",
+        "relationshipDepth": "Codeshare & Reciprocal Earn/Burn",
+        "startYear": 1995,
+        "endYear": 2011,
+        "eliteReciprocal": true,
+        "loungeReciprocal": true,
+        "historicalNote": "Alaska and Continental established an extraordinarily close bilateral alliance in the 1990s. Mileage Plan members could earn and redeem miles seamlessly across Continental's Houston (IAH), Newark (EWR), and Cleveland (CLE) hubs, while Continental flyers gained deep access across the Pacific Northwest and Alaska. Terminated following Continental's merger into United Airlines."
+      },
+      {
+        "partnerCarrierCode": "HP",
+        "partnerCarrierName": "America West Airlines",
+        "relationshipDepth": "Codeshare & Reciprocal Earn/Burn",
+        "startYear": 1994,
+        "endYear": 2002,
+        "eliteReciprocal": true,
+        "loungeReciprocal": true,
+        "historicalNote": "In 1994, Continental Airlines invested $54 million for a 33% stake in America West to help it emerge from bankruptcy. The carriers interlocked their networks: America West dominated Phoenix (PHX) and Las Vegas (LAS), while Continental dominated Houston (IAH) and Newark (EWR). Members had full reciprocal OnePass/FlightFund elite perks. The alliance expired in 2002 after Continental sold its stake."
+      },
+      {
+        "partnerCarrierCode": "NW",
+        "partnerCarrierName": "Northwest Airlines",
+        "relationshipDepth": "Full Alliance / Joint Venture",
+        "startYear": 1998,
+        "endYear": 2008,
+        "eliteReciprocal": true,
+        "loungeReciprocal": true,
+        "historicalNote": "In January 1998, Continental and Northwest announced a 14-year strategic alliance. Northwest acquired a controlling voting interest in Continental (later repurchased). Together with KLM, they created the domestic and transatlantic powerhouse known as the Wings Alliance. Flyers experienced indistinguishable elite treatment between OnePass and WorldPerks. Both carriers joined SkyTeam in 2004, dissolving only when Northwest merged with Delta in 2008 and Continental defected to Star Alliance."
+      },
+      {
+        "partnerCarrierCode": "EA",
+        "partnerCarrierName": "Eastern Air Lines",
+        "relationshipDepth": "Full Alliance / Joint Venture",
+        "startYear": 1987,
+        "endYear": 1991,
+        "eliteReciprocal": true,
+        "loungeReciprocal": true,
+        "historicalNote": "Following Frank Lorenzo's Texas Air acquisition of Eastern in 1986, the loyalty departments were merged in 1987 into 'OnePass'. It was the first time two major US legacy airlines shared a single frequent flyer program. Flyers could earn miles on Eastern's Miami (MIA), Atlanta (ATL), and East Coast Shuttles and redeem on Continental's Denver (DEN) and Houston (IAH) routes. When Eastern collapsed in January 1991, Continental retained the entire OnePass database."
+      }
+    ]
+  },
+  {
+    "carrierCode": "HP",
+    "carrierName": "America West Airlines",
+    "programName": "FlightFund",
+    "activeAlliance": null,
+    "tiers": [
+      {
+        "name": "Silver Elite",
+        "eqmRequired": 25000,
+        "eqsRequired": 30,
+        "upgradeWindowHours": 24,
+        "bonusMilesPercent": 25,
+        "loungeAccess": false,
+        "keyPerks": "2 complimentary checked bags. Priority check-in and Zone 1 boarding"
+      },
+      {
+        "name": "Gold Elite",
+        "eqmRequired": 50000,
+        "eqsRequired": 60,
+        "upgradeWindowHours": 48,
+        "bonusMilesPercent": 50,
+        "loungeAccess": false,
+        "keyPerks": "2 complimentary checked bags. Space-available complimentary first class upgrades, reciprocal perks on Continental"
+      },
+      {
+        "name": "Platinum Elite",
+        "eqmRequired": 75000,
+        "eqsRequired": 90,
+        "upgradeWindowHours": 72,
+        "bonusMilesPercent": 100,
+        "loungeAccess": false,
+        "keyPerks": "3 complimentary checked bags. Top domestic first upgrade clearance, guaranteed reservations on sold-out flights, fee waivers"
+      }
+    ],
+    "partnerships": [
+      {
+        "partnerCarrierCode": "CO",
+        "partnerCarrierName": "Continental Airlines",
+        "relationshipDepth": "Codeshare & Reciprocal Earn/Burn",
+        "startYear": 1994,
+        "endYear": 2002,
+        "eliteReciprocal": true,
+        "loungeReciprocal": true,
+        "historicalNote": "In 1994, Continental Airlines invested $54 million for a 33% stake in America West to help it emerge from bankruptcy. The carriers interlocked their networks: America West dominated Phoenix (PHX) and Las Vegas (LAS), while Continental dominated Houston (IAH) and Newark (EWR). Members had full reciprocal OnePass/FlightFund elite perks. The alliance expired in 2002 after Continental sold its stake."
+      },
+      {
+        "partnerCarrierCode": "TW",
+        "partnerCarrierName": "TWA",
+        "relationshipDepth": "Codeshare & Reciprocal Earn/Burn",
+        "startYear": 1997,
+        "endYear": 2001,
+        "eliteReciprocal": true,
+        "loungeReciprocal": true,
+        "historicalNote": "Seeking to bolster domestic connectivity against United, American, and Delta, TWA and America West established a reciprocal marketing alliance connecting TWA's St. Louis (STL) mega-hub to Phoenix, Las Vegas, and California routes."
+      }
+    ]
+  },
+  {
+    "carrierCode": "US",
+    "carrierName": "US Airways",
+    "programName": "Dividend Miles",
+    "activeAlliance": "oneworld",
+    "tiers": [
+      {
+        "name": "Silver Preferred",
+        "eqmRequired": 25000,
+        "eqsRequired": 30,
+        "upgradeWindowHours": 48,
+        "bonusMilesPercent": 25,
+        "loungeAccess": false,
+        "keyPerks": "1 complimentary checked bag. Preferred check-in, PreferredAccess security lane, Zone 2 boarding"
+      },
+      {
+        "name": "Gold Preferred",
+        "eqmRequired": 50000,
+        "eqsRequired": 60,
+        "upgradeWindowHours": 72,
+        "bonusMilesPercent": 50,
+        "loungeAccess": true,
+        "keyPerks": "2 complimentary checked bags. Star Alliance Gold priority baggage, fee exemptions for same-day confirmed travel"
+      },
+      {
+        "name": "Platinum Preferred",
+        "eqmRequired": 75000,
+        "eqsRequired": 90,
+        "upgradeWindowHours": 24,
+        "bonusMilesPercent": 75,
+        "loungeAccess": false,
+        "keyPerks": "3 complimentary checked bags. High-priority domestic First upgrade clearance, complimentary preferred seat selection for party"
+      },
+      {
+        "name": "Chairman's Preferred",
+        "eqmRequired": 100000,
+        "eqsRequired": 120,
+        "upgradeWindowHours": 24,
+        "bonusMilesPercent": 100,
+        "loungeAccess": true,
+        "keyPerks": "3 complimentary checked bags (70 lbs each). Systemwide Electronic Upgrade Certificates (transatlantic confirmed), top gate upgrade priority, dedicated Chairman's concierge desk"
+      }
+    ],
+    "partnerships": [
+      {
+        "partnerCarrierCode": "BA",
+        "partnerCarrierName": "British Airways",
+        "relationshipDepth": "Codeshare & Reciprocal Earn/Burn",
+        "startYear": 1993,
+        "endYear": 1999,
+        "eliteReciprocal": true,
+        "loungeReciprocal": true,
+        "historicalNote": "In 1993, British Airways purchased a $300 million (24.6%) stake in USAir. Dividend Miles members enjoyed unrivaled transatlantic access via London, while BA passengers fed into USAir's dense East Coast network (CLT, PIT, PHL). The partnership unraveled in 1998 when British Airways formed oneworld with American Airlines, forcing BA to divest its USAir stake."
+      },
+      {
+        "partnerCarrierCode": "UA",
+        "partnerCarrierName": "United Airlines",
+        "relationshipDepth": "Full Alliance / Joint Venture",
+        "startYear": 2004,
+        "endYear": 2014,
+        "eliteReciprocal": true,
+        "loungeReciprocal": true,
+        "historicalNote": "US Airways joined Star Alliance on May 4, 2004, aligning closely with United Airlines. Following US Airways' 2005 merger with America West, the combined carrier remained a loyal Star Alliance member for a decade, providing Star Alliance with massive domestic capacity in Charlotte, Philadelphia, and Phoenix."
+      },
+      {
+        "partnerCarrierCode": "AA",
+        "partnerCarrierName": "American Airlines",
+        "relationshipDepth": "Full Alliance / Joint Venture",
+        "startYear": 2014,
+        "endYear": 2015,
+        "eliteReciprocal": true,
+        "loungeReciprocal": true,
+        "historicalNote": "Upon merging with American Airlines, US Airways formally exited Star Alliance on March 30, 2014 and joined oneworld the very next day. Dividend Miles and AAdvantage operated reciprocally for one year before Dividend Miles was completely absorbed into AAdvantage in April 2015."
+      }
+    ]
+  },
+  {
+    "carrierCode": "TW",
+    "carrierName": "Trans World Airlines (TWA)",
+    "programName": "Aviators",
+    "activeAlliance": null,
+    "tiers": [
+      {
+        "name": "Select",
+        "eqmRequired": 20000,
+        "eqsRequired": 24,
+        "upgradeWindowHours": 24,
+        "bonusMilesPercent": 25,
+        "loungeAccess": false,
+        "keyPerks": "2 complimentary checked bags. Priority check-in, priority boarding, space-available Trans World First upgrade standby"
+      },
+      {
+        "name": "Elite",
+        "eqmRequired": 40000,
+        "eqsRequired": 50,
+        "upgradeWindowHours": 72,
+        "bonusMilesPercent": 50,
+        "loungeAccess": false,
+        "keyPerks": "3 complimentary checked bags. Unlimited confirmed domestic First Class upgrades at 72 hours, fee waivers"
+      },
+      {
+        "name": "Elite 1",
+        "eqmRequired": 80000,
+        "eqsRequired": 100,
+        "upgradeWindowHours": 120,
+        "bonusMilesPercent": 100,
+        "loungeAccess": false,
+        "keyPerks": "3 complimentary checked bags with heavy baggage tolerance. Guaranteed seats on sold-out flights, annual transatlantic Trans World One upgrade vouchers, VIP special assistance desk"
+      }
+    ],
+    "partnerships": [
+      {
+        "partnerCarrierCode": "HP",
+        "partnerCarrierName": "America West Airlines",
+        "relationshipDepth": "Codeshare & Reciprocal Earn/Burn",
+        "startYear": 1997,
+        "endYear": 2001,
+        "eliteReciprocal": true,
+        "loungeReciprocal": true,
+        "historicalNote": "Seeking to bolster domestic connectivity against United, American, and Delta, TWA and America West established a reciprocal marketing alliance connecting TWA's St. Louis (STL) mega-hub to Phoenix, Las Vegas, and California routes."
+      },
+      {
+        "partnerCarrierCode": "AA",
+        "partnerCarrierName": "American Airlines",
+        "relationshipDepth": "Full Alliance / Joint Venture",
+        "startYear": 2001,
+        "endYear": 2001,
+        "eliteReciprocal": true,
+        "loungeReciprocal": true,
+        "historicalNote": "American Airlines acquired TWA's assets in April 2001 out of bankruptcy. Aviators accounts were transitioned into AAdvantage, and TWA's Ambassadors Clubs were converted into Admirals Clubs. The acquisition briefly made American the world's largest airline."
+      }
+    ]
+  },
+  {
+    "carrierCode": "DL",
+    "carrierName": "Delta Air Lines",
+    "programName": "SkyMiles",
+    "activeAlliance": "SkyTeam",
+    "tiers": [
+      {
+        "name": "Silver Medallion",
+        "eqmRequired": 25000,
+        "eqsRequired": 30,
+        "upgradeWindowHours": 24,
+        "bonusMilesPercent": 40,
+        "loungeAccess": false,
+        "keyPerks": "1 complimentary checked bag (70 lbs on domestic flights). Priority check-in, Main Cabin 1 priority boarding, SkyTeam Elite recognition"
+      },
+      {
+        "name": "Gold Medallion",
+        "eqmRequired": 50000,
+        "eqsRequired": 60,
+        "upgradeWindowHours": 72,
+        "bonusMilesPercent": 60,
+        "loungeAccess": true,
+        "keyPerks": "2 complimentary checked bags (70 lbs each). SkyPriority check-in, security, expedited baggage, and complimentary Comfort+ seating at 72 hours"
+      },
+      {
+        "name": "Platinum Medallion",
+        "eqmRequired": 75000,
+        "eqsRequired": 90,
+        "upgradeWindowHours": 120,
+        "bonusMilesPercent": 80,
+        "loungeAccess": true,
+        "keyPerks": "3 complimentary checked bags (70 lbs each). Immediate complimentary Comfort+ seat selection upon ticketing, 1 Choice Benefit selection (e.g. Regional Upgrade Certificates), fee exemptions"
+      },
+      {
+        "name": "Diamond Medallion",
+        "eqmRequired": 125000,
+        "eqsRequired": 140,
+        "upgradeWindowHours": 120,
+        "bonusMilesPercent": 120,
+        "loungeAccess": false,
+        "keyPerks": "3 complimentary checked bags (70 lbs each) with SkyPriority yellow tags. Global Upgrade Certificates (transoceanic confirmed into Delta One), CLEAR Plus credit, highest boarding priority behind Delta One"
+      },
+      {
+        "name": "Delta 360\u00b0",
+        "eqmRequired": 25000,
+        "eqsRequired": 30,
+        "upgradeWindowHours": 24,
+        "bonusMilesPercent": 120,
+        "loungeAccess": true,
+        "keyPerks": "3 complimentary checked bags + private apron tarmac transfers in Porsche vehicles. Direct executive phone concierge, dedicated tarmac monitoring, top IRROPS rerouting protection"
+      }
+    ],
+    "partnerships": [
+      {
+        "partnerCarrierCode": "AS",
+        "partnerCarrierName": "Alaska Airlines",
+        "relationshipDepth": "Codeshare & Reciprocal Earn/Burn",
+        "startYear": 2004,
+        "endYear": 2017,
+        "eliteReciprocal": true,
+        "loungeReciprocal": true,
+        "historicalNote": "Initially a cozy codeshare where Alaska fed Delta's transpacific expansion from Seattle-Tacoma (SEA). However, around 2013 Delta decided to build Seattle into a massive global hub of its own, directly duplicating Alaska's most profitable West Coast routes. Tensions escalated into a full-scale corporate dogfight, resulting in Delta cutting all reciprocal elite benefits and terminating the partnership on April 30, 2017."
+      },
+      {
+        "partnerCarrierCode": "PA",
+        "partnerCarrierName": "Pan Am",
+        "relationshipDepth": "Full Alliance / Joint Venture",
+        "startYear": 1991,
+        "endYear": 1991,
+        "eliteReciprocal": true,
+        "loungeReciprocal": true,
+        "historicalNote": "In August 1991, Delta acquired Pan Am's transatlantic routes, JFK Worldport hub, and Pan Am Shuttle for $416 million. Delta guaranteed all WorldPass miles, honoring them for awards on Delta's worldwide network. When Pan Am shut down permanently on December 4, 1991, Delta absorbed the remaining loyalists, propelling Delta into a premier transatlantic powerhouse."
+      },
+      {
+        "partnerCarrierCode": "AF",
+        "partnerCarrierName": "Air France",
+        "relationshipDepth": "Full Alliance / Joint Venture",
+        "startYear": 2000,
+        "endYear": null,
+        "eliteReciprocal": true,
+        "loungeReciprocal": true,
+        "historicalNote": "Delta Air Lines and Air France co-founded SkyTeam on June 22, 2000. In 2008, following Air France's merger with KLM, Delta, Air France, and KLM established the aviation industry's largest immunized transatlantic joint venture."
+      }
+    ]
+  },
+  {
+    "carrierCode": "AA",
+    "carrierName": "American Airlines",
+    "programName": "AAdvantage",
+    "activeAlliance": "oneworld",
+    "tiers": [
+      {
+        "name": "AAdvantage Gold",
+        "eqmRequired": 25000,
+        "eqsRequired": 30,
+        "upgradeWindowHours": 24,
+        "bonusMilesPercent": 40,
+        "loungeAccess": false,
+        "keyPerks": "1 complimentary checked bag (50 lbs). Priority check-in, priority security, Group 4 boarding, oneworld Ruby status worldwide"
+      },
+      {
+        "name": "AAdvantage Platinum",
+        "eqmRequired": 50000,
+        "eqsRequired": 60,
+        "upgradeWindowHours": 48,
+        "bonusMilesPercent": 60,
+        "loungeAccess": true,
+        "keyPerks": "2 complimentary checked bags (50 lbs each). Priority baggage delivery, Group 3 boarding, complimentary Main Cabin Extra seats at booking"
+      },
+      {
+        "name": "AAdvantage Platinum Pro",
+        "eqmRequired": 75000,
+        "eqsRequired": 90,
+        "upgradeWindowHours": 72,
+        "bonusMilesPercent": 80,
+        "loungeAccess": true,
+        "keyPerks": "3 complimentary checked bags (70 lbs each). Complimentary upgrades on Alaska Airlines, Group 2 boarding, fee waivers on same-day confirmed flight changes"
+      },
+      {
+        "name": "Executive Platinum",
+        "eqmRequired": 100000,
+        "eqsRequired": 120,
+        "upgradeWindowHours": 120,
+        "bonusMilesPercent": 120,
+        "loungeAccess": true,
+        "keyPerks": "3 complimentary checked bags (70 lbs each). Systemwide Upgrades (SWUs) redeemable from Economy to Business/First transpacific/transatlantic, Group 1 boarding, dedicated EXP desk"
+      },
+      {
+        "name": "ConciergeKey",
+        "eqmRequired": 25000,
+        "eqsRequired": 30,
+        "upgradeWindowHours": 120,
+        "bonusMilesPercent": 120,
+        "loungeAccess": true,
+        "keyPerks": "3 complimentary checked bags with tarmac baggage expediting. Private tarmac transfers in Cadillac luxury vehicles, pre-boarding before Group 1, dedicated 24/7 ConciergeKey phone desk"
+      }
+    ],
+    "partnerships": [
+      {
+        "partnerCarrierCode": "AS",
+        "partnerCarrierName": "Alaska Airlines",
+        "relationshipDepth": "Full Alliance / Joint Venture",
+        "startYear": 1999,
+        "endYear": null,
+        "eliteReciprocal": true,
+        "loungeReciprocal": true,
+        "historicalNote": "Started in 1999 as a domestic bilateral codeshare that weathered multiple industry shakeups. When Delta launched its aggressive Seattle invasion, Alaska and American strengthened their West Coast Alliance in 2020. This culminated in Alaska Airlines formally joining the oneworld global alliance on March 31, 2021, cementing complete reciprocal loyalty integration."
+      },
+      {
+        "partnerCarrierCode": "US",
+        "partnerCarrierName": "US Airways",
+        "relationshipDepth": "Full Alliance / Joint Venture",
+        "startYear": 2014,
+        "endYear": 2015,
+        "eliteReciprocal": true,
+        "loungeReciprocal": true,
+        "historicalNote": "Upon merging with American Airlines, US Airways formally exited Star Alliance on March 30, 2014 and joined oneworld the very next day. Dividend Miles and AAdvantage operated reciprocally for one year before Dividend Miles was completely absorbed into AAdvantage in April 2015."
+      },
+      {
+        "partnerCarrierCode": "TW",
+        "partnerCarrierName": "TWA",
+        "relationshipDepth": "Full Alliance / Joint Venture",
+        "startYear": 2001,
+        "endYear": 2001,
+        "eliteReciprocal": true,
+        "loungeReciprocal": true,
+        "historicalNote": "American Airlines acquired TWA's assets in April 2001 out of bankruptcy. Aviators accounts were transitioned into AAdvantage, and TWA's Ambassadors Clubs were converted into Admirals Clubs. The acquisition briefly made American the world's largest airline."
+      },
+      {
+        "partnerCarrierCode": "BA",
+        "partnerCarrierName": "British Airways",
+        "relationshipDepth": "Full Alliance / Joint Venture",
+        "startYear": 1999,
+        "endYear": null,
+        "eliteReciprocal": true,
+        "loungeReciprocal": true,
+        "historicalNote": "Founding cornerstone of oneworld. After years of regulatory review, American and British Airways secured DOT antitrust immunity in 2010 for their transatlantic Joint Business Agreement (JBA), aligning JFK-LHR shuttles and joint frequent flyer benefits."
+      }
+    ]
+  },
+  {
+    "carrierCode": "UA",
+    "carrierName": "United Airlines",
+    "programName": "MileagePlus",
+    "activeAlliance": "Star Alliance",
+    "tiers": [
+      {
+        "name": "Premier Silver",
+        "eqmRequired": 25000,
+        "eqsRequired": 30,
+        "upgradeWindowHours": 24,
+        "bonusMilesPercent": 40,
+        "loungeAccess": false,
+        "keyPerks": "1 complimentary checked bag (70 lbs). Premier Access check-in and priority security, Group 2 boarding, complimentary Economy Plus at check-in"
+      },
+      {
+        "name": "Premier Gold",
+        "eqmRequired": 50000,
+        "eqsRequired": 60,
+        "upgradeWindowHours": 48,
+        "bonusMilesPercent": 60,
+        "loungeAccess": true,
+        "keyPerks": "2 complimentary checked bags (70 lbs each). Complimentary Economy Plus seat selection at booking for member + 1 companion, Group 1 boarding, Star Gold baggage handling"
+      },
+      {
+        "name": "Premier Platinum",
+        "eqmRequired": 75000,
+        "eqsRequired": 90,
+        "upgradeWindowHours": 72,
+        "bonusMilesPercent": 80,
+        "loungeAccess": true,
+        "keyPerks": "3 complimentary checked bags (70 lbs each). 40 PlusPoints awarded annually (redeemable for domestic First / transcon premium upgrades), Economy Plus for up to 8 companions"
+      },
+      {
+        "name": "Premier 1K",
+        "eqmRequired": 100000,
+        "eqsRequired": 120,
+        "upgradeWindowHours": 24,
+        "bonusMilesPercent": 100,
+        "loungeAccess": false,
+        "keyPerks": "3 complimentary checked bags (70 lbs each). 280 PlusPoints (redeemable for intercontinental United Polaris upgrades), pre-boarding before Group 1, free snack/beverage in Economy"
+      },
+      {
+        "name": "Global Services",
+        "eqmRequired": 25000,
+        "eqsRequired": 30,
+        "upgradeWindowHours": 120,
+        "bonusMilesPercent": 100,
+        "loungeAccess": true,
+        "keyPerks": "3 complimentary checked bags with Mercedes-Benz tarmac transfer assistance. Private check-in lobbies at SFO, ORD, EWR, IAH; dedicated 24/7 Global Services phone line; priority boarding ahead of all passengers"
+      }
+    ],
+    "partnerships": [
+      {
+        "partnerCarrierCode": "PA",
+        "partnerCarrierName": "Pan Am",
+        "relationshipDepth": "Bilateral Reciprocal Earn/Burn",
+        "startYear": 1985,
+        "endYear": 1991,
+        "eliteReciprocal": false,
+        "loungeReciprocal": false,
+        "historicalNote": "In 1985, financially strained Pan Am sold its entire Pacific division and Tokyo hub to United for $750 million. The carriers established reciprocal WorldPass and MileagePlus redemption so travelers could connect between Pan Am's domestic/Atlantic network and United's new transpacific flights."
+      },
+      {
+        "partnerCarrierCode": "US",
+        "partnerCarrierName": "US Airways",
+        "relationshipDepth": "Full Alliance / Joint Venture",
+        "startYear": 2004,
+        "endYear": 2014,
+        "eliteReciprocal": true,
+        "loungeReciprocal": true,
+        "historicalNote": "US Airways joined Star Alliance on May 4, 2004, aligning closely with United Airlines. Following US Airways' 2005 merger with America West, the combined carrier remained a loyal Star Alliance member for a decade, providing Star Alliance with massive domestic capacity in Charlotte, Philadelphia, and Phoenix."
+      },
+      {
+        "partnerCarrierCode": "LH",
+        "partnerCarrierName": "Lufthansa",
+        "relationshipDepth": "Full Alliance / Joint Venture",
+        "startYear": 1993,
+        "endYear": null,
+        "eliteReciprocal": true,
+        "loungeReciprocal": true,
+        "historicalNote": "Forged in 1993, United and Lufthansa's bilateral ties directly inspired the creation of Star Alliance in 1997. It remains one of commercial aviation's most lucrative and enduring immunized transatlantic partnerships."
+      }
+    ]
+  },
+  {
+    "carrierCode": "EA",
+    "carrierName": "Eastern Air Lines",
+    "programName": "Ionosphere Club / OnePass",
+    "activeAlliance": null,
+    "tiers": [
+      {
+        "name": "Bronze OnePass",
+        "eqmRequired": 25000,
+        "eqsRequired": 30,
+        "upgradeWindowHours": 24,
+        "bonusMilesPercent": 25,
+        "loungeAccess": false,
+        "keyPerks": "2 complimentary checked bags. Priority check-in counters and baggage handling"
+      },
+      {
+        "name": "Silver OnePass",
+        "eqmRequired": 50000,
+        "eqsRequired": 60,
+        "upgradeWindowHours": 48,
+        "bonusMilesPercent": 50,
+        "loungeAccess": false,
+        "keyPerks": "3 complimentary checked bags. Space-available complimentary first-class upgrades across both Eastern and Continental networks"
+      },
+      {
+        "name": "Gold OnePass",
+        "eqmRequired": 75000,
+        "eqsRequired": 90,
+        "upgradeWindowHours": 72,
+        "bonusMilesPercent": 100,
+        "loungeAccess": false,
+        "keyPerks": "3 complimentary checked bags (heavy baggage allowance). Highest upgrade priority on Eastern Whisperjet A300 and Boeing 757 flights; guaranteed seat on Eastern Shuttle (LGA-BOS-DCA)"
+      }
+    ],
+    "partnerships": [
+      {
+        "partnerCarrierCode": "CO",
+        "partnerCarrierName": "Continental Airlines",
+        "relationshipDepth": "Full Alliance / Joint Venture",
+        "startYear": 1987,
+        "endYear": 1991,
+        "eliteReciprocal": true,
+        "loungeReciprocal": true,
+        "historicalNote": "Following Frank Lorenzo's Texas Air acquisition of Eastern in 1986, the loyalty departments were merged in 1987 into 'OnePass'. It was the first time two major US legacy airlines shared a single frequent flyer program. Flyers could earn miles on Eastern's Miami (MIA), Atlanta (ATL), and East Coast Shuttles and redeem on Continental's Denver (DEN) and Houston (IAH) routes. When Eastern collapsed in January 1991, Continental retained the entire OnePass database."
+      }
+    ]
+  },
+  {
+    "carrierCode": "PA",
+    "carrierName": "Pan American World Airways (Pan Am)",
+    "programName": "WorldPass",
+    "activeAlliance": null,
+    "tiers": [
+      {
+        "name": "WorldPass Preferred",
+        "eqmRequired": 30000,
+        "eqsRequired": 20,
+        "upgradeWindowHours": 48,
+        "bonusMilesPercent": 25,
+        "loungeAccess": false,
+        "keyPerks": "2 complimentary checked bags. Priority Clipper Class check-in, priority boarding, standby first-class upgrade vouchers"
+      },
+      {
+        "name": "WorldPass Platinum / Clipper Executive",
+        "eqmRequired": 75000,
+        "eqsRequired": 50,
+        "upgradeWindowHours": 72,
+        "bonusMilesPercent": 50,
+        "loungeAccess": true,
+        "keyPerks": "3 complimentary checked bags (70 lbs each). Confirmed First Class sleeper seat upgrades on Boeing 747 intercontinental routes; personal Clipper concierge at gateway airports"
+      }
+    ],
+    "partnerships": [
+      {
+        "partnerCarrierCode": "UA",
+        "partnerCarrierName": "United Airlines",
+        "relationshipDepth": "Bilateral Reciprocal Earn/Burn",
+        "startYear": 1985,
+        "endYear": 1991,
+        "eliteReciprocal": false,
+        "loungeReciprocal": false,
+        "historicalNote": "In 1985, financially strained Pan Am sold its entire Pacific division and Tokyo hub to United for $750 million. The carriers established reciprocal WorldPass and MileagePlus redemption so travelers could connect between Pan Am's domestic/Atlantic network and United's new transpacific flights."
+      },
+      {
+        "partnerCarrierCode": "DL",
+        "partnerCarrierName": "Delta Air Lines",
+        "relationshipDepth": "Full Alliance / Joint Venture",
+        "startYear": 1991,
+        "endYear": 1991,
+        "eliteReciprocal": true,
+        "loungeReciprocal": true,
+        "historicalNote": "In August 1991, Delta acquired Pan Am's transatlantic routes, JFK Worldport hub, and Pan Am Shuttle for $416 million. Delta guaranteed all WorldPass miles, honoring them for awards on Delta's worldwide network. When Pan Am shut down permanently on December 4, 1991, Delta absorbed the remaining loyalists, propelling Delta into a premier transatlantic powerhouse."
+      }
+    ]
+  }
+]

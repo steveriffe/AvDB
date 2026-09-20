@@ -10,7 +10,7 @@ from fastapi.responses import JSONResponse
 from api.config import settings
 from api.schemas import SettingsResponse
 from api.cache import get_cache
-from api.routers import airports, airlines, fleet
+from api.routers import airports, airlines, fleet, loyalty
 
 app = FastAPI(
     title="AvDB Native API",
@@ -48,6 +48,7 @@ async def add_process_time_header(request: Request, call_next):
 app.include_router(airports.router)
 app.include_router(airlines.router)
 app.include_router(fleet.router)
+app.include_router(loyalty.router)
 
 
 # -------------------------------------------------------------
@@ -64,15 +65,20 @@ def root():
             "/api/airports",
             "/api/airports/{code}/routes",
             "/api/airports/{code}/kpis",
+            "/api/airlines",
             "/api/airlines/{code}/network",
             "/api/airlines/{code}/kpis",
+            "/api/fleet",
             "/api/fleet/summary",
-            "/api/settings"
+            "/api/loyalty",
+            "/api/settings",
+            "/api/health"
         ]
     }
 
 
 @app.get("/health", tags=["Root"])
+@app.get("/api/health", tags=["Root"])
 def health():
     cache = get_cache()
     return {

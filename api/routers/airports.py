@@ -38,26 +38,31 @@ MOCK_AIRPORTS = [
 
 @router.get("", response_model=List[Airport])
 def list_airports() -> List[Airport]:
-    """Fetches list of active commercial and metro airports."""
+    """Fetches list of active commercial and metro airports ordered by commercial traffic volume."""
     query = f"""
-        SELECT DISTINCT 
+        SELECT 
             m.origin AS airport_code,
-            COALESCE(a.airport_name, m.origin_name, m.origin) AS airport_name,
-            COALESCE(a.city, m.origin_city, '') AS city,
-            COALESCE(a.state_region, m.origin_state, '') AS state,
-            COALESCE(a.country, m.origin_country, 'US') AS country,
-            COALESCE(a.is_commercial, TRUE) AS is_commercial,
-            COALESCE(a.is_metro_code, FALSE) AS is_metro_code,
-            COALESCE(a.latitude, m.origin_lat) AS latitude,
-            COALESCE(a.longitude, m.origin_lon) AS longitude
+            COALESCE(ANY_VALUE(a.airport_name), ANY_VALUE(m.origin_name), m.origin) AS airport_name,
+            COALESCE(ANY_VALUE(a.city), ANY_VALUE(m.origin_city), '') AS city,
+            COALESCE(ANY_VALUE(a.state_region), ANY_VALUE(m.origin_state), '') AS state,
+            COALESCE(ANY_VALUE(a.country), ANY_VALUE(m.origin_country), 'US') AS country,
+            TRUE AS is_commercial,
+            COALESCE(ANY_VALUE(a.is_metro_code), FALSE) AS is_metro_code,
+            COALESCE(ANY_VALUE(a.latitude), ANY_VALUE(m.origin_lat)) AS latitude,
+            COALESCE(ANY_VALUE(a.longitude), ANY_VALUE(m.origin_lon)) AS longitude,
+            SUM(m.operational_passengers) AS total_passengers
         FROM `{settings.dataset_reporting}.mart_airport_network_summary` m
         LEFT JOIN `{settings.dataset_reporting}.ref_airports` a
             ON m.origin = a.airport_code
-        WHERE m.year >= 2023 AND m.operational_passengers > 0
-        ORDER BY is_metro_code DESC, is_commercial DESC, airport_code ASC
+        WHERE m.year >= 2023 
+          AND LENGTH(m.origin) = 3 
+          AND NOT REGEXP_CONTAINS(m.origin, r'^[0-9]')
+        GROUP BY m.origin
+        HAVING total_passengers >= 5000
+        ORDER BY total_passengers DESC
     """
     try:
-        results = execute_query(query, cache_key="api_airports_catalog")
+        results = execute_query(query, cache_key="api_airports_catalog_v2")
         if results:
             return [Airport(**r) for r in results]
     except Exception:

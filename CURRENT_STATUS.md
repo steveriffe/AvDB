@@ -1,29 +1,28 @@
 # Current Project Status: AvDB
 
-**Last Updated**: 2026-09-19
-**Current Phase**: Phase 27 Delivered (Native iOS BigQuery Engine Overhaul, Cloud Run API Deployment, Swift Charts, Interactive Year Scrubbing & TestFlight Build 4)
+**Last Updated**: 2026-09-20
+**Current Phase**: Phase 28 Delivered (Live BigQuery Engine iOS Activation, Cloud Run API Deployment Revision 4, Dedicated Settings Tab, Commercial Hub Traffic Prioritization & Build 5)
 ---
 
 ## 🎯 Active Focus
-Delivered major analytical and mobile milestones to transform the iOS app into a live, interactive BigQuery powerhouse:
+Resolved all friction points preventing native iOS access to the live BigQuery-driven warehouse and deployed API Revision 4:
 
-1. **Dedicated Cloud Run API Deployment (`avdb-api`)**:
-   - Built and deployed containerized FastAPI service on Google Cloud Run (`https://avdb-api-448864711884.us-west1.run.app` / `https://avdb-api-r5nljykzea-uw.a.run.app`).
-   - Enables native unauthenticated REST access to BigQuery reporting marts without requiring web browser OAuth redirects.
-   - Sub-second cached responses for airport KPIs, longitudinal timelines (1990–2025), carrier seat shares, route networks, and yield curves.
-2. **Interactive Filtering Experience (`FilterBarView.swift`)**:
-   - **Year Scrubbing (1990–2025)**: Universal interactive year picker and quick-scrub buttons across all airport and airline detail views.
-   - **Service Mode Toggle**: Switch between Passenger Flights Only and All Operations (Cargo/Charters).
-   - **Frequency Thresholds**: Segmented frequency filter ($\ge 10$ flights standard, $\ge 50$ weekly+, $\ge 365$ daily, or all operations).
-3. **Swift Charts Integration**:
-   - **Airports Radar**: 35-Year Passenger Volume History bar chart (1990–2025) with peak year badge; Carrier Market Seat Share horizontal bar chart.
-   - **Airlines Radar**: ASM vs RPM capacity and traffic dual-series curve (1990–2025); Stage Length vs Fare Yield scatter curve showing route economics.
-   - **Fleet & Gauge**: Manufacturer filter pills (Boeing, Airbus, McDonnell Douglas, Widebody) and subfleet economics cards.
-4. **Route Network Integrity & Rich Fallbacks**:
-   - Eliminated self-referential circular routes (e.g. `ORD-ORD`) across both BigQuery SQL (`AND dest != @airport_code`) and client-side decoders.
-   - Implemented dynamic fallback route generator creating 18+ high-density non-circular routes with great-circle math and realistic fares.
-5. **App Store Connect / TestFlight Deployment**:
-   - Successfully archived and uploaded **Build 3** and **Build 4** to TestFlight.
+1. **Dedicated Settings & Engine Status Tab (`RootTabView.swift`, `SettingsView.swift`)**:
+   - Added a dedicated 6th tab for **Settings** in the main navigation bar.
+   - Introduced **Data Engine Status** header with real-time indicators: **LIVE (BigQuery Engine)** vs **DEMO (Offline Sandbox)**.
+   - Fixed Health Check endpoint to support both `/api/health` and `/health`, returning exact roundtrip latency (e.g. `200 OK (185ms)`).
+2. **Commercial Hub Traffic Prioritization (`api/routers/airports.py`)**:
+   - Refactored `list_airports` query to order by commercial passenger volume (`SUM(operational_passengers) DESC`) and exclude 0-passenger private airstrips (`1CT`, `1NJ`...).
+   - The top 150 commercial airports in the iOS catalog now immediately surface major hubs (`ATL`, `DFW`, `DEN`, `ORD`, `LAX`, `JFK`, `SEA`, `SFO`...), each backed by full historical BigQuery data.
+3. **Full Native Fleet & Loyalty API Routes (`api/routers/fleet.py`, `api/routers/loyalty.py`)**:
+   - Added native `GET /api/fleet` serving commercial aircraft families (`Airbus A320`, `Boeing 737`, `787 Dreamliner`, `E-Jets`, `CRJ`, `MD-80`) with subfleet gauge economics.
+   - Implemented self-contained `GET /api/loyalty` serving 11 US carrier frequent flyer programs, elite status tiers, and bilateral deregulation partnerships.
+4. **Cloud Run Cold-Start Resilience**:
+   - Increased URLSession request timeout to 35 seconds to comfortably cover container cold starts.
+   - Rebuilt container and deployed revision `avdb-api-00004-6s2` serving 100% of production traffic at `https://avdb-api-448864711884.us-west1.run.app`.
+5. **Xcode Compilation & Build 5 Verification**:
+   - Verified 100% clean compilation in Xcode (`xcodebuild` succeeded with 0 errors).
+   - Bumped `CFBundleVersion` / `CURRENT_PROJECT_VERSION` to **5**.
 
 **Design Critique Score: 9.8 / 10.0 🟢 PASSED** (Threshold: 8.0, Target: 8.5)
 | Dimension | Score | Status |

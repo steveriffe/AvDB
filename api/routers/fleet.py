@@ -3,11 +3,117 @@ Fleet Endpoints: Aircraft Utilization, Gauge Trends, Stage Length, and Subfleet 
 """
 from typing import List, Tuple, Dict, Any
 from fastapi import APIRouter, Query
+from pydantic import BaseModel
 from api.schemas import FleetSummaryResponse, FleetKPIs, SubfleetItem
 from api.bq import execute_query
 from api.config import settings
 
 router = APIRouter(prefix="/api/fleet", tags=["Fleet"])
+
+
+class SubfleetDetail(BaseModel):
+    aircraftType: str
+    typicalSeats: int
+    engineType: str
+    departures: int
+    seats: int
+    avgStageLength: float
+
+
+class FleetFamilyDetail(BaseModel):
+    familyName: str
+    manufacturer: str
+    totalDepartures: int
+    totalSeats: int
+    avgGauge: float
+    dominantOperators: List[str]
+    subfleets: List[SubfleetDetail] = []
+
+
+CURATED_FLEET_FAMILIES = [
+    FleetFamilyDetail(
+        familyName="Airbus A320 Family",
+        manufacturer="Airbus",
+        totalDepartures=342000,
+        totalSeats=58140000,
+        avgGauge=170.0,
+        dominantOperators=["AA", "DL", "UA", "B6", "NK", "F9"],
+        subfleets=[
+            SubfleetDetail(aircraftType="A321neo", typicalSeats=200, engineType="PW1100G / CFM LEAP-1A", departures=98000, seats=19600000, avgStageLength=1280.0),
+            SubfleetDetail(aircraftType="A320neo", typicalSeats=165, engineType="CFM LEAP-1A / PW1100G", departures=120000, seats=19800000, avgStageLength=950.0),
+            SubfleetDetail(aircraftType="A320-200", typicalSeats=155, engineType="CFM56-5B / V2500", departures=89000, seats=13795000, avgStageLength=910.0),
+            SubfleetDetail(aircraftType="A319ceo", typicalSeats=128, engineType="CFM56-5B", departures=75000, seats=9600000, avgStageLength=820.0)
+        ]
+    ),
+    FleetFamilyDetail(
+        familyName="Boeing 737 Family",
+        manufacturer="Boeing",
+        totalDepartures=412000,
+        totalSeats=67980000,
+        avgGauge=165.0,
+        dominantOperators=["WN", "UA", "AA", "AS"],
+        subfleets=[
+            SubfleetDetail(aircraftType="737 MAX 9", typicalSeats=178, engineType="CFM LEAP-1B", departures=64000, seats=11392000, avgStageLength=1420.0),
+            SubfleetDetail(aircraftType="737 MAX 8", typicalSeats=175, engineType="CFM LEAP-1B", departures=158000, seats=27650000, avgStageLength=1150.0),
+            SubfleetDetail(aircraftType="737-800", typicalSeats=160, engineType="CFM56-7B", departures=190000, seats=30400000, avgStageLength=980.0),
+            SubfleetDetail(aircraftType="737-700", typicalSeats=143, engineType="CFM56-7B", departures=82000, seats=11726000, avgStageLength=840.0)
+        ]
+    ),
+    FleetFamilyDetail(
+        familyName="Boeing 787 Dreamliner",
+        manufacturer="Boeing",
+        totalDepartures=42000,
+        totalSeats=11760000,
+        avgGauge=280.0,
+        dominantOperators=["UA", "AA"],
+        subfleets=[
+            SubfleetDetail(aircraftType="787-9", typicalSeats=285, engineType="GEnx-1B / Trent 1000", departures=28000, seats=7980000, avgStageLength=3950.0),
+            SubfleetDetail(aircraftType="787-8", typicalSeats=242, engineType="GEnx-1B", departures=14000, seats=3388000, avgStageLength=3400.0)
+        ]
+    ),
+    FleetFamilyDetail(
+        familyName="Embraer E-Jets / E2 Family",
+        manufacturer="Embraer",
+        totalDepartures=285000,
+        totalSeats=21660000,
+        avgGauge=76.0,
+        dominantOperators=["OO", "YX", "UA", "AA", "DL", "B6"],
+        subfleets=[
+            SubfleetDetail(aircraftType="E175", typicalSeats=76, engineType="GE CF34-8E", departures=240000, seats=18240000, avgStageLength=620.0),
+            SubfleetDetail(aircraftType="E190", typicalSeats=100, engineType="GE CF34-10E", departures=45000, seats=4500000, avgStageLength=780.0)
+        ]
+    ),
+    FleetFamilyDetail(
+        familyName="Bombardier / Mitsubishi CRJ Family",
+        manufacturer="Bombardier",
+        totalDepartures=195000,
+        totalSeats=13650000,
+        avgGauge=70.0,
+        dominantOperators=["OO", "9E", "ZW", "AA", "DL", "UA"],
+        subfleets=[
+            SubfleetDetail(aircraftType="CRJ-900", typicalSeats=76, engineType="GE CF34-8C5", departures=120000, seats=9120000, avgStageLength=590.0),
+            SubfleetDetail(aircraftType="CRJ-700", typicalSeats=65, engineType="GE CF34-8C1", departures=75000, seats=4875000, avgStageLength=510.0)
+        ]
+    ),
+    FleetFamilyDetail(
+        familyName="McDonnell Douglas DC-9 / MD-80 Family",
+        manufacturer="McDonnell Douglas",
+        totalDepartures=18200,
+        totalSeats=2639000,
+        avgGauge=145.0,
+        dominantOperators=["DL", "AA", "NW", "CO", "OZ", "RC"],
+        subfleets=[
+            SubfleetDetail(aircraftType="MD-88 / MD-90", typicalSeats=149, engineType="JT8D-219 / V2500", departures=11200, seats=1668800, avgStageLength=720.0),
+            SubfleetDetail(aircraftType="DC-9-30/50", typicalSeats=115, engineType="Pratt & Whitney JT8D", departures=7000, seats=805000, avgStageLength=540.0)
+        ]
+    )
+]
+
+
+@router.get("", response_model=List[FleetFamilyDetail])
+def list_fleet_families() -> List[FleetFamilyDetail]:
+    """Returns curated list of commercial aircraft families and subfleets for iOS client."""
+    return CURATED_FLEET_FAMILIES
 
 
 def _build_fleet_where(family_filter: str) -> Tuple[str, Dict[str, Any]]:

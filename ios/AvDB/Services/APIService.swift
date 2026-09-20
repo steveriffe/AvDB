@@ -10,7 +10,7 @@ public actor APIService {
 
     private init() {
         let config = URLSessionConfiguration.default
-        config.timeoutIntervalForRequest = 15
+        config.timeoutIntervalForRequest = 35
         config.waitsForConnectivity = true
         self.session = URLSession(configuration: config)
     }
@@ -49,14 +49,19 @@ public actor APIService {
 
         do {
             let (data, response) = try await session.data(from: requestURL)
-            guard let httpResp = response as? HTTPURLResponse, (200...299).contains(httpResp.statusCode) else {
+            guard let httpResp = response as? HTTPURLResponse else {
+                print("AvDB API non-HTTP response for \(requestURL.absoluteString)")
+                return fallback()
+            }
+            guard (200...299).contains(httpResp.statusCode) else {
+                print("AvDB API HTTP \(httpResp.statusCode) error for \(requestURL.absoluteString)")
                 return fallback()
             }
             let decoded = try JSONDecoder().decode(T.self, from: data)
             cache[requestURL.absoluteString] = (data, Date())
             return decoded
         } catch {
-            print("AvDB API fetch fallback for \(requestURL.absoluteString): \(error.localizedDescription)")
+            print("AvDB API fetch error for \(requestURL.absoluteString): \(error)")
             return fallback()
         }
     }
